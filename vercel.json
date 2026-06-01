@@ -1,0 +1,37 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/monitor", "destination": "/monitor.html" },
+    { "source": "/aviso-legal", "destination": "/aviso-legal.html" },
+    { "source": "/politica-privacidad", "destination": "/politica-privacidad.html" }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "dbcg.es" }],
+      "destination": "https://www.dbcg.es/:path*",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/favicon.ico",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=604800" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBCG — Dirección y transformación para empresas que saben durar</title>
+<meta name="description" content="Dirección de operaciones y transformación a tiempo parcial para PyMEs con trayectoria. Veinticinco años dirigiendo empresas, ahora potenciado por inteligencia artificial. Estructura y criterio sin contratar a tiempo completo.">
+<meta property="og:title" content="DBCG — Dirección y transformación para empresas que saben durar">
+<meta property="og:description" content="Un ejecutivo con 25 años dirigiendo empresas, a tiempo parcial. Estructura, criterio y transformación para PyMEs con trayectoria.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.dbcg.es/">
+<meta property="og:site_name" content="DBCG">
+<meta property="og:locale" content="es_ES">
+<meta property="og:image" content="https://www.dbcg.es/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="DBCG — Dirección y transformación para empresas que saben durar">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DBCG — Dirección y transformación para empresas que saben durar">
+<meta name="twitter:description" content="Un ejecutivo con 25 años dirigiendo empresas, a tiempo parcial. Estructura, criterio y transformación para PyMEs con trayectoria.">
+<meta name="twitter:image" content="https://www.dbcg.es/assets/og-image.png">
+<link rel="canonical" href="https://www.dbcg.es/">
+<meta name="theme-color" content="#0A0C10">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C10; --bg-2:#0F131A; --surface:#141922;
+  --line:rgba(224,232,245,.09); --line-2:rgba(224,232,245,.16);
+  --ink:#E6ECF5; --ink-2:#9AA4B4; --ink-3:#5C6675;
+  --accent:#3FA9FF; --accent-deep:#1E7FD4; --accent-soft:rgba(63,169,255,.10);
+  --serif:'Fraunces',Georgia,serif; --sans:'Hanken Grotesk',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:400;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::after{content:"";position:fixed;top:-15%;right:-8%;width:680px;height:680px;background:radial-gradient(circle,rgba(63,169,255,.07),transparent 62%);pointer-events:none;z-index:0}
+.wrap{max-width:1080px;margin:0 auto;padding:0 32px;position:relative;z-index:1}
+.narrow{max-width:760px}
+a{color:inherit;text-decoration:none}
+.mono{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(10,12,16,.78);border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:72px}
+.brand img{height:25px;display:block}
+.nav-links{display:flex;align-items:center;gap:32px;font-size:14px;color:var(--ink-2)}
+.nav-links a.lnk{transition:color .2s}
+.nav-links a.lnk:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:14px;font-weight:500;padding:11px 22px;border-radius:3px;background:var(--accent);color:#04101c;border:1px solid var(--accent);transition:transform .18s ease,background .2s;cursor:pointer}
+.btn:hover{background:var(--accent-deep);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line-2)}
+.btn-ghost:hover{background:var(--surface);border-color:var(--ink-3)}
+@media(max-width:680px){.nav-links .lnk{display:none}}
+
+header{padding:104px 0 96px;position:relative}
+.kicker{display:inline-flex;align-items:center;gap:11px;margin-bottom:34px}
+.kicker .dot{width:5px;height:5px;background:var(--accent);border-radius:50%;box-shadow:0 0 9px var(--accent)}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(32px,4.6vw,52px);line-height:1.1;letter-spacing:-.018em;max-width:24ch}
+h1 .em{color:var(--accent);font-style:italic;font-weight:400}
+.hero-sub{margin-top:32px;max-width:60ch;font-size:clamp(16px,1.6vw,19px);color:var(--ink-2);line-height:1.7}
+.hero-cta{margin-top:42px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.hero-note{font-size:13.5px;color:var(--ink-3)}
+.reveal{opacity:0;transform:translateY(16px);animation:rise .9s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.16s}.d3{animation-delay:.28s}.d4{animation-delay:.4s}
+@media(prefers-reduced-motion:reduce){.reveal{animation:none;opacity:1;transform:none}html{scroll-behavior:auto}}
+
+section{padding:88px 0;border-top:1px solid var(--line)}
+.sec-label{margin-bottom:40px}
+.lede{font-family:var(--serif);font-weight:400;font-size:clamp(25px,3.4vw,38px);line-height:1.22;letter-spacing:-.01em;max-width:22ch}
+.lede .em{color:var(--accent);font-style:italic}
+
+/* RECOGNITION */
+.recog p{font-size:18px;color:var(--ink-2);line-height:1.75;max-width:60ch;margin-bottom:20px}
+.recog p:last-child{margin-bottom:0}
+.recog .hl{color:var(--ink)}
+.recog-grid{display:grid;grid-template-columns:1fr;gap:40px}
+@media(min-width:860px){.recog-grid{grid-template-columns:1fr 1fr;gap:56px}}
+
+/* HOW I WORK */
+.steps{display:flex;flex-direction:column;gap:0;margin-top:8px}
+.step{display:grid;grid-template-columns:auto 1fr;gap:26px;padding:28px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:none}
+.step-n{font-family:var(--mono);font-size:13px;color:var(--accent);padding-top:4px;letter-spacing:.08em}
+.step h3{font-family:var(--serif);font-weight:500;font-size:23px;letter-spacing:-.01em;margin-bottom:9px}
+.step p{font-size:16px;color:var(--ink-2);line-height:1.68;max-width:56ch}
+
+/* AI / LEGACY */
+.legacy{background:var(--bg-2)}
+.legacy .lede{margin-bottom:26px}
+.legacy-body{font-size:17.5px;color:var(--ink-2);line-height:1.75;max-width:58ch}
+.legacy-body p{margin-bottom:18px}
+.legacy-body p:last-child{margin-bottom:0}
+.legacy-body .hl{color:var(--ink)}
+.legacy-stat{display:flex;gap:18px;align-items:baseline;margin-top:36px;padding-top:28px;border-top:1px solid var(--line-2)}
+.legacy-stat .num{font-family:var(--serif);font-size:46px;font-weight:500;color:var(--accent);line-height:1}
+.legacy-stat .desc{font-size:14.5px;color:var(--ink-2);max-width:34ch}
+.monitor-promo{border-top:1px solid var(--line);padding:88px 0}
+.mp-card{background:linear-gradient(135deg,#0F131A,#0A0C10);border:1px solid var(--line-2);border-radius:12px;padding:44px;position:relative;overflow:hidden}
+.mp-card::after{content:"";position:absolute;top:-40%;right:-10%;width:420px;height:420px;background:radial-gradient(circle,rgba(63,169,255,.10),transparent 65%);pointer-events:none}
+.mp-tag{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;position:relative}
+.mp-card h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3.4vw,38px);line-height:1.12;letter-spacing:-.01em;max-width:20ch;margin-bottom:18px;position:relative}
+.mp-card p{font-size:16.5px;color:var(--ink-2);max-width:54ch;line-height:1.7;margin-bottom:28px;position:relative}
+.mp-card .mp-cta{display:inline-flex;align-items:center;gap:9px;background:var(--accent);color:#04101c;font-weight:600;font-size:14.5px;padding:13px 26px;border-radius:4px;transition:background .2s,transform .18s;position:relative}
+.mp-card .mp-cta:hover{background:var(--accent-deep);transform:translateY(-1px)}
+.mp-stats{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:30px;position:relative}
+.mp-stats div{display:flex;flex-direction:column}
+.mp-stats .n{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink)}
+.mp-stats .l{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+
+/* TRAYECTORIA */
+.who-grid{display:grid;grid-template-columns:1fr;gap:44px}
+@media(min-width:880px){.who-grid{grid-template-columns:1.25fr 1fr}}
+.who h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3.2vw,36px);line-height:1.14;letter-spacing:-.01em;margin-bottom:24px}
+.who p{font-size:16.5px;color:var(--ink-2);margin-bottom:18px;max-width:50ch;line-height:1.72}
+.who .hl{color:var(--ink)}
+.cv{border-left:1px solid var(--line-2);padding-left:28px;display:flex;flex-direction:column;gap:24px}
+.cv-item .ci-label{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.cv-item .ci-val{font-size:15px;color:var(--ink);line-height:1.5}
+.cv-item .ci-sub{font-size:13px;color:var(--ink-3);margin-top:2px}
+
+/* CTA */
+.cta-sec{text-align:center}
+.cta-sec h2{font-family:var(--serif);font-weight:500;font-size:clamp(28px,4.2vw,46px);line-height:1.1;letter-spacing:-.015em;max-width:20ch;margin:0 auto 22px}
+.cta-sec h2 .em{color:var(--accent);font-style:italic;font-weight:400}
+.cta-sec .lead{max-width:52ch;margin:0 auto 38px;font-size:17.5px;color:var(--ink-2);line-height:1.7}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+footer{border-top:1px solid var(--line);padding:48px 0}
+.foot-inner{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:24px}
+.foot-inner .flogo img{height:52px;display:block;opacity:.9}
+.foot-inner .fnote{font-size:13px;color:var(--ink-3);margin-top:14px}
+.foot-links{display:flex;gap:24px;font-size:13px;color:var(--ink-2)}
+.foot-links a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a href="#top" class="brand"><img src="assets/dbcg-mark.png" alt="DBCG"></a>
+    <div class="nav-links">
+      <a href="#situacion" class="lnk">Tu situación</a>
+      <a href="#trabajo" class="lnk">Cómo trabajo</a>
+      <a href="#trayectoria" class="lnk">Trayectoria</a>
+      <a href="monitor.html" class="lnk">Monitor</a>
+      <a href="#contacto" class="btn">Hablemos</a>
+    </div>
+  </div>
+</nav>
+
+<header id="top">
+  <div class="wrap">
+    <div class="kicker reveal d1"><span class="dot"></span><span class="mono">Dirección y transformación &middot; PyMEs con trayectoria</span></div>
+    <h1 class="reveal d2">Construiste una PyME que funciona. <span class="em">El siguiente reto es mayor: que siga creciendo, con más rentabilidad y sin depender de ti —para que lo que construiste te sobreviva.</span></h1>
+    <p class="hero-sub reveal d3">Soy el director de operaciones y growth que tu empresa necesita y que quizá aún no puede tener en plantilla. Veinticinco años dirigiendo, profesionalizando y haciendo crecer empresas como la tuya &mdash;ahora a tu lado a tiempo parcial, con el criterio de un ejecutivo senior y la potencia de la inteligencia artificial para llegar más lejos con menos.</p>
+    <div class="hero-cta reveal d4">
+      <a href="#contacto" class="btn">Una primera conversación</a>
+      <a href="#trabajo" class="btn btn-ghost">Cómo trabajo</a>
+    </div>
+  </div>
+</header>
+
+<section id="situacion">
+  <div class="wrap">
+    <div class="sec-label mono">Tu situación</div>
+    <div class="recog-grid">
+      <div>
+        <p class="lede">Tu empresa funciona. Pero la estructura es <span class="em">la misma de hace quince años.</span></p>
+      </div>
+      <div class="recog">
+        <p>Has construido algo que ha resistido lo que muchos no resistieron: crisis, cambios de ciclo, una competencia que no para. Eso no se improvisa.</p>
+        <p>Pero el negocio ha crecido y la forma de dirigirlo no ha crecido con él. <span class="hl">Demasiado sigue dependiendo de una sola persona.</span> Las decisiones importantes pasan todas por ti. Y mientras tanto, hay que modernizarse, profesionalizar, quizá preparar el relevo &mdash;sin romper lo que os ha hecho llegar hasta aquí.</p>
+        <p>No necesitas que nadie te descubra el problema. Lo conoces mejor que nadie. Necesitas a alguien que ya haya estado dentro de empresas como la tuya y sepa por dónde se empieza.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="trabajo">
+  <div class="wrap narrow">
+    <div class="sec-label mono">Cómo trabajo</div>
+    <p class="lede" style="margin-bottom:48px">Como un director de operaciones que entra, <span class="em">se arremanga y construye.</span></p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <div>
+          <h3>Entiendo el negocio desde dentro</h3>
+          <p>No desde un informe. Me siento contigo y con tu equipo, veo cómo se toman las decisiones, dónde se atasca todo, qué funciona de verdad. La experiencia de haberlo visto muchas veces hace que esto vaya rápido.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <div>
+          <h3>Definimos un rumbo con alcance claro</h3>
+          <p>Nada de planes a cinco años que acaban en un cajón. Acordamos qué se va a abordar, en qué orden y con qué resultado esperado. Tú decides hasta dónde, y mantienes el control en todo momento.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <div>
+          <h3>Acompaño la ejecución</h3>
+          <p>Lo difícil no es el plan, es ejecutarlo. Trabajo a tu lado mientras se implementa, dejando estructura y capacidades que se quedan en la empresa &mdash;en las personas&mdash; cuando yo ya no esté.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ia" class="legacy">
+  <div class="wrap narrow">
+    <div class="sec-label mono">Sobre la inteligencia artificial</div>
+    <p class="lede">La tecnología al servicio de tu negocio. <span class="em">Nunca al revés.</span></p>
+    <div class="legacy-body">
+      <p>Hay una desconfianza razonable hacia la IA en empresas con la trayectoria de la tuya. El miedo a que la tecnología erosione justo lo que os hace distintos: el trato, el oficio, la forma de hacer las cosas que tanto costó construir.</p>
+      <p>Lo entiendo, y lo comparto. <span class="hl">La inteligencia artificial no está aquí para reemplazar tu manera de trabajar, sino para liberar tiempo y dar claridad</span> donde hoy se pierde en tareas que nadie debería estar haciendo a mano. Se introduce con criterio, poco a poco, respetando lo que funciona.</p>
+      <p>Y es, además, mi propia herramienta: es lo que me permite, siendo un equipo de uno, dar a tu empresa la profundidad de análisis y seguimiento que antes exigía un equipo entero. <span class="hl">La IA hace el volumen. Yo pongo el criterio y respondo por el resultado.</span></p>
+    </div>
+    <div class="legacy-stat">
+      <span class="num">49%</span>
+      <span class="desc">de las empresas familiares aún no han empezado a explorar la IA. Los que empiezan a tiempo abren una distancia con su competencia que, año tras año, cuesta cada vez más recortar.</span>
+    </div>
+  </div>
+</section>
+
+<section class="monitor-promo">
+  <div class="wrap">
+    <div class="mp-card">
+      <div class="mp-tag">Monitor PyME · by DBCG</div>
+      <h2>El pulso de la PyME española, en un solo panel.</h2>
+      <p>Mantengo un monitor con datos, precios sectoriales e indicadores regionales de la PyME española &mdash;ordenados a partir de fuentes públicas confiables y de la base de CEPYME500, con 3.377 empresas de alto crecimiento. La misma forma de mirar que aplico a tu negocio, a escala de país.</p>
+      <div class="mp-stats">
+        <div><span class="n">3.377</span><span class="l">PyMEs en la base</span></div>
+        <div><span class="n">12</span><span class="l">capítulos regionales</span></div>
+        <div><span class="n">7</span><span class="l">sectores analizados</span></div>
+      </div>
+      <a href="monitor.html" class="mp-cta">Entrar al Monitor PyME &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<section id="trayectoria">
+  <div class="wrap who">
+    <div class="sec-label mono">Quién está detrás</div>
+    <div class="who-grid">
+      <div>
+        <h2>Constantino Xabier De Zabala Zamora</h2>
+        <p>Veinticinco años dirigiendo y transformando empresas desde dentro &mdash;operaciones, finanzas, gobierno corporativo y crecimiento&mdash;. <span class="hl">No desde la teoría. Desde la responsabilidad de que las cosas salgan.</span></p>
+        <p>Empecé en finanzas corporativas y tesorería en Procter &amp; Gamble, Citi y Santander. Dirigí operaciones internacionales, construí unidades de negocio desde cero y gestioné cuentas de resultados de varios millones. Llevo además ocho años en IE University formando a directivos en innovación y liderazgo del cambio.</p>
+        <p>Conozco las dos caras: la del número y la del taller. La del consejo y la de la persona que tiene que ejecutar el lunes por la mañana. Hoy trabajo solo, apoyado en IA, para acompañar a PyMEs con trayectoria &mdash;muchas en manos de su fundador o de la segunda generación&mdash; en el paso que viene.</p>
+      </div>
+      <div class="cv">
+        <div class="cv-item"><div class="ci-label">A quién acompaño</div><div class="ci-val">PyMEs de 12 a más de 25 años</div><div class="ci-sub">Lideradas por su fundador o por la segunda generación</div></div>
+        <div class="cv-item"><div class="ci-label">Trayectoria</div><div class="ci-val">P&amp;G &middot; Citi &middot; Santander &middot; Experian</div><div class="ci-sub">Finanzas, tesorería, operaciones y desarrollo de negocio</div></div>
+        <div class="cv-item"><div class="ci-label">Educación corporativa</div><div class="ci-val">IE University &middot; 8 años</div><div class="ci-sub">Innovación y liderazgo del cambio</div></div>
+        <div class="cv-item"><div class="ci-label">Formación</div><div class="ci-val">Thunderbird School of Global Management</div><div class="ci-sub">MBA · International Business</div><div class="ci-val" style="margin-top:12px">IE Business School Executive</div><div class="ci-sub">Programa Avanzado de Emprendimiento e Innovación</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contacto" class="cta-sec">
+  <div class="wrap narrow">
+    <div class="sec-label mono" style="margin-bottom:32px">Hablemos</div>
+    <h2>El mejor momento para profesionalizar tu PyME <span class="em">fue hace años. El segundo mejor es hoy.</span></h2>
+    <p class="lead">Cada trimestre que tu empresa sigue dependiendo de una sola persona es tiempo que no vuelve &mdash;y ventaja que se lleva quien sí dio el paso. Hablemos una hora: sin coste, sin compromiso y sin presentación de ventas. Conozco tu PyME, tú me conoces a mí, y decides tú. Si tiene sentido seguir, lo verás solo. Si no, habremos tenido una buena conversación.</p>
+    <div class="cta-row">
+      <a href="https://www.linkedin.com/in/cdezabala/" target="_blank" rel="noopener" class="btn">Hablemos por LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="flogo"><img src="assets/dbcg-logo.png" alt="DBCG — The Digital Business Consulting Group"><div class="fnote">Digital Business Consulting Group S.L. &middot; &copy; 2026</div></div>
+    <div class="foot-links"><a href="#situacion">Tu situación</a><a href="#trabajo">Cómo trabajo</a><a href="#trayectoria">Trayectoria</a><a href="#contacto">Hablemos</a><a href="aviso-legal.html">Aviso legal</a><a href="politica-privacidad.html">Privacidad</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

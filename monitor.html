@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor PyME · by DBCG — Inteligencia para la PyME española</title>
+<meta name="description" content="El monitor de la PyME española: datos, precios sectoriales, indicadores regionales y análisis, a partir de fuentes públicas confiables. Por DBCG.">
+<meta property="og:title" content="Monitor PyME · by DBCG — Inteligencia para la PyME española">
+<meta property="og:description" content="El pulso de la PyME española en un solo panel: datos, precios sectoriales e indicadores regionales a partir de fuentes públicas confiables.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.dbcg.es/monitor">
+<meta property="og:site_name" content="DBCG">
+<meta property="og:locale" content="es_ES">
+<meta property="og:image" content="https://www.dbcg.es/assets/og-monitor.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Monitor PyME · by DBCG — El pulso de la PyME española en un solo panel">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Monitor PyME · by DBCG">
+<meta name="twitter:description" content="El pulso de la PyME española en un solo panel: datos, precios sectoriales e indicadores regionales.">
+<meta name="twitter:image" content="https://www.dbcg.es/assets/og-monitor.png">
+<link rel="canonical" href="https://www.dbcg.es/monitor">
+<meta name="theme-color" content="#070A0F">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070A0F; --bg-2:#0C111A; --panel:#0F1620; --panel-2:#121A26;
+  --line:rgba(150,180,220,.10); --line-2:rgba(150,180,220,.18);
+  --ink:#E8EEF7; --ink-2:#8C98AC; --ink-3:#586478;
+  --accent:#3FA9FF; --accent-deep:#1E7FD4; --up:#33D69F; --down:#FF5C6C; --flat:#8C98AC;
+  --serif:'Fraunces',Georgia,serif; --sans:'Hanken Grotesk',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(63,169,255,.08),transparent 70%);pointer-events:none;z-index:0}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+a{color:inherit;text-decoration:none}
+.mono{font-family:var(--mono)}
+.ticker{position:sticky;top:0;z-index:60;background:var(--bg-2);border-bottom:1px solid var(--line-2);overflow:hidden;height:42px;display:flex;align-items:center}
+.ticker-track{display:flex;white-space:nowrap;animation:scroll 64s linear infinite}
+.ticker:hover .ticker-track{animation-play-state:paused}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tk-item{display:inline-flex;align-items:center;gap:9px;padding:0 22px;border-right:1px solid var(--line);font-size:12.5px}
+.tk-name{color:var(--ink-2);font-weight:500}
+.tk-val{font-family:var(--mono);font-weight:600;display:inline-flex;align-items:center;gap:4px}
+.tk-up{color:var(--up)} .tk-down{color:var(--down)} .tk-flat{color:var(--flat)}
+.tk-arr{font-size:9px}
+.tk-src{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+nav{background:rgba(7,10,15,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);position:sticky;top:42px;z-index:55}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:13px}
+.brand img{height:22px;display:block}
+.brand .div{width:1px;height:20px;background:var(--line-2)}
+.brand .mt{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--ink)}
+.brand .mt b{color:var(--accent)}
+.nav-links{display:flex;gap:26px;font-size:13.5px;color:var(--ink-2)}
+.nav-links a:hover{color:var(--ink)}
+@media(max-width:760px){.nav-links{display:none}}
+.mhead{padding:54px 0 38px}
+.mhead .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+.mhead h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4.4vw,50px);line-height:1.08;letter-spacing:-.02em;max-width:18ch}
+.mhead p{margin-top:20px;max-width:60ch;font-size:17px;color:var(--ink-2)}
+.disclaimer{margin-top:22px;display:inline-flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-3);font-family:var(--mono);border:1px solid var(--line);border-radius:3px;padding:7px 13px}
+.disclaimer .d{width:6px;height:6px;border-radius:50%;background:var(--up)}
+.thesis{border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(15,22,32,.5),transparent);padding:54px 0 48px}
+.thesis .t-eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:24px}
+.thesis-grid{display:grid;grid-template-columns:1fr;gap:36px}
+@media(min-width:880px){.thesis-grid{grid-template-columns:1.15fr 1fr;gap:56px}}
+.thesis h2{font-family:var(--serif);font-weight:500;font-size:clamp(24px,3.2vw,34px);line-height:1.18;letter-spacing:-.01em;margin-bottom:22px}
+.thesis h2 .em{color:var(--accent);font-style:italic;font-weight:400}
+.thesis p{font-size:16px;color:var(--ink-2);line-height:1.72;margin-bottom:16px;max-width:54ch}
+.thesis p .hl{color:var(--ink)}
+.thesis .t-sign{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:22px}
+.thesis-figures{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden;align-self:start}
+.tfig{background:var(--panel);padding:20px 22px}
+.tfig .n{font-family:var(--mono);font-size:26px;font-weight:600;line-height:1;color:var(--accent)}
+.tfig .l{font-size:13px;color:var(--ink-2);margin-top:8px;line-height:1.5}
+.tfig .s{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:5px}
+.msec{padding:42px 0;border-top:1px solid var(--line)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:26px}
+.sec-h h2{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+.sec-h h2 .hash{color:var(--accent)}
+.sec-h .src{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.kpi{background:var(--panel);padding:22px 20px}
+.kpi .v{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.kpi .v.acc{color:var(--accent)}
+.kpi .l{font-size:12.5px;color:var(--ink-2);margin-top:9px}
+.kpi .s{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:4px}
+.region-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.region-card{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:20px;cursor:pointer;transition:border-color .2s,transform .2s,background .2s;font-family:inherit;color:inherit}
+.region-card:hover{border-color:var(--accent);transform:translateY(-2px);background:var(--panel-2)}
+.rc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px}
+.rc-name{font-family:var(--serif);font-size:21px;font-weight:500}
+.rc-n{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.rc-metrics{display:flex;justify-content:flex-start;gap:28px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.rct-head{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:14px 0 8px;border-bottom:1px solid var(--line-2);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.rct-head .rct-v{text-align:right}
+.rct-body{display:flex;flex-direction:column}
+.rct-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.rct-row:last-child{border-bottom:none}
+.rct-yr{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.rct-v{font-family:var(--mono);font-size:14px;font-weight:600;text-align:right;color:var(--ink)}
+.rct-v.acc{color:var(--accent)}
+.tri-grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:760px){.tri-grid{grid-template-columns:repeat(3,1fr)}}
+.tri-col{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:24px 22px}
+.tri-col:nth-child(3){border-color:var(--line-2);background:var(--panel-2)}
+.tri-period{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--ink)}
+.tri-sub{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:4px;margin-bottom:20px}
+.tri-metric{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+.tri-metric .tm-v{font-family:var(--mono);font-size:21px;font-weight:600}
+.tri-metric .tm-v.acc{color:var(--accent)}
+.tri-metric .tm-l{font-size:12px;color:var(--ink-2)}
+.method-note{font-size:12.5px;color:var(--ink-3);line-height:1.6;max-width:80ch;margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:5px;background:var(--panel)}
+.method-note b{color:var(--ink-2);font-weight:600}
+.rc-metrics .rc-val{font-family:var(--mono);font-size:18px;font-weight:600;display:block}
+.rc-metrics .rc-lab{font-size:10.5px;color:var(--ink-3);margin-top:3px;display:block}
+.rc-foot{margin-top:12px;font-size:12px;color:var(--ink-2)}
+.sector-tbl{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 20px 16px;overflow-x:auto}
+.sct-head,.sct-row{display:grid;grid-template-columns:1.6fr 2fr .6fr .7fr .7fr;gap:14px;align-items:center;min-width:560px}
+.sct-head{padding:14px 0 12px;border-bottom:1px solid var(--line-2);font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.sct-head span:nth-child(n+3){text-align:right}
+.sct-row .sct-n,.sct-row .sct-metric{text-align:right}
+.sct-row{padding:13px 0;border-bottom:1px solid var(--line)}
+.sct-row:last-child{border-bottom:none}
+.sct-name{font-size:14px;color:var(--ink)}
+.sct-bar-wrap{height:7px;background:var(--bg-2);border-radius:4px;overflow:hidden}
+.sct-bar{height:100%;background:linear-gradient(90deg,var(--accent-deep),var(--accent));border-radius:4px}
+.sct-n{font-family:var(--mono);font-size:14px;font-weight:600}
+.sct-metric{font-family:var(--mono);font-size:13px;color:var(--ink-2)}
+.briefs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.brief{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:22px;display:flex;flex-direction:column}
+.brief:hover{border-color:var(--line-2)}
+.brief-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:600;padding:4px 9px;border-radius:3px;align-self:flex-start;margin-bottom:14px}
+.tag-dbcg{background:rgba(63,169,255,.14);color:var(--accent)}
+.tag-std{background:rgba(150,180,220,.08);color:var(--ink-2)}
+.brief h3{font-family:var(--serif);font-size:21px;font-weight:500;line-height:1.18;margin-bottom:11px;letter-spacing:-.01em}
+.brief p{font-size:14.5px;color:var(--ink-2);line-height:1.62;flex:1}
+.brief-src{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);margin-top:16px;padding-top:13px;border-top:1px solid var(--line)}
+.sources{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.sources a{text-decoration:none}
+.sources span{display:inline-block;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);border:1px solid var(--line);border-radius:3px;padding:6px 12px;transition:border-color .2s,color .2s}
+.sources a:hover span{border-color:var(--accent);color:var(--accent)}
+.mcta{background:linear-gradient(180deg,var(--panel),var(--bg-2));border:1px solid var(--line-2);border-radius:10px;padding:40px;text-align:center;margin-top:8px}
+.mcta h2{font-family:var(--serif);font-size:clamp(24px,3vw,34px);font-weight:500;letter-spacing:-.01em;max-width:24ch;margin:0 auto 14px}
+.mcta p{max-width:52ch;margin:0 auto 26px;color:var(--ink-2);font-size:16px}
+.mbtn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#04101c;font-weight:600;font-size:14.5px;padding:13px 26px;border-radius:4px;border:none;cursor:pointer;font-family:inherit;transition:background .2s,transform .18s}
+.mbtn:hover{background:var(--accent-deep);transform:translateY(-1px)}
+footer{border-top:1px solid var(--line);padding:36px 0;margin-top:40px}
+.foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;font-size:12.5px;color:var(--ink-3)}
+.foot-note{max-width:62ch;font-size:11.5px;color:var(--ink-3);line-height:1.6;margin-top:18px}
+@media(prefers-reduced-motion:reduce){.ticker-track{animation:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="ticker"><div class="ticker-track"><span class="tk-item"><span class="tk-name">AOVE origen</span><span class="tk-val tk-down">4,04 &euro;/kg <span class="tk-arr">&#9660;</span></span><span class="tk-src">Poolred / AICA &middot; sem. 18-24 may 2026</span></span><span class="tk-item"><span class="tk-name">Empresas activas ES</span><span class="tk-val tk-up">3.310.824 <span class="tk-arr">&#9650;</span></span><span class="tk-src">INE DIRCE &middot; 1 ene 2025</span></span><span class="tk-item"><span class="tk-name">Credito PyME concedido</span><span class="tk-val tk-up">92,8% <span class="tk-arr">&#9650;</span></span><span class="tk-src">SGR-CESGAR &middot; 2025</span></span><span class="tk-item"><span class="tk-name">Tipos credito</span><span class="tk-val tk-flat">estables <span class="tk-arr">&#9632;</span></span><span class="tk-src">BdE &middot; Q3 2025</span></span><span class="tk-item"><span class="tk-name">Beneficio neto PyME</span><span class="tk-val tk-down">-7% <span class="tk-arr">&#9660;</span></span><span class="tk-src">SAFE/BdE &middot; Q3 2025</span></span><span class="tk-item"><span class="tk-name">Nuevas empresas 2023</span><span class="tk-val tk-up">319.085 <span class="tk-arr">&#9650;</span></span><span class="tk-src">INE &middot; nov 2025</span></span><span class="tk-item"><span class="tk-name">CEPYME500 ROA mediano</span><span class="tk-val tk-up">16,0% <span class="tk-arr">&#9650;</span></span><span class="tk-src">CEPYME500 &middot; cálculo DBCG</span></span><span class="tk-item"><span class="tk-name">Solicito financiacion</span><span class="tk-val tk-up">25% <span class="tk-arr">&#9650;</span></span><span class="tk-src">SAFE/BCE &middot; Q4 2025</span></span><span class="tk-item"><span class="tk-name">AOVE origen</span><span class="tk-val tk-down">4,04 &euro;/kg <span class="tk-arr">&#9660;</span></span><span class="tk-src">Poolred / AICA &middot; sem. 18-24 may 2026</span></span><span class="tk-item"><span class="tk-name">Empresas activas ES</span><span class="tk-val tk-up">3.310.824 <span class="tk-arr">&#9650;</span></span><span class="tk-src">INE DIRCE &middot; 1 ene 2025</span></span><span class="tk-item"><span class="tk-name">Credito PyME concedido</span><span class="tk-val tk-up">92,8% <span class="tk-arr">&#9650;</span></span><span class="tk-src">SGR-CESGAR &middot; 2025</span></span><span class="tk-item"><span class="tk-name">Tipos credito</span><span class="tk-val tk-flat">estables <span class="tk-arr">&#9632;</span></span><span class="tk-src">BdE &middot; Q3 2025</span></span><span class="tk-item"><span class="tk-name">Beneficio neto PyME</span><span class="tk-val tk-down">-7% <span class="tk-arr">&#9660;</span></span><span class="tk-src">SAFE/BdE &middot; Q3 2025</span></span><span class="tk-item"><span class="tk-name">Nuevas empresas 2023</span><span class="tk-val tk-up">319.085 <span class="tk-arr">&#9650;</span></span><span class="tk-src">INE &middot; nov 2025</span></span><span class="tk-item"><span class="tk-name">CEPYME500 ROA mediano</span><span class="tk-val tk-up">16,0% <span class="tk-arr">&#9650;</span></span><span class="tk-src">CEPYME500 &middot; cálculo DBCG</span></span><span class="tk-item"><span class="tk-name">Solicito financiacion</span><span class="tk-val tk-up">25% <span class="tk-arr">&#9650;</span></span><span class="tk-src">SAFE/BCE &middot; Q4 2025</span></span></div></div>
+<nav>
+  <div class="wrap nav-inner">
+    <div class="brand"><img src="assets/dbcg-mark.png" alt="DBCG"><span class="div"></span><span class="mt">Monitor<b>PyME</b></span></div>
+    <div class="nav-links"><a href="#mercado">Mercado</a><a href="#evolucion">Evolución</a><a href="#regiones">Regiones</a><a href="#sectores">Sectores</a><a href="#analisis">Análisis</a><a href="#fuentes">Fuentes</a><a href="index.html">&larr; DBCG</a></div>
+  </div>
+</nav>
+<header class="mhead">
+  <div class="wrap">
+    <div class="eyebrow">Inteligencia para la PyME española</div>
+    <h1>El pulso de la PyME española, en un solo panel.</h1>
+    <p>Precios sectoriales, indicadores regionales, financiación y análisis &mdash;ordenados a partir de fuentes públicas confiables (INE, Banco de España, Poolred, CEPYME) y de una la base pública de CEPYME500, con 3.377 PyMEs de alto crecimiento. Sin ruido. Sin humo.</p>
+    <div class="disclaimer"><span class="d"></span>Datos de fuentes públicas, fechados individualmente. No es información en tiempo real.</div>
+  </div>
+</header>
+<section class="thesis">
+  <div class="wrap">
+    <div class="t-eyebrow">El punto de partida · nuestra lectura</div>
+    <div class="thesis-grid">
+      <div>
+        <h2>El país no se sostiene sobre sus 3,3 millones de empresas. Se sostiene sobre <span class="em">un núcleo mucho más pequeño —y mucho más frágil.</span></h2>
+        <p>Más del 90% del tejido español son microempresas. Pero el empleo estable, arraigado al territorio y con décadas de oficio acumulado vive en otro sitio: en lo que llamamos <span class="hl">la PyME estructurada</span>. Definimos esa franja de forma amplia &mdash;de 4 a 49 empleados&mdash; a propósito: el INE separa la microempresa de la pequeña empresa en los 10 trabajadores, pero el negocio que ya tiene estructura real, plantilla y arraigo empieza mucho antes. Hablamos de <span class="hl">entre 280.000 y 300.000 empresas</span> (DIRCE 2023 + estimación DGIPYME): apenas el 9% del tejido, pero el corazón del empleo y del valor que generan las PyMEs.</p>
+        <p>Y es justo ese núcleo el que está desapareciendo en silencio. En cinco años se perdieron decenas de miles de estas empresas mientras el total se mantenía &mdash;el empleo se sostuvo con rotación y microempresas de alta mortalidad, no con la continuidad de las que de verdad estructuran un territorio.</p>
+        <p><span class="hl">No es un problema de insolvencia. Es de sucesión sin relevo, de finanzas frágiles, de un salto digital que no se da y de una carga regulatoria que castiga crecer.</span> Cuatro presiones a la vez sobre el eslabón con menos protección. Este monitor existe para mirar de cerca a esas empresas &mdash;porque entender su pulso es el primer paso para acompañarlas.</p>
+        <p class="t-sign">Lectura propia · Constantino De Zabala Zamora · DBCG</p>
+      </div>
+      <div class="thesis-figures">
+        <div class="tfig"><div class="n">~290k</div><div class="l">PyMEs estructuradas (4&ndash;49 empleados): el 9% del tejido</div><div class="s">DIRCE 2023 · estimación DGIPYME</div></div>
+        <div class="tfig"><div class="n">70%</div><div class="l">de los empresarios no tiene plan de relevo generacional</div><div class="s">CEPYME · Informe Relevo 2022</div></div>
+        <div class="tfig"><div class="n">9% vs 18%</div><div class="l">peso de la PyME con asalariados: España frente a Alemania</div><div class="s">Eurostat SBS 2023</div></div>
+        <div class="tfig"><div class="n">14%</div><div class="l">de las PyMEs usan Big Data o IA, frente al 46% de las grandes</div><div class="s">Eurostat DESI 2023</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="msec" id="mercado">
+  <div class="wrap">
+    <div class="sec-h"><h2><span class="hash">#</span> Panorama nacional</h2><span class="src">INE DIRCE 1 ene 2025 · SAFE/BdE Q3 2025</span></div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">3,31M</div><div class="l">Empresas activas en España</div><div class="s">INE · +1,7% vs 2024</div></div>
+      <div class="kpi"><div class="v acc">18,9%</div><div class="l">Superan los 20 años de vida</div><div class="s">INE · 32,4% en industria</div></div>
+      <div class="kpi"><div class="v">92,8%</div><div class="l">PyMEs que lograron financiación</div><div class="s">SGR-CESGAR · máx. 3 años</div></div>
+      <div class="kpi"><div class="v" style="color:var(--down)">&minus;7%</div><div class="l">Beneficio neto PyME (neto)</div><div class="s">SAFE/BdE · Q3 2025</div></div>
+    </div>
+  </div>
+</section>
+<section class="msec" id="evolucion">
+  <div class="wrap">
+    <div class="sec-h"><h2><span class="hash">#</span> Cómo evoluciona la PyME ganadora</h2><span class="src">Datos: CEPYME500 · análisis y cálculos DBCG</span></div>
+    <div class="tri-grid">
+      <div class="tri-col">
+        <div class="tri-period">2015-2017</div>
+        <div class="tri-sub">Trienio inicial &middot; 949 empresas</div>
+        <div class="tri-metric"><span class="tm-v">25.0%</span><span class="tm-l">Crecimiento mediano</span></div>
+        <div class="tri-metric"><span class="tm-v acc">11.3%</span><span class="tm-l">ROA mediano</span></div>
+        <div class="tri-metric"><span class="tm-v">57</span><span class="tm-l">Empleados (mediana)</span></div>
+      </div>
+      <div class="tri-col">
+        <div class="tri-period">2018-2020</div>
+        <div class="tri-sub">Trienio covid &middot; 1081 empresas</div>
+        <div class="tri-metric"><span class="tm-v">31.7%</span><span class="tm-l">Crecimiento mediano</span></div>
+        <div class="tri-metric"><span class="tm-v acc">13.0%</span><span class="tm-l">ROA mediano</span></div>
+        <div class="tri-metric"><span class="tm-v">52</span><span class="tm-l">Empleados (mediana)</span></div>
+      </div>
+      <div class="tri-col">
+        <div class="tri-period">2021-2023</div>
+        <div class="tri-sub">Trienio reciente &middot; 1347 empresas</div>
+        <div class="tri-metric"><span class="tm-v">32.4%</span><span class="tm-l">Crecimiento mediano</span></div>
+        <div class="tri-metric"><span class="tm-v acc">16.0%</span><span class="tm-l">ROA mediano</span></div>
+        <div class="tri-metric"><span class="tm-v">47</span><span class="tm-l">Empleados (mediana)</span></div>
+      </div>
+    </div>
+    <p class="method-note"><b>Lectura:</b> la PyME española de alto crecimiento es hoy más rentable y más eficiente que hace una década &mdash;el ROA mediano sube del 11% al 16% mientras la plantilla mediana baja de 57 a 47 personas&mdash;. Crecimiento y ROA son ratios, comparables entre años; por eso esta serie no usa cifras de ventas absolutas, que no son comparables entre ejercicios distintos.</p>
+    <p class="method-note">Para contexto, la edición oficial <b>CEPYME500 2025</b> reúne empresas que facturan en conjunto más de 12.000 M&euro; y dan empleo a cerca de 44.000 personas, con un crecimiento anual compuesto del 15% exigido en los tres años previos. <a href="https://www.cepyme500.com/es" target="_blank" rel="noopener" style="color:var(--accent)">Fuente oficial CEPYME500 &#8599;</a></p>
+  </div>
+</section>
+<section class="msec" id="regiones">
+  <div class="wrap">
+    <div class="sec-h"><h2><span class="hash">#</span> Capítulos regionales · CEPYME500</h2><span class="src">Datos: CEPYME500 (ediciones 2015&ndash;2023) · análisis DBCG</span></div>
+    <div class="region-grid">
+      
+      <button class="region-card" onclick="sendPrompt('Quiero el analisis detallado de la evolucion de las PyMEs CEPYME500 de Madrid por trienios')">
+        <div class="rc-top"><span class="rc-name">Madrid</span><span class="rc-n">613 empresas</span></div>
+        <div class="rct-head"><span class="rct-yr">Trienio</span><span class="rct-v">Crec.</span><span class="rct-v">ROA</span></div>
+        <div class="rct-body">
+          <div class="rct-row"><span class="rct-yr">2015&ndash;2017</span><span class="rct-v">31.2%</span><span class="rct-v acc">9.7%</span></div>
+          <div class="rct-row"><span class="rct-yr">2018&ndash;2020</span><span class="rct-v">34.1%</span><span class="rct-v acc">12.0%</span></div>
+          <div class="rct-row"><span class="rct-yr">2021&ndash;2023</span><span class="rct-v">37.3%</span><span class="rct-v acc">15.6%</span></div>        </div>
+        <div class="rc-foot">Sector lider &middot; Distribución comercial</div>
+      </button>
+      <button class="region-card" onclick="sendPrompt('Quiero el analisis detallado de la evolucion de las PyMEs CEPYME500 de Barcelona por trienios')">
+        <div class="rc-top"><span class="rc-name">Barcelona</span><span class="rc-n">508 empresas</span></div>
+        <div class="rct-head"><span class="rct-yr">Trienio</span><span class="rct-v">Crec.</span><span class="rct-v">ROA</span></div>
+        <div class="rct-body">
+          <div class="rct-row"><span class="rct-yr">2015&ndash;2017</span><span class="rct-v">21.9%</span><span class="rct-v acc">12.3%</span></div>
+          <div class="rct-row"><span class="rct-yr">2018&ndash;2020</span><span class="rct-v">28.0%</span><span class="rct-v acc">14.0%</span></div>
+          <div class="rct-row"><span class="rct-yr">2021&ndash;2023</span><span class="rct-v">35.5%</span><span class="rct-v acc">19.6%</span></div>        </div>
+        <div class="rc-foot">Sector lider &middot; Industria manufacturera</div>
+      </button>
+      <button class="region-card" onclick="sendPrompt('Quiero el analisis detallado de la evolucion de las PyMEs CEPYME500 de Valencia por trienios')">
+        <div class="rc-top"><span class="rc-name">Valencia</span><span class="rc-n">239 empresas</span></div>
+        <div class="rct-head"><span class="rct-yr">Trienio</span><span class="rct-v">Crec.</span><span class="rct-v">ROA</span></div>
+        <div class="rct-body">
+          <div class="rct-row"><span class="rct-yr">2015&ndash;2017</span><span class="rct-v">23.4%</span><span class="rct-v acc">14.1%</span></div>
+          <div class="rct-row"><span class="rct-yr">2018&ndash;2020</span><span class="rct-v">28.5%</span><span class="rct-v acc">16.0%</span></div>
+          <div class="rct-row"><span class="rct-yr">2021&ndash;2023</span><span class="rct-v">31.5%</span><span class="rct-v acc">17.3%</span></div>        </div>
+        <div class="rc-foot">Sector lider &middot; Industria manufacturera</div>
+      </button>
+      <button class="region-card" onclick="sendPrompt('Quiero el analisis detallado de la evolucion de las PyMEs CEPYME500 de Zaragoza por trienios')">
+        <div class="rc-top"><span class="rc-name">Zaragoza</span><span class="rc-n">129 empresas</span></div>
+        <div class="rct-head"><span class="rct-yr">Trienio</span><span class="rct-v">Crec.</span><span class="rct-v">ROA</span></div>
+        <div class="rct-body">
+          <div class="rct-row"><span class="rct-yr">2015&ndash;2017</span><span class="rct-v">21.8%</span><span class="rct-v acc">9.4%</span></div>
+          <div class="rct-row"><span class="rct-yr">2018&ndash;2020</span><span class="rct-v">25.1%</span><span class="rct-v acc">12.0%</span></div>
+          <div class="rct-row"><span class="rct-yr">2021&ndash;2023</span><span class="rct-v">30.2%</span><span class="rct-v acc">14.8%</span></div>        </div>
+        <div class="rc-foot">Sector lider &middot; Industria manufacturera</div>
+      </button>
+      <button class="region-card" onclick="sendPrompt('Quiero el analisis detallado de la evolucion de las PyMEs CEPYME500 de Alicante por trienios')">
+        <div class="rc-top"><span class="rc-name">Alicante</span><span class="rc-n">128 empresas</span></div>
+        <div class="rct-head"><span class="rct-yr">Trienio</span><span class="rct-v">Crec.</span><span class="rct-v">ROA</span></div>
+        <div class="rct-body">
+          <div class="rct-row"><span class="rct-yr">2015&ndash;2017</span><span class="rct-v">23.0%</span><span class="rct-v acc">13.7%</span></div>
+          <div class="rct-row"><span class="rct-yr">2018&ndash;2020</span><span class="rct-v">28.4%</span><span class="rct-v acc">23.6%</span></div>
+          <div class="rct-row"><span class="rct-yr">2021&ndash;2023</span><span class="rct-v">30.3%</span><span class="rct-v acc">17.2%</span></div>        </div>
+        <div class="rc-foot">Sector lider &middot; Industria manufacturera</div>
+      </button>
+      <button class="region-card" onclick="sendPrompt('Quiero el analisis detallado de la evolucion de las PyMEs CEPYME500 de Murcia por trienios')">
+        <div class="rc-top"><span class="rc-name">Murcia</span><span class="rc-n">109 empresas</span></div>
+        <div class="rct-head"><span class="rct-yr">Trienio</span><span class="rct-v">Crec.</span><span class="rct-v">ROA</span></div>
+        <div class="rct-body">
+          <div class="rct-row"><span class="rct-yr">2015&ndash;2017</span><span class="rct-v">31.8%</span><span class="rct-v acc">9.9%</span></div>
+          <div class="rct-row"><span class="rct-yr">2018&ndash;2020</span><span class="rct-v">38.8%</span><span class="rct-v acc">13.8%</span></div>
+          <div class="rct-row"><span class="rct-yr">2021&ndash;2023</span><span class="rct-v">26.9%</span><span class="rct-v acc">18.1%</span></div>        </div>
+        <div class="rc-foot">Sector lider &middot; Industria manufacturera</div>
+      </button>
+    </div>
+    <p class="method-note">Cada provincia, vista por sus tres trienios de entrada a CEPYME500. <b>La tendencia se repite casi en todas: el ROA mediano sube trienio a trienio</b> &mdash;Barcelona pasa del 12% al 20%, Madrid del 10% al 16%&mdash;. La PyME ganadora gana cada vez más por euro invertido. Crecimiento y ROA medianos, comparables entre años; el número indica empresas únicas del periodo.</p>
+  </div>
+</section>
+<section class="msec" id="sectores">
+  <div class="wrap">
+    <div class="sec-h"><h2><span class="hash">#</span> Radiografía sectorial</h2><span class="src">Datos: CEPYME500 · análisis y cálculos DBCG</span></div>
+    <div class="sector-tbl">
+      <div class="sct-head"><span>Sector</span><span>Peso en la muestra</span><span>Empresas</span><span>Crec.</span><span>ROA</span></div>
+      <div class="sct-row"><span class="sct-name">Industria manufacturera</span><div class="sct-bar-wrap"><div class="sct-bar" style="width:100%"></div></div><span class="sct-n">1094</span><span class="sct-metric">23.9%</span><span class="sct-metric">14.6%</span></div>
+      <div class="sct-row"><span class="sct-name">Distribución comercial</span><div class="sct-bar-wrap"><div class="sct-bar" style="width:87%"></div></div><span class="sct-n">955</span><span class="sct-metric">30.5%</span><span class="sct-metric">13.4%</span></div>
+      <div class="sct-row"><span class="sct-name">Construcción</span><div class="sct-bar-wrap"><div class="sct-bar" style="width:32%"></div></div><span class="sct-n">352</span><span class="sct-metric">52.9%</span><span class="sct-metric">8.5%</span></div>
+      <div class="sct-row"><span class="sct-name">Servicios empresariales</span><div class="sct-bar-wrap"><div class="sct-bar" style="width:21%"></div></div><span class="sct-n">229</span><span class="sct-metric">34.0%</span><span class="sct-metric">15.0%</span></div>
+      <div class="sct-row"><span class="sct-name">Transporte</span><div class="sct-bar-wrap"><div class="sct-bar" style="width:13%"></div></div><span class="sct-n">147</span><span class="sct-metric">33.5%</span><span class="sct-metric">15.7%</span></div>
+      <div class="sct-row"><span class="sct-name">Economía digital</span><div class="sct-bar-wrap"><div class="sct-bar" style="width:12%"></div></div><span class="sct-n">136</span><span class="sct-metric">30.0%</span><span class="sct-metric">14.3%</span></div>
+      <div class="sct-row"><span class="sct-name">Primario</span><div class="sct-bar-wrap"><div class="sct-bar" style="width:5%"></div></div><span class="sct-n">54</span><span class="sct-metric">26.9%</span><span class="sct-metric">17.0%</span></div>
+    </div>
+    <p class="method-note"><b>Dato no obvio:</b> Construcción lidera en crecimiento (52,9%) pero con el ROA más bajo (8,5%) &mdash;crecer no es lo mismo que ganar&mdash;. Primario crece menos pero es el más rentable (17%). Crecimiento y ROA medianos, comparables entre años.</p>
+  </div>
+</section>
+<section class="msec" id="analisis">
+  <div class="wrap">
+    <div class="sec-h"><h2><span class="hash">#</span> Análisis y mercado</h2><span class="src">Análisis propio + fuentes citadas</span></div>
+    <div class="briefs">
+      <article class="brief"><span class="brief-tag tag-dbcg">ANALISIS DBCG</span><h3>El espejismo del 92,8%</h3><p>El acceso al credito mejora en titulares, pero el beneficio neto de la PyME cayo un 7% en el tercer trimestre. Mas financiacion disponible no es lo mismo que mas rentabilidad. La pregunta para tu empresa no es si puedes endeudarte, sino si la inversion va a rendir por encima de su coste.</p><span class="brief-src">Sobre datos SAFE/BdE Q3 2025 &middot; analisis propio</span></article>
+      <article class="brief"><span class="brief-tag tag-std">MERCADO</span><h3>Aceite de oliva: la caida que no llega al lineal</h3><p>El AOVE en origen se desploma a 4,04 &euro;/kg mientras el precio en supermercado apenas baja un 0,03%. Para las PyMEs del sector primario y la distribucion, el margen se esta recolocando en un punto distinto de la cadena.</p><span class="brief-src">Poolred / AICA &middot; sem. 18-24 may 2026</span></article>
+      <article class="brief"><span class="brief-tag tag-std">MACRO</span><h3>El tejido que envejece</h3><p>Solo el 18,9% de las empresas espanolas supera los 20 anos; en la industria, el 32,4%. La trayectoria es un activo escaso. Las PyMEs con recorrido son una minoria con ventaja estructural.</p><span class="brief-src">INE DIRCE &middot; 1 ene 2025</span></article>
+      <article class="brief"><span class="brief-tag tag-std">FINANCIACION</span><h3>Los tipos tocan suelo</h3><p>Tras cuatro trimestres de descensos, el abaratamiento del credito se situo casi en cero. El ciclo de relajacion monetaria podria haber terminado. Quien esperaba a que bajaran mas puede haberse quedado sin margen.</p><span class="brief-src">BdE/SAFE &middot; Q3 2025</span></article>
+    </div>
+  </div>
+</section>
+<section class="msec" id="fuentes">
+  <div class="wrap">
+    <div class="sec-h"><h2><span class="hash">#</span> Fuentes</h2><span class="src">Antigüedad &lt; 24 meses</span></div>
+    <div class="sources">
+      <a href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736160707" target="_blank" rel="noopener"><span>INE · DIRCE y Demografía Empresarial &#8599;</span></a>
+      <a href="https://www.bde.es/wbe/es/estadisticas/" target="_blank" rel="noopener"><span>Banco de España · encuesta SAFE &#8599;</span></a>
+      <a href="https://www.cesgar.es/" target="_blank" rel="noopener"><span>SGR-CESGAR · Financiación de la Pyme &#8599;</span></a>
+      <a href="https://www.poolred.com/" target="_blank" rel="noopener"><span>Poolred / AICA · precios en origen &#8599;</span></a>
+      <a href="https://www.cepyme500.com/cepyme500" target="_blank" rel="noopener"><span>CEPYME500 · metodología y criterios &#8599;</span></a>
+      <a href="https://www.cepyme500.com/es" target="_blank" rel="noopener"><span>CEPYME500 · listado de empresas &#8599;</span></a>
+    </div>
+  </div>
+</section>
+<section class="msec">
+  <div class="wrap">
+    <div class="mcta">
+      <h2>¿Y qué significan estos números para tu PyME?</h2>
+      <p>Los datos describen el bosque. Tu empresa es un árbol concreto. Una conversación para traducir este panorama a tu caso &mdash;sin coste, sin compromiso.</p>
+      <button class="mbtn" onclick="sendPrompt('He visto el Monitor PyME y quiero entender qué significan estos datos para mi empresa concreta')">Hablar con DBCG &rarr;</button>
+    </div>
+  </div>
+</section>
+<footer>
+  <div class="wrap">
+    <div class="foot-inner"><span class="mono">Monitor<b style="color:var(--accent)">PyME</b> &middot; by DBCG</span><span class="mono">&copy; 2026 Digital Business Consulting Group S.L.</span></div>
+    <p class="foot-note">Monitor elaborado con fines informativos a partir de fuentes públicas, cada una fechada en su contexto. La información no constituye asesoramiento financiero ni de inversión. Los indicadores proceden de la base de CEPYME500 &mdash;extraída, estructurada y analizada por DBCG&mdash;, con 3.377 empresas únicas seleccionadas por CEPYME entre 2015 y 2023 (ventas de 10&ndash;200 M&euro;, antigüedad mínima de 4 años, crecimiento anual compuesto &gt;15% en los tres ejercicios previos, accionariado español). Cada empresa se etiqueta por su año de entrada. Para comparar entre años se usan crecimiento y ROA (ratios), nunca ventas absolutas. Las cohortes 2024&ndash;2025 se excluyen por estar incompletas.</p>
+    <p class="foot-note" style="margin-top:16px"><a href="index.html" style="color:var(--ink-2)">Inicio DBCG</a> &middot; <a href="aviso-legal.html" style="color:var(--ink-2)">Aviso legal</a> &middot; <a href="politica-privacidad.html" style="color:var(--ink-2)">Política de privacidad</a></p>
+  </div>
+</footer>
+</body>
+</html>
