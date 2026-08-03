@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Manrope:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#eeece6;font-family:'IBM Plex Sans',sans-serif}
+  .dv-turn{padding:40px 44px 60px}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}
+  .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+  .dv-tname{font:600 14px/1.2 'IBM Plex Sans',sans-serif;color:#1a1a1a}
+  .dv-sub{font:400 12.5px/1.5 'IBM Plex Sans',sans-serif;color:rgba(0,0,0,.55);max-width:640px;margin:0 0 26px}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:10px}
+  .dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+  .dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11.5px/1.3 'IBM Plex Sans',sans-serif;color:rgba(0,0,0,.55)}
+  .dv-card{width:1120px;max-width:100%;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.1),0 8px 28px rgba(0,0,0,.08);overflow:hidden}
+  .dv-next{margin:26px 0 0;font:12px/1.6 'IBM Plex Sans',sans-serif;color:rgba(0,0,0,.5)}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Panel principal — 3 direcciones visuales de "pulso"</span></div>
+  <p class="dv-sub">Mismo contenido (8 verticales, presión de costes, ticker resumido) en tres tratamientos distintos del concepto de pulso/latido aplicado a datos económicos. Sector de referencia: Aceite de oliva.</p>
+  <div class="dv-opts">
+
+    <!-- OPTION 1a: Pulso gráfico — ink navy + coral, editorial-data, Space Grotesk/Plex Sans -->
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Pulso gráfico — tinta + coral, grotesk editorial</div>
+      <div class="dv-card">
+        <div style="background:#15181f;color:#f2efe9;font-family:'Space Grotesk',sans-serif">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid rgba(255,255,255,.08)">
+            <div style="display:flex;align-items:center;gap:12px">
+              <svg width="26" height="18" viewBox="0 0 26 18"><polyline points="0,9 6,9 8,2 11,16 14,5 17,9 26,9" fill="none" stroke="#ef6a4c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span style="font-weight:700;font-size:19px;letter-spacing:-0.01em">PulsoPyme</span>
+            </div>
+            <div style="display:flex;gap:22px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;color:rgba(242,239,233,.55)">
+              <span style="color:#f2efe9;border-bottom:2px solid #ef6a4c;padding-bottom:20px">Panel</span>
+              <span>Sectores</span><span>Simulador</span><span>Informes</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:#f2efe9;padding:26px 28px 30px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px">
+            <div>
+              <div style="font-family:'IBM Plex Sans',sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(21,24,31,.5)">Presión de costes — hoy</div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:600;color:#15181f;margin-top:4px">3 de 8 sectores en tensión alta</div>
+            </div>
+            <div style="font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:rgba(21,24,31,.45);text-align:right">Actualizado 27 jul 2026<br>Fuentes: INE · MAPA · OMIE</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+            <!-- tile template -->
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Aceite de oliva</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#ef6a4c;background:rgba(239,106,76,.12);padding:3px 7px;border-radius:20px">Alto</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,26 15,24 30,20 45,21 60,12 75,9 90,3 100,1" fill="none" stroke="#ef6a4c" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">+18,4%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Pesca</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#ef6a4c;background:rgba(239,106,76,.12);padding:3px 7px;border-radius:20px">Alto</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,20 15,22 30,18 45,15 60,17 75,10 90,8 100,4" fill="none" stroke="#ef6a4c" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">+11,7%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Plásticos</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#c98a1f;background:rgba(201,138,31,.12);padding:3px 7px;border-radius:20px">Medio</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,14 15,16 30,12 45,18 60,14 75,16 90,11 100,13" fill="none" stroke="#c98a1f" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">+6,8%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Cárnico</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#c98a1f;background:rgba(201,138,31,.12);padding:3px 7px;border-radius:20px">Medio</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,16 15,15 30,17 45,14 60,15 75,12 90,13 100,10" fill="none" stroke="#c98a1f" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">+4,2%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Metalmecánico</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#c98a1f;background:rgba(201,138,31,.12);padding:3px 7px;border-radius:20px">Medio</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,15 15,17 30,14 45,16 60,13 75,14 90,12 100,14" fill="none" stroke="#c98a1f" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">+3,1%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Textil</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#3f7a5f;background:rgba(63,122,95,.12);padding:3px 7px;border-radius:20px">Bajo</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,10 15,12 30,14 45,13 60,16 75,17 90,19 100,20" fill="none" stroke="#3f7a5f" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">−1,3%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Lácteos</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#3f7a5f;background:rgba(63,122,95,.12);padding:3px 7px;border-radius:20px">Bajo</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,12 15,13 30,11 45,14 60,13 75,15 90,14 100,15" fill="none" stroke="#3f7a5f" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">+0,9%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:8px;padding:16px 16px 14px;border:1px solid rgba(21,24,31,.08)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;color:#15181f">Bebidas</span>
+                <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#3f7a5f;background:rgba(63,122,95,.12);padding:3px 7px;border-radius:20px">Bajo</span>
+              </div>
+              <svg width="100%" height="30" viewBox="0 0 100 30" preserveAspectRatio="none" style="margin-top:10px;display:block"><polyline points="0,10 15,11 30,13 45,12 60,14 75,15 90,17 100,18" fill="none" stroke="#3f7a5f" stroke-width="2"/></svg>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px">
+                <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:600;color:#15181f">−0,4%</span>
+                <span style="font-size:10.5px;color:rgba(21,24,31,.45)">interanual</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(21,24,31,.04);border-radius:8px;border:1px dashed rgba(21,24,31,.15)">
+            <span style="font-size:12px;color:rgba(21,24,31,.55)">Próximamente: informes descargables por sector y alertas de precio configurables</span>
+            <span style="font-size:11px;color:rgba(21,24,31,.35)">En desarrollo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION 1b: Ritmo cálido — petrol + coral, serif numbers, dashed rhythm dividers -->
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Ritmo cálido — petróleo + coral, serif de cifras, marcas de ritmo</div>
+      <div class="dv-card">
+        <div style="background:#f6f2ea;font-family:'IBM Plex Sans',sans-serif">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 28px;background:#144a4a;color:#f6f2ea">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="display:flex;gap:3px;align-items:flex-end;height:16px">
+                <span style="width:3px;height:6px;background:#e8896a;border-radius:2px"></span>
+                <span style="width:3px;height:16px;background:#e8896a;border-radius:2px"></span>
+                <span style="width:3px;height:9px;background:#e8896a;border-radius:2px"></span>
+                <span style="width:3px;height:13px;background:#e8896a;border-radius:2px"></span>
+              </div>
+              <span style="font-family:'Newsreader',serif;font-weight:600;font-size:20px;letter-spacing:-.01em">PulsoPyme</span>
+            </div>
+            <div style="display:flex;gap:24px;font-size:12.5px;color:rgba(246,242,234,.6)">
+              <span style="color:#f6f2ea">Panel</span><span>Sectores</span><span>Simulador</span><span>Informes</span>
+            </div>
+          </div>
+          <div style="padding:26px 28px 30px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px">
+              <div>
+                <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(20,74,74,.6)">Pulso de costes — panel</div>
+                <div style="font-family:'Newsreader',serif;font-size:27px;font-weight:600;color:#14201d;margin-top:4px">3 sectores laten con tensión alta</div>
+              </div>
+              <div style="font-size:11px;color:rgba(20,32,29,.45);text-align:right">Actualizado 27 jul 2026<br>Fuentes: INE · MAPA · OMIE</div>
+            </div>
+            <div style="height:1px;background-image:repeating-linear-gradient(90deg,rgba(20,74,74,.35) 0 6px,transparent 6px 12px);margin:14px 0 18px"></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #e8896a">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Aceite de oliva</span>
+                  <span style="font-size:10px;color:#e8896a;font-weight:600">ALTO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">+18,4%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #e8896a">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Pesca</span>
+                  <span style="font-size:10px;color:#e8896a;font-weight:600">ALTO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">+11,7%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #c98a1f">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Plásticos</span>
+                  <span style="font-size:10px;color:#c98a1f;font-weight:600">MEDIO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">+6,8%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #c98a1f">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Cárnico</span>
+                  <span style="font-size:10px;color:#c98a1f;font-weight:600">MEDIO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">+4,2%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #c98a1f">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Metalmecánico</span>
+                  <span style="font-size:10px;color:#c98a1f;font-weight:600">MEDIO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">+3,1%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #3f7a5f">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Textil</span>
+                  <span style="font-size:10px;color:#3f7a5f;font-weight:600">BAJO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">−1,3%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #3f7a5f">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Lácteos</span>
+                  <span style="font-size:10px;color:#3f7a5f;font-weight:600">BAJO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">+0,9%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+              <div style="background:#fff;border-radius:6px;padding:15px 15px 13px;border-top:3px solid #3f7a5f">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-weight:600;font-size:14px;color:#14201d">Bebidas</span>
+                  <span style="font-size:10px;color:#3f7a5f;font-weight:600">BAJO</span>
+                </div>
+                <div style="font-family:'Newsreader',serif;font-size:24px;font-weight:600;color:#14201d;margin-top:8px">−0,4%</div>
+                <div style="font-size:10.5px;color:rgba(20,32,29,.45);margin-top:2px">var. interanual</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(20,74,74,.06);border-radius:6px">
+              <span style="font-size:12px;color:#144a4a">Próximamente: informes descargables por sector y alertas de precio configurables</span>
+              <span style="font-size:11px;color:rgba(20,74,74,.5)">En desarrollo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPTION 1c: Pulso vivo — near-black + indigo, EKG bars as core signature -->
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Pulso vivo — negro profundo + índigo, barras tipo monitor</div>
+      <div class="dv-card">
+        <div style="background:#0e0e13;font-family:'Manrope',sans-serif;color:#f4f3f7">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid rgba(244,243,247,.08)">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="width:9px;height:9px;border-radius:50%;background:#6f5cf0;box-shadow:0 0 0 4px rgba(111,92,240,.25)"></span>
+              <span style="font-weight:800;font-size:19px;letter-spacing:-.01em">PulsoPyme</span>
+            </div>
+            <div style="display:flex;gap:22px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:rgba(244,243,247,.45)">
+              <span style="color:#f4f3f7">PANEL</span><span>SECTORES</span><span>SIMULADOR</span><span>INFORMES</span>
+            </div>
+          </div>
+          <div style="padding:26px 28px 30px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px">
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:rgba(244,243,247,.45)">PRESIÓN DE COSTES · HOY</div>
+                <div style="font-weight:800;font-size:26px;color:#fff;margin-top:6px">3/8 sectores en tensión alta</div>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:rgba(244,243,247,.4);text-align:right">27 JUL 2026<br>INE · MAPA · OMIE</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Aceite de oliva</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#ef4b6a">ALTO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:40%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:65%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:30%;background:rgba(239,75,106,.4);border-radius:2px"></span><span style="flex:1;height:85%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:55%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:100%;background:#ef4b6a;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">+18,4%</div>
+              </div>
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Pesca</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#ef4b6a">ALTO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:50%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:40%;background:rgba(239,75,106,.4);border-radius:2px"></span><span style="flex:1;height:60%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:75%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:65%;background:#ef4b6a;border-radius:2px"></span><span style="flex:1;height:90%;background:#ef4b6a;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">+11,7%</div>
+              </div>
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Plásticos</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f5cf0">MEDIO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:45%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:55%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:35%;background:rgba(111,92,240,.4);border-radius:2px"></span><span style="flex:1;height:60%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:50%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:58%;background:#6f5cf0;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">+6,8%</div>
+              </div>
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Cárnico</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f5cf0">MEDIO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:40%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:48%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:38%;background:rgba(111,92,240,.4);border-radius:2px"></span><span style="flex:1;height:52%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:44%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:50%;background:#6f5cf0;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">+4,2%</div>
+              </div>
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Metalmecánico</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6f5cf0">MEDIO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:38%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:44%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:35%;background:rgba(111,92,240,.4);border-radius:2px"></span><span style="flex:1;height:48%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:40%;background:#6f5cf0;border-radius:2px"></span><span style="flex:1;height:46%;background:#6f5cf0;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">+3,1%</div>
+              </div>
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Textil</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#3fa66b">BAJO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:30%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:26%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:34%;background:rgba(63,166,107,.4);border-radius:2px"></span><span style="flex:1;height:22%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:28%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:20%;background:#3fa66b;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">−1,3%</div>
+              </div>
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Lácteos</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#3fa66b">BAJO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:32%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:35%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:30%;background:rgba(63,166,107,.4);border-radius:2px"></span><span style="flex:1;height:36%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:33%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:37%;background:#3fa66b;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">+0,9%</div>
+              </div>
+              <div style="background:#17171f;border-radius:8px;padding:16px">
+                <div style="display:flex;justify-content:space-between"><span style="font-weight:700;font-size:14.5px">Bebidas</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#3fa66b">BAJO</span></div>
+                <div style="display:flex;gap:3px;align-items:flex-end;height:26px;margin:12px 0 10px">
+                  <span style="flex:1;height:28%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:24%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:30%;background:rgba(63,166,107,.4);border-radius:2px"></span><span style="flex:1;height:20%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:26%;background:#3fa66b;border-radius:2px"></span><span style="flex:1;height:18%;background:#3fa66b;border-radius:2px"></span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;color:#fff">−0,4%</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(244,243,247,.04);border-radius:8px;border:1px dashed rgba(244,243,247,.15)">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:rgba(244,243,247,.5)">PRÓXIMAMENTE: informes descargables por sector · alertas de precio configurables</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(244,243,247,.35)">EN DESARROLLO</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Prueba: "sigue con <a class="dv-oid" href="#1c">1c</a> para las 3 pantallas completas" · "combina el header de <a class="dv-oid" href="#1b">1b</a> con las tarjetas de <a class="dv-oid" href="#1a">1a</a>" · "otra dirección más"</p>
+</section>
+
+</x-dc>
+</body>
+</html>

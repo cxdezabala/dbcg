@@ -1,118 +1,82 @@
-# DBCG — Sitio web (www.dbcg.es)
+# Handoff: PulsoPyme — sección de inteligencia de mercado para dbcg.es
 
-Sitio estático de **Digital Business Consulting Group S.L.** Sin framework, sin build, sin dependencias. Solo HTML, CSS en línea y dos imágenes. Carga rápido y se ve bien en móvil.
+## Overview
+PulsoPyme es una plataforma de inteligencia de mercado para PyMEs españolas: centraliza precios históricos de materias primas por sector, indicadores estructurales (empresas, empleo, altas/bajas), la estructura de coste promedio real por sector, y un simulador de impacto de precio de insumos en el margen. Se integrará como nueva sección dentro de dbcg.es.
 
----
+## About the Design Files
+Los archivos de este paquete (`PulsoPyme.dc.html`, `Panel Principal - Opciones.dc.html`) son **referencias de diseño creadas en HTML** — prototipos de alta fidelidad que muestran look & feel e interacción esperada, no código de producción para copiar tal cual. La tarea es **recrear este diseño en el stack real de dbcg.es** (el framework/CMS que use el sitio) siguiendo sus patrones ya establecidos, reutilizando componentes existentes del sitio donde sea razonable.
 
-## 1. Estructura del proyecto
+`PulsoPyme.dc.html` es el prototipo final con las 3 pantallas conectadas (navegación real por clic). `Panel Principal - Opciones.dc.html` contiene 3 exploraciones visuales descartadas del panel principal — solo como referencia histórica de dirección de diseño, no implementar.
 
-```
-/
-├── index.html              → Home (se sirve en www.dbcg.es)
-├── monitor.html            → Monitor PyME (www.dbcg.es/monitor y /monitor.html)
-├── aviso-legal.html        → Aviso legal (LSSI-CE)
-├── politica-privacidad.html→ Política de privacidad (RGPD)
-├── assets/
-│   ├── dbcg-mark.png        → Logo pequeño "DBCG" (barra de navegación)
-│   ├── dbcg-logo.png        → Logo completo (footer de la home)
-│   ├── favicon-512/180/32/16.png, favicon.png, favicon.ico
-│   ├── og-image.png         → Imagen para compartir la home (1200×630)
-│   └── og-monitor.png       → Imagen para compartir el Monitor (1200×630)
-├── favicon.ico             → Favicon en la raíz
-├── vercel.json             → Rutas limpias, redirección www, cache de /assets
-├── robots.txt
-├── sitemap.xml
-└── README.md
-```
+## Fidelity
+**Alta fidelidad (hifi)**: colores finales, tipografía, espaciados e interacciones definidos. Recrear pixel-perfect usando las librerías/patrones ya existentes en dbcg.es.
 
-> Los logos, que antes iban incrustados en base64 dentro del HTML, ahora son archivos PNG en `/assets`. Esto reduce el peso de `index.html` de ~172 KB a ~20 KB y de `monitor.html` de ~95 KB a ~38 KB.
+## Paleta y tono visual
+Concepto: "pulso" de la economía española — fondo oscuro (navy/negro casi puro) con acentos metálicos (oro, plata, platino) y líneas finas tipo mercado bursátil profesional, sin caer en el cliché "terminal neón" ni en el cliché "crema + serif + terracota".
 
----
+- Fondo base: `#0a0e1a` (navy casi negro)
+- Fondo de tarjetas: `#12151f`
+- Header: `#05070d`, borde inferior `rgba(255,255,255,.08)`
+- Texto principal: `#eef0f4`
+- Texto secundario: `rgba(255,255,255,.4–.55)`
+- Acento dorado (alertas, foco, CTA, presión alta): `#c9a227`
+- Plata/gris neutro (presión media, texto secundario en gráficos): `#9aa0ab`
+- Gris oscuro (presión baja / positivo): `#6b7280`
+- Líneas divisorias: `rgba(255,255,255,.06–.1)`, 1px, siempre finas
+- Tipografía: `IBM Plex Sans` (cuerpo/UI), `Newsreader` (cifras grandes, serif editorial), `IBM Plex Mono` (timestamps, valores tabulares, badges)
+- Barras de progreso/estructura de coste: delgadas (7–9px), sin bordes gruesos
+- Sliders: track 2px, thumb 10px circular con `currentColor`
 
-## 2. Datos de la empresa y contacto
+## Screens / Views
 
-Los datos identificativos de las páginas legales ya están rellenados con la información del Registro Mercantil:
+### 1. Panel principal
+- **Propósito**: vista general de "presión de costes" en los sectores/verticales disponibles; punto de entrada.
+- **Layout**: header fijo (logo + nav) → título + fecha/fuentes → grid de 2 columnas (1.7fr / 1fr): tabla de sectores (izquierda) + panel "Últimas actualizaciones" (derecha) → banner de "próximamente" (informes/alertas).
+- **Tabla de sectores**: filas con nombre del sector, badge de presión (ALTO/MEDIO/BAJO coloreado), variación interanual (IBM Plex Mono), sparkline delgada (1px stroke) de 12 meses, chevron de navegación. Click en fila → vista de detalle del vertical.
+- **Últimas actualizaciones**: lista de eventos con timestamp relativo, texto breve (sector + insumo + variación + fuente), expandible al click mostrando una redacción corta de qué pasa y cómo afecta al margen del sector (border-left 2px dorado).
 
-| Dato             | Valor                                                 |
-|------------------|-------------------------------------------------------|
-| Razón social     | Digital Business Consulting Group S.L.                |
-| NIF              | B87533139                                             |
-| Domicilio social | Calle Segundo Mata, 1, 28224 Pozuelo de Alarcón (Madrid) |
-| Contacto         | LinkedIn — https://www.linkedin.com/in/cdezabala/     |
+### 2. Vista de detalle de vertical
+- **Propósito**: profundizar en un sector — precios, normalización, indicadores estructurales, estructura de coste.
+- **Layout**: breadcrumb "← Panel" → título del sector + badge de presión + variación del índice compuesto → CTA "Simular impacto en margen" (botón dorado sólido) → secciones apiladas:
+  1. **Ticker de materias primas clave**: tarjetas horizontales scrolleables (nombre, sparkline, precio crudo, variación interanual, fuente).
+  2. **Capa de normalización** (pieza distintiva): por cada insumo, tarjeta dividida en 2 mitades separadas por un punto pulsante dorado — izquierda: precio de mercado crudo; derecha (fondo con tinte dorado sutil): "impacto por unidad de producto" (ej. "≈ 9,76 €/tonelada producida") + fórmula/supuesto de conversión en texto pequeño.
+  3. **Indicadores estructurales**: 4 tarjetas (empresas activas, empleo, altas 12m, bajas 12m), cada una con su fuente (INE — DIRCE / EPA).
+  4. **Estructura de coste promedio real**: barra apilada horizontal delgada (7px, gap 1px entre segmentos) + leyenda con % por partida + fuente (Banco de España — Central de Balances).
 
-> **Contacto:** el sitio no usa correo electrónico. Todas las vías de contacto (home y páginas legales) apuntan al perfil de LinkedIn `https://www.linkedin.com/in/cdezabala/`. Para cambiarlas, busca y reemplaza esa URL en los `.html`. Verifica el código postal (28224) por si necesitara ajuste.
+### 3. Simulador de impacto en margen
+- **Propósito**: el usuario ajusta variables y ve el efecto en el margen de la empresa tipo, en tiempo real.
+- **Layout**: breadcrumb → título → grid de 2 columnas:
+  - **Izquierda — controles**: chips seleccionables por insumo del sector, slider de "peso del insumo en la estructura de coste" (0–60%), slider de "variación de precio esperada" (-30% a +60%), nota de metodología.
+  - **Derecha — resultado**: margen actual vs. proyectado (cifras grandes Newsreader), badge de delta en puntos porcentuales (dorado si sube, gris si neutro/baja), barra fina (9px) comparando ambos márgenes, narrativa en texto plano generada según el resultado.
+  - **Sección inferior — simulación combinada**: unifica variaciones sobre TODAS las partidas de la estructura de coste del vertical a la vez (no solo un insumo): un slider por partida + contribución individual en pp + margen combinado resultante + narrativa.
+  - Banner "próximamente": guardar escenarios y alertas por umbral de margen.
 
----
+## Interactions & Behavior
+- Navegación por clic entre las 3 vistas (sin recarga de página, estado en memoria).
+- Sliders actualizan resultado en tiempo real (`onChange`, sin debounce).
+- Selección de insumo en el simulador vía chips (estado activo = fondo dorado sólido, texto navy).
+- "Últimas actualizaciones": click en el ítem alterna expandir/contraer una descripción breve inline.
+- Sin animaciones de transición entre vistas; sí un punto pulsante (`@keyframes pp-pulse`, 1.8s) en la capa de normalización como firma visual de "pulso".
+- Hover: no definidos explícitamente en el prototipo — implementar estados hover sutiles (leve aclarado de fondo) en filas de tabla, chips y CTA siguiendo el patrón del sitio.
 
-## 3. Subir el proyecto a GitHub
+## State Management
+- `view`: 'panel' | 'detalle' | 'simulador'
+- `sectorId`: sector activo en detalle/simulador
+- `insumoIdx`: insumo seleccionado en el simulador de insumo único
+- `peso`, `variacion`: valores de los 2 sliders del simulador simple (null = usa default del insumo)
+- `estrVars`: objeto `{ "<sectorId>_<idx partida>": variación% }` para el simulador combinado
+- `expandedUpdate`: índice de la actualización expandida en el panel (o null)
+- Todos los cálculos de margen son derivados (no se persisten): coste actual del sector × (1 + peso% × variación%) → margen = 100 − coste.
 
-1. Crea un repositorio nuevo en GitHub (por ejemplo `dbcg-web`), vacío y privado.
-2. Desde la carpeta del proyecto, en una terminal:
+## Design Tokens
+- Radios: 6–8px en tarjetas, 20px en badges/píldoras, 3–4px en barras finas
+- Sombras: ninguna (diseño plano, se apoya en contraste de fondo oscuro y bordes de 1px)
+- Espaciado de sección: ~28px entre bloques, 14–16px de gap en grids
+- Fuente mínima de dato numérico visible: 12px (badges), cifras clave 19–30px (Newsreader)
 
-   ```bash
-   git init
-   git add .
-   git commit -m "Sitio DBCG — versión inicial"
-   git branch -M main
-   git remote add origin https://github.com/TU-USUARIO/dbcg-web.git
-   git push -u origin main
-   ```
+## Assets
+Sin imágenes ni iconos externos — todo el diseño usa tipografía (Google Fonts: IBM Plex Sans, Newsreader, IBM Plex Mono), SVG inline para sparklines/mini-gráficos, y CSS puro para barras/sliders.
 
-   > Si no usas terminal, también puedes arrastrar todos los archivos a un repositorio nuevo desde la web de GitHub ("uploading an existing file").
-
----
-
-## 4. Desplegar en Vercel
-
-1. Entra en [vercel.com](https://vercel.com) e inicia sesión (puedes usar tu cuenta de GitHub).
-2. **Add New… → Project**.
-3. Importa el repositorio `dbcg-web`.
-4. En la configuración del proyecto:
-   - **Framework Preset:** `Other` (no es necesario ningún framework).
-   - **Build Command:** déjalo **vacío**.
-   - **Output Directory:** déjalo **vacío** (la raíz del repo ya contiene el sitio).
-5. Pulsa **Deploy**. En unos segundos tendrás una URL `*.vercel.app` para comprobar que todo funciona.
-
-Comprueba que cargan: `/`, `/monitor`, `/monitor.html`, `/aviso-legal`, `/politica-privacidad` y que las imágenes de `/assets` se ven.
-
----
-
-## 5. Conectar el dominio www.dbcg.es
-
-En el proyecto de Vercel: **Settings → Domains**.
-
-1. Añade `www.dbcg.es` → será el dominio principal.
-2. Añade `dbcg.es` → Vercel lo redirigirá automáticamente a `www.dbcg.es` (también lo fuerza `vercel.json`).
-
-Después, en tu **proveedor de DNS** (donde tengas registrado el dominio), crea estos registros:
-
-| Tipo  | Nombre / Host | Valor                   |
-|-------|---------------|-------------------------|
-| `A`   | `@` (raíz)    | `76.76.21.21`           |
-| `CNAME` | `www`       | `cname.vercel-dns.com`  |
-
-> ⚠️ **NO toques los registros `MX`.** Si los borras o modificas, dejarás de recibir correo en `@dbcg.es`. Añade solo los registros `A` y `CNAME` indicados; deja el resto como está.
-
-La propagación de DNS puede tardar desde unos minutos hasta 24-48 h. Vercel emite el certificado HTTPS automáticamente cuando detecta los registros correctos.
-
----
-
-## 6. Qué hace `vercel.json`
-
-- **Rutas limpias:** `/monitor` sirve `monitor.html` (también funciona `/monitor.html`). Igual para `/aviso-legal` y `/politica-privacidad`.
-- **Redirección:** cualquier visita a `dbcg.es` (sin www) se redirige de forma permanente a `https://www.dbcg.es`.
-- **Cache:** los archivos de `/assets` se cachean un año (`immutable`); el HTML siempre se revalida para que los cambios se vean al instante.
-
----
-
-## 7. Actualizar el sitio más adelante
-
-Cada vez que hagas `git push` a la rama `main`, Vercel vuelve a desplegar automáticamente. No hay pasos manuales.
-
----
-
-## Notas técnicas
-
-- **Sin cookies de terceros** ni analítica: la política de privacidad ya lo refleja.
-- **Accesibilidad:** imágenes con `alt`, foco de teclado visible, enlace "saltar al contenido" en las páginas legales y buen contraste sobre el fondo oscuro.
-- **Compartir en redes:** las etiquetas Open Graph y Twitter Card ya están puestas; al pegar el enlace en LinkedIn o WhatsApp se mostrará `og-image.png` (home) u `og-monitor.png` (Monitor).
+## Files
+- `PulsoPyme.dc.html` — prototipo completo, 3 pantallas conectadas (fuente principal de verdad para el handoff)
+- `Panel Principal - Opciones.dc.html` — exploraciones visuales descartadas (solo referencia histórica, no implementar)
