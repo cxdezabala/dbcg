@@ -3,6 +3,7 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/monitor", "destination": "/monitor.html" },
+    { "source": "/pulsopyme", "destination": "/pulsopyme.html" },
     { "source": "/aviso-legal", "destination": "/aviso-legal.html" },
     { "source": "/politica-privacidad", "destination": "/politica-privacidad.html" }
   ],
