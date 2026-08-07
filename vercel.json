@@ -2,8 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/monitor", "destination": "/monitor.html" },
-    { "source": "/pulsopyme", "destination": "/pulsopyme.html" },
+    { "source": "/kairos", "destination": "/kairos.html" },
     { "source": "/aviso-legal", "destination": "/aviso-legal.html" },
     { "source": "/politica-privacidad", "destination": "/politica-privacidad.html" }
   ],
