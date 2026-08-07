@@ -12,6 +12,12 @@
       "has": [{ "type": "host", "value": "dbcg.es" }],
       "destination": "https://www.dbcg.es/:path*",
       "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.dbcg.es" }],
+      "destination": "https://www.dbcg.es/kairos",
+      "permanent": false
     }
   ],
   "headers": [
