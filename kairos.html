@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -65,9 +66,11 @@ p{margin:0 0 12px}
 .table th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 60%, transparent);padding:8px;border-bottom:2px solid var(--color-divider)}
 .table td{padding:8px;border-bottom:1px solid var(--color-divider)}
 .table tbody tr:hover{background:color-mix(in srgb, var(--color-text) 4%, transparent)}
-.seg-opt{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font-size:13px;cursor:pointer;border:1px solid var(--color-divider)}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--color-divider)}
+.seg-opt{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;font-size:12.5px;cursor:pointer;white-space:nowrap;border-right:1px solid var(--color-divider)}
+.seg-opt:last-child{border-right:none}
 .seg-opt input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
-.seg-opt:has(input:checked){background:var(--color-accent);color:var(--color-bg);border-color:var(--color-accent)}
+.seg-opt:has(input:checked){background:var(--color-accent);color:var(--color-bg)}
 .seg-opt:not(:has(input:checked)):hover{background:color-mix(in srgb, var(--color-text) 7%, transparent)}
 input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:14px}
 input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--color-divider)}
@@ -376,9 +379,9 @@ function App() {
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:24, marginTop:16, alignItems:'start'}}>
                 <div>
                   <div style={{fontSize:12, fontWeight:700, marginBottom:8}}>Sector</div>
-                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+                  <div className="seg">
                     {Object.values(SECTORS_RAW).map(sec => (
-                      <label key={sec.id} style={{fontSize:12.5, padding:'7px 11px', border:`1px solid ${onboardSector===sec.id?ACCENT:TEXT}`, background:onboardSector===sec.id?ACCENT_100:'transparent', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6}}>
+                      <label key={sec.id} className="seg-opt">
                         <input type="radio" name="onbSector" checked={onboardSector===sec.id} onChange={() => setOnboardSector(sec.id)}/>{sec.name}
                       </label>
                     ))}
@@ -386,9 +389,9 @@ function App() {
                 </div>
                 <div>
                   <div style={{fontSize:12, fontWeight:700, marginBottom:8}}>Facturación anual</div>
-                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+                  <div className="seg">
                     {REVENUE_BANDS.map(b => (
-                      <label key={b.id} style={{fontSize:12.5, padding:'7px 11px', border:`1px solid ${onboardRevenue===b.id?ACCENT:TEXT}`, background:onboardRevenue===b.id?ACCENT_100:'transparent', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6}}>
+                      <label key={b.id} className="seg-opt">
                         <input type="radio" name="onbRevenue" checked={onboardRevenue===b.id} onChange={() => setOnboardRevenue(b.id)}/>{b.label}
                       </label>
                     ))}
@@ -396,9 +399,9 @@ function App() {
                 </div>
                 <div>
                   <div style={{fontSize:12, fontWeight:700, marginBottom:8}}>Empleados</div>
-                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+                  <div className="seg">
                     {HEADCOUNT_BANDS.map(b => (
-                      <label key={b.id} style={{fontSize:12.5, padding:'7px 11px', border:`1px solid ${onboardHeadcount===b.id?ACCENT:TEXT}`, background:onboardHeadcount===b.id?ACCENT_100:'transparent', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6}}>
+                      <label key={b.id} className="seg-opt">
                         <input type="radio" name="onbHeadcount" checked={onboardHeadcount===b.id} onChange={() => setOnboardHeadcount(b.id)}/>{b.label}
                       </label>
                     ))}
