@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kairos — Inteligencia de decisión para CEOs · by DBCG</title>
+<meta name="description" content="Kairos: simulador en vivo de impacto en margen y EBITDA por driver de coste, inteligencia sectorial y un centro de decisión, para CEOs de PyME.">
+<link rel="canonical" href="https://www.dbcg.es/kairos">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+<style>
+:root {
+  --color-bg:#f3f2f2; --color-surface:#eae9e9; --color-text:#201e1d; --color-accent:#ec3013; --color-accent-2:#e15b47;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+  --color-neutral-100:#f8f4f4; --color-neutral-200:#eae7e7; --color-neutral-300:#d7d3d3; --color-neutral-400:#bab6b6;
+  --color-neutral-500:#9b9797; --color-neutral-600:#7d7979; --color-neutral-700:#605d5d; --color-neutral-800:#444141; --color-neutral-900:#2d2b2b;
+  --color-accent-100:#fff2ef; --color-accent-200:#ffe0d9; --color-accent-300:#ffc4b8; --color-accent-400:#ff9783;
+  --color-accent-500:#ff563c; --color-accent-600:#dd2b0f; --color-accent-700:#ae1800; --color-accent-800:#7c1405; --color-accent-900:#4d170e;
+  --font-heading:"Archivo",system-ui,sans-serif; --font-heading-weight:800; --font-body:"Archivo",system-ui,sans-serif;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
+  --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
+}
+@keyframes krs-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes krs-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes krs-shimmer{0%,100%{opacity:.5}50%{opacity:1}}
+*, *::before, *::after{box-sizing:border-box}
+body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);font-size:15px;line-height:1.55}
+a{color:var(--color-accent);text-underline-offset:3px}
+h1,h2,h3,h4,h5,h6{font-family:var(--font-heading);font-weight:var(--font-heading-weight);line-height:1.12;letter-spacing:-.015em;margin:0 0 8px}
+h1{font-size:42px} h2{font-size:32px} h3{font-size:25px} h4{font-size:20px} h5{font-size:16px}
+h6{font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+p{margin:0 0 12px}
+.text-muted{color:color-mix(in srgb, var(--color-text) 55%, transparent)}
+:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+::selection{background:color-mix(in srgb, var(--color-accent) 30%, transparent)}
+.hr{height:2px;border:0;margin:16px 0;background:var(--color-divider)}
+.btn{display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;cursor:pointer;text-decoration:none;font-family:var(--font-heading);font-weight:800;font-size:14px;line-height:1.2;color:var(--color-text);background:transparent;border:1px solid transparent;padding:8px 14px;white-space:nowrap;text-align:left}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--color-accent);color:var(--color-bg)}
+.btn-primary:hover{background:var(--color-accent-600)}
+.btn-secondary{border-color:var(--color-divider)}
+.btn-secondary:hover{background:color-mix(in srgb, var(--color-text) 7%, transparent)}
+.btn-ghost{color:var(--color-accent);padding-inline:4px}
+.btn-ghost:hover{background:color-mix(in srgb, var(--color-accent) 10%, transparent)}
+.btn-icon{width:36px;height:36px;padding:0}
+.btn-block{width:100%;justify-content:flex-start;text-align:left}
+.card{display:flex;flex-direction:column;gap:8px;padding:12px;background:var(--color-surface)}
+.card-kicker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent)}
+.card-title{font-family:var(--font-heading);font-weight:800;font-size:17px;line-height:1.2}
+.card-body{margin:0;font-size:13px;opacity:.8;flex:1}
+.card-meta{display:flex;align-items:center;gap:6px;font-size:11px;color:color-mix(in srgb, var(--color-text) 50%, transparent)}
+.elev-sm{box-shadow:var(--shadow-sm)}
+.elev-md{box-shadow:var(--shadow-md)}
+.tag{display:inline-flex;align-items:center;font-size:11px;letter-spacing:.02em;padding:3px 10px}
+.tag-accent{background:var(--color-accent-100);color:var(--color-accent-800)}
+.tag-neutral{background:var(--color-neutral-100);color:var(--color-neutral-800)}
+.tag-outline{border:1px solid var(--color-accent);color:var(--color-accent)}
+.nav{display:flex;align-items:center;gap:16px;padding:12px 16px;border-bottom:2px solid var(--color-divider)}
+.nav-brand{font-family:var(--font-heading);font-weight:800;font-size:18px;margin-right:auto}
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb, var(--color-text) 60%, transparent);padding:8px;border-bottom:2px solid var(--color-divider)}
+.table td{padding:8px;border-bottom:1px solid var(--color-divider)}
+.table tbody tr:hover{background:color-mix(in srgb, var(--color-text) 4%, transparent)}
+.seg-opt{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font-size:13px;cursor:pointer;border:1px solid var(--color-divider)}
+.seg-opt input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.seg-opt:has(input:checked){background:var(--color-accent);color:var(--color-bg);border-color:var(--color-accent)}
+.seg-opt:not(:has(input:checked)):hover{background:color-mix(in srgb, var(--color-text) 7%, transparent)}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;height:14px}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--color-divider)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:0;background:var(--color-accent);margin-top:-6px}
+input[type=range]::-moz-range-track{height:2px;background:var(--color-divider)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:0;background:var(--color-accent)}
+button{font-family:inherit}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+const BG='#f3f2f2', SURFACE='#eae9e9', TEXT='#201e1d', ACCENT='#ec3013', ACCENT_100='#fff2ef', ACCENT_700='#ae1800';
+const N300='#d7d3d3', N400='#bab6b6', N500='#9b9797', N600='#7d7979', N700='#605d5d', N800='#444141';
+const DIVIDER='rgba(32,30,29,.4)';
+const CONF_COLOR = { 'Alta': ACCENT_700, 'Media': TEXT, 'Baja': N600 };
+
+function tag(label, kind, extra) {
+  const cls = kind==='accent' ? 'tag tag-accent' : kind==='outline' ? 'tag tag-outline' : 'tag tag-neutral';
+  return <span className={cls} style={{whiteSpace:'nowrap', ...extra}}>{label}</span>;
+}
+function Btn({ children, kind='secondary', onClick, disabled, style }) {
+  const cls = kind==='primary' ? 'btn btn-primary' : kind==='ghost' ? 'btn btn-ghost' : 'btn btn-secondary';
+  return <button className={cls} onClick={disabled?undefined:onClick} disabled={disabled} style={style}>{children}</button>;
+}
+function Card({ children, style, tint }) {
+  return <div className="card elev-sm" style={{ background: tint ? ACCENT_100 : SURFACE, ...style }}>{children}</div>;
+}
+function Kicker({ children }) { return <div className="card-kicker">{children}</div>; }
+function Muted({ children, style }) { return <span className="text-muted" style={{ fontSize:13, ...style }}>{children}</span>; }
+function Hr() { return <hr className="hr" />; }
+
+const DRIVERS_RAW = [
+  { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.52, yoy:8.4, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta',
+    desc:'El gasóleo B mueve directamente el coste de transporte y logística. Una subida sostenida presiona márgenes en cualquier sector con distribución física intensiva.', sectors:['manufactura','alimentacion'] },
+  { id:'acero', name:'Acero laminado en caliente', unit:'€/tonelada', current:780, yoy:4.4, spark:'0,16 15,18 30,15 45,17 60,14 75,15 90,13 100,15', fuente:'INE', confidence:'Alta',
+    desc:'Materia prima base para mecanizado y componentes metálicos. Su precio suele anticipar movimientos de coste en toda la cadena de manufactura.', sectors:['manufactura'] },
+  { id:'electricidad', name:'Electricidad industrial', unit:'€/MWh', current:128, yoy:6.1, spark:'0,18 15,20 30,15 45,17 60,12 75,14 90,9 100,10', fuente:'OMIE', confidence:'Alta',
+    desc:'Coste energético de producción. Especialmente sensible en procesos de mecanizado, frío industrial y pasteurización.', sectors:['manufactura','alimentacion'] },
+  { id:'inflacion', name:'Inflación (IPC)', unit:'% interanual', current:2.8, yoy:0.3, spark:'0,20 15,19 30,20 45,18 60,17 75,16 90,15 100,14', fuente:'INE', confidence:'Alta',
+    desc:'Indicador general de presión de precios. Afecta tanto a costes de compra como a la capacidad de repercutir precio sin perder demanda.', sectors:['manufactura','alimentacion'] },
+  { id:'tipos', name:'Tipos de interés (BCE)', unit:'%', current:2.75, yoy:-0.25, spark:'0,10 15,11 30,10 45,9 60,9 75,8 90,7 100,7', fuente:'BCE', confidence:'Alta',
+    desc:'Coste de financiación de circulante e inversión. Una bajada sostenida abre ventanas de refinanciación.', sectors:['manufactura','alimentacion'] },
+  { id:'laboral', name:'Coste laboral', unit:'€/hora', current:24.10, yoy:3.6, spark:'0,14 15,15 30,14 45,16 60,15 75,17 90,16 100,18', fuente:'INE — ETCL', confidence:'Media',
+    desc:'Coste de personal por hora efectiva trabajada. Estructuralmente al alza y con menor margen de maniobra a corto plazo.', sectors:['manufactura','alimentacion'] },
+  { id:'aceite_oliva', name:'Aceite de oliva virgen extra', unit:'€/kg', current:5.20, yoy:12.4, spark:'0,20 15,18 30,16 45,12 60,9 75,5 90,3 100,1', fuente:'MAPA', confidence:'Alta',
+    desc:'Insumo clave en fritura y elaborados de alimentación. Precio muy sensible a la cosecha anual de olivar.', sectors:['alimentacion'] },
+  { id:'aceite_vegetal', name:'Aceite vegetal (girasol)', unit:'€/kg', current:1.15, yoy:-3.2, spark:'0,12 15,13 30,11 45,14 60,15 75,17 90,18 100,19', fuente:'MAPA', confidence:'Media',
+    desc:'Sustituto parcial del aceite de oliva en procesado industrial. Su abaratamiento relativo puede compensar parte de la subida del AOVE.', sectors:['alimentacion'] },
+  { id:'trigo', name:'Trigo blando', unit:'€/tonelada', current:235, yoy:5.1, spark:'0,16 15,15 30,17 45,14 60,16 75,13 90,15 100,12', fuente:'FEGA', confidence:'Alta',
+    desc:'Materia prima de panificación y pienso animal. Afecta tanto a harineras como, indirectamente, a coste de pienso en cárnico y avícola.', sectors:['alimentacion'] },
+  { id:'cerdo', name:'Porcino (canal)', unit:'€/kg', current:1.62, yoy:2.8, spark:'0,15 15,16 30,14 45,15 60,13 75,14 90,12 100,13', fuente:'MAPA', confidence:'Media',
+    desc:'Precio de referencia en lonja para el sector cárnico porcino. Sigue de cerca al coste de pienso.', sectors:['alimentacion'] },
+  { id:'pollo', name:'Avícola (pollo vivo)', unit:'€/kg', current:1.08, yoy:-1.4, spark:'0,13 15,14 30,12 45,13 60,15 75,14 90,16 100,17', fuente:'MAPA', confidence:'Media',
+    desc:'Precio en granja del pollo de engorde. Ciclo productivo corto, por lo que reacciona rápido a cambios en el coste de pienso.', sectors:['alimentacion'] },
+  { id:'algodon', name:'Algodón fibra', unit:'€/kg', current:1.68, yoy:-3.4, spark:'0,10 15,12 30,11 45,14 60,13 75,16 90,18 100,19', fuente:'INE', confidence:'Media',
+    desc:'Materia prima base del textil. Un abaratamiento sostenido alivia el principal componente de coste del sector.', sectors:['textil'] },
+  { id:'pienso', name:'Pienso animal (maíz + soja)', unit:'€/tonelada', current:298, yoy:4.7, spark:'0,17 15,16 30,18 45,15 60,17 75,14 90,15 100,13', fuente:'FEGA', confidence:'Alta',
+    desc:'Coste de alimentación animal, principal input de productores de porcino y avícola. Sigue de cerca al precio del maíz y la soja de importación.', sectors:['alimentacion'] },
+  { id:'aluminio', name:'Aluminio', unit:'€/tonelada', current:2340, yoy:2.1, spark:'0,15 15,14 30,16 45,13 60,14 75,12 90,13 100,11', fuente:'INE', confidence:'Media',
+    desc:'Materia prima de componentes ligeros. Relevante en piezas de automoción y bienes de equipo que sustituyen acero por aluminio.', sectors:['manufactura'] },
+  { id:'colorantes', name:'Colorantes y productos de acabado textil', unit:'índice base 100', current:112, yoy:3.9, spark:'0,18 15,17 30,18 45,16 60,17 75,15 90,16 100,14', fuente:'INE', confidence:'Baja',
+    desc:'Insumos químicos de tintado y acabado. Cobertura de datos limitada — variación estimada a partir del índice de precios industriales químicos.', sectors:['textil'] },
+];
+const LIMITED_DRIVERS = ['Cobre','Gas natural','PMI manufacturero','Fletes marítimos','Turismo','Confianza del consumidor','Tipo de cambio EUR/USD','Cemento','Precio de la vivienda'];
+
+const SECTORS_RAW = {
+  manufactura: { id:'manufactura', name:'Industria del metal y automoción', margenBase:10,
+    estructura:[['Acero laminado',41,N300],['Energía',10,ACCENT],['Componentes',14,N400],['Personal',25,N600],['Otros',10,N800]],
+    estructuraDriverMap:{0:['acero'],1:['electricidad'],2:['aluminio'],3:['laboral']},
+    pesoPorDriver:{acero:41, electricidad:10, laboral:25, tipos:6, inflacion:8, fuel:6, aluminio:14},
+    driversIds:['acero','electricidad','laboral','tipos','inflacion','aluminio'],
+    riesgos:['Concentración de compras de acero en un único proveedor nacional, sin cobertura de precio a plazo.', 'Dependencia energética intensiva sin contrato de tarifa fija más allá de Q4.', 'El aluminio, cada vez más presente en componentes ligeros, no está cubierto por el mismo contrato a plazo que el acero.'],
+    oportunidades:['El precio del acero lleva 3 meses moderándose tras el pico del semestre — ventana para cerrar compras a plazo.', 'Líneas de financiación bonificada para digitalización industrial (Kit Digital, fondos Next Generation) siguen abiertas.'] },
+  alimentacion: { id:'alimentacion', name:'Industria de la alimentación', margenBase:9,
+    estructura:[['Materia prima',45,N300],['Energía',8,ACCENT],['Envase',10,N400],['Personal',27,N600],['Otros',10,N800]],
+    estructuraDriverMap:{0:['aceite_oliva','aceite_vegetal','trigo','cerdo','pollo'],1:['electricidad'],3:['laboral']},
+    pesoPorDriver:{fuel:12, electricidad:8, laboral:27, inflacion:10, acero:0, tipos:5, aceite_oliva:15, aceite_vegetal:6, trigo:8, cerdo:9, pollo:9, pienso:11},
+    driversIds:['fuel','electricidad','laboral','inflacion','aceite_oliva','aceite_vegetal','trigo','cerdo','pollo','pienso'],
+    riesgos:['Alta exposición a combustible por distribución propia de reparto diario.', 'Materia prima agrícola sujeta a estacionalidad sin cobertura contractual a 12 meses.', 'El coste de pienso, base de tu cadena cárnica, depende de maíz y soja de importación sin cobertura de precio.'],
+    oportunidades:['Demanda de exportación al alza para producto de gama alta — margen de precio premium en mercados exteriores.', 'Tipos de interés a la baja abren ventana para refinanciar deuda de circulante a corto plazo.'] },
+  textil: { id:'textil', name:'Textil y confección', margenBase:11,
+    estructura:[['Algodón fibra',36,N300],['Energía',8,ACCENT],['Colorantes y acabado',10,N400],['Personal',33,N600],['Otros',13,N800]],
+    estructuraDriverMap:{0:['algodon'],1:['electricidad'],3:['laboral']},
+    pesoPorDriver:{algodon:36, electricidad:8, laboral:33, inflacion:7, tipos:5, colorantes:10},
+    driversIds:['algodon','electricidad','laboral','inflacion','colorantes'],
+    riesgos:['Dependencia de un único origen de fibra de algodón sin contrato de precio fijo.', 'Exposición cambiaria en compras de fibra facturadas en USD.', 'Cobertura de datos limitada en colorantes y acabados — confianza baja en esa partida del coste.'],
+    oportunidades:['El algodón lleva varios meses abaratándose — ventana para asegurar coste de materia prima a la baja.', 'Demanda creciente de producto de bajo impacto ambiental permite precio premium en ciertas colecciones.'] },
+};
+const LOCKED_SECTORS = ['Comercio','Construcción','Hostelería y turismo','Transporte y logística'];
+const SECTOR_TILE_ORDER = ['Comercio','Construcción','alimentacion','manufactura','textil','Hostelería y turismo','Transporte y logística'];
+
+const DECISIONS = {
+  manufactura: [
+    { title:'Cubrir el precio del acero a 6 meses', impact:'Alto', urgency:'Alta', confidence:'Media', body:'El acero lleva cuatro trimestres de subida sostenida y pesa un 41% de tu coste. Deberías considerar cerrar un contrato a plazo con al menos un segundo proveedor para limitar la exposición a un nuevo repunte.' },
+    { title:'Renegociar la tarifa eléctrica industrial antes de Q4', impact:'Medio', urgency:'Media', confidence:'Alta', body:'Los precios mayoristas muestran una ventana de estabilidad relativa. Deberías considerar adelantar la renovación de tarifa antes de que la volatilidad estacional de invierno la encarezca.' },
+    { title:'Revisar la dependencia de un único proveedor de componentes', impact:'Medio', urgency:'Baja', confidence:'Media', body:'Un 14% de tu coste depende de un proveedor sin alternativa cualificada. Deberías considerar homologar un segundo proveedor como cobertura ante disrupciones.' },
+  ],
+  alimentacion: [
+    { title:'Trasladar parcialmente la subida de combustible al precio de venta', impact:'Alto', urgency:'Alta', confidence:'Media', body:'El gasóleo ha subido un 8,4% interanual y tu reparto propio lo absorbe directamente. Deberías considerar un ajuste de precio selectivo en las referencias con menor elasticidad de demanda.' },
+    { title:'Renegociar el contrato de envase a 12 meses', impact:'Medio', urgency:'Media', confidence:'Alta', body:'El coste de envase se ha mantenido estable, lo que da margen de negociación. Deberías considerar fijar precio a 12 meses antes de que la demanda del sector lo tensione.' },
+    { title:'Evaluar un proveedor alternativo de materia prima', impact:'Alto', urgency:'Media', confidence:'Baja', body:'La estacionalidad agrícola introduce incertidumbre sobre el próximo trimestre. Deberías considerar cualificar una segunda fuente, aunque la evidencia disponible aún es limitada.' },
+  ],
+  textil: [
+    { title:'Asegurar coste de algodón mientras sigue a la baja', impact:'Alto', urgency:'Media', confidence:'Media', body:'El algodón pesa un 36% de tu coste y lleva meses abaratándose. Deberías considerar cerrar volumen a precio actual antes de que la tendencia se revierta.' },
+    { title:'Diversificar origen de fibra', impact:'Medio', urgency:'Baja', confidence:'Media', body:'Dependes de un único origen de algodón facturado en USD. Deberías considerar cualificar un segundo origen para reducir exposición cambiaria.' },
+    { title:'Revisar la tarifa eléctrica antes de temporada alta', impact:'Medio', urgency:'Media', confidence:'Alta', body:'La energía es un componente menor pero creciente de tu coste. Deberías considerar renegociar tarifa antes del pico de producción de temporada.' },
+  ],
+};
+const OPPORTUNITIES = {
+  manufactura: [
+    { title:'Ventana de compra de acero a mejor precio', body:'Tras el pico del semestre, el precio del acero laminado lleva tres meses moderándose. Cerrar volumen ahora podría fijar un coste más favorable que el promedio del año.', confidence:'Media', fuente:'INE' },
+    { title:'Financiación bonificada para digitalización industrial', body:'Las líneas de Kit Digital y fondos Next Generation siguen activas para inversión en automatización de planta, con condiciones mejores que el crédito bancario estándar.', confidence:'Alta', fuente:'Red.es' },
+  ],
+  alimentacion: [
+    { title:'Demanda de exportación al alza en gama premium', body:'Los datos de comercio exterior muestran una demanda creciente de producto español de alta gama, con margen para precio premium frente al mercado doméstico.', confidence:'Media', fuente:'ICEX' },
+    { title:'Ventana para refinanciar deuda de circulante', body:'La tendencia bajista de tipos de interés del BCE abre una ventana para renegociar líneas de circulante a mejor coste antes de que la curva se estabilice.', confidence:'Alta', fuente:'BCE' },
+  ],
+  textil: [
+    { title:'Algodón a la baja — ventana de compra', body:'El precio de la fibra de algodón lleva varios meses de descenso sostenido. Cerrar contratos ahora podría fijar un coste de materia prima mejor que el promedio anual.', confidence:'Media', fuente:'INE' },
+    { title:'Prima de precio por producto de bajo impacto ambiental', body:'Crece la disposición a pagar más por colecciones certificadas de menor huella ambiental, abriendo margen de precio premium.', confidence:'Media', fuente:'ICEX' },
+  ],
+};
+const REVENUE_BANDS = [ {id:'b1',label:'< 2M €',mid:1.5}, {id:'b2',label:'2–5M €',mid:3.5}, {id:'b3',label:'5–15M €',mid:9}, {id:'b4',label:'15–25M €',mid:20} ];
+const HEADCOUNT_BANDS = [ {id:'h1',label:'10–24'}, {id:'h2',label:'25–49'}, {id:'h3',label:'50–99'}, {id:'h4',label:'100–249'} ];
+
+function fmtPct(n) { const s = Math.abs(n).toFixed(1).replace('.', ','); return (n > 0 ? '+' : n < 0 ? '−' : '') + s + '%'; }
+function fmtEur(n) { return '€' + n.toLocaleString('es-ES', { maximumFractionDigits: 0 }); }
+function driverColor(yoy) { return Math.abs(yoy) >= 5 ? ACCENT_700 : (Math.abs(yoy) >= 1 ? TEXT : N600); }
+function driverTagKind(yoy) { return Math.abs(yoy) >= 5 ? 'accent' : (Math.abs(yoy) >= 1 ? 'outline' : 'neutral'); }
+
+function App() {
+  const [tab, setTab] = useState('brief');
+  const [briefReady, setBriefReady] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [onboardSector, setOnboardSector] = useState(null);
+  const [onboardRevenue, setOnboardRevenue] = useState(null);
+  const [onboardHeadcount, setOnboardHeadcount] = useState(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState('fuel');
+  const [selectedSectorId, setSelectedSectorId] = useState('manufactura');
+  const [simSectorId, setSimSectorId] = useState('manufactura');
+  const [simDriverId, setSimDriverId] = useState('acero');
+  const [simPeso, setSimPeso] = useState(null);
+  const [simVariacion, setSimVariacion] = useState(null);
+  const [estrVars, setEstrVars] = useState({});
+  const [relevantInsumos, setRelevantInsumos] = useState({});
+  const [inflGeneral, setInflGeneral] = useState(null);
+  const [copilotOpen, setCopilotOpen] = useState(false);
+  const [copilotThread, setCopilotThread] = useState([]);
+  const [feedOpen, setFeedOpen] = useState(true);
+  const [feedExpanded, setFeedExpanded] = useState(null);
+
+  useEffect(() => { const t = setTimeout(() => setBriefReady(true), 550); return () => clearTimeout(t); }, []);
+
+  const effSector = SECTORS_RAW[(profile && profile.sectorId) || selectedSectorId];
+
+  const tickerRaw = DRIVERS_RAW.map(d => ({ name: d.name, valueLabel: fmtPct(d.yoy), color: driverColor(d.yoy), fuente: d.fuente }));
+  const tickerLoop = tickerRaw.concat(tickerRaw);
+
+  const showOnboarding = !profile && !onboardingDismissed;
+  const canConfirmProfile = !!(onboardSector && onboardRevenue && onboardHeadcount);
+  const confirmProfile = () => { setProfile({ sectorId: onboardSector, revenueBandId: onboardRevenue, headcountBandId: onboardHeadcount }); setSelectedSectorId(onboardSector); setSimSectorId(onboardSector); };
+  const editProfile = () => { setOnboardSector(profile ? profile.sectorId : onboardSector); setOnboardRevenue(profile ? profile.revenueBandId : onboardRevenue); setOnboardHeadcount(profile ? profile.headcountBandId : onboardHeadcount); setProfile(null); setOnboardingDismissed(false); };
+  const profileCard = profile ? { sector: effSector.name, revenue: REVENUE_BANDS.find(b => b.id === profile.revenueBandId).label, headcount: HEADCOUNT_BANDS.find(b => b.id === profile.headcountBandId).label + ' empleados' } : { sector:'', revenue:'', headcount:'' };
+  const revBand = profile ? REVENUE_BANDS.find(b => b.id === profile.revenueBandId) : null;
+  const profileSummary = profile ? `${effSector.name} · ${revBand.label}` : 'Sin personalizar — promedios de sector';
+
+  const topDriver = DRIVERS_RAW.filter(d => effSector.driversIds.includes(d.id)).sort((a,b) => Math.abs(b.yoy) - Math.abs(a.yoy))[0];
+  const brief = {
+    changed: `${topDriver.name} se ha movido ${fmtPct(topDriver.yoy)} interanual, la variación más marcada entre los drivers de tu sector.`,
+    matters: `Representa cerca de un ${effSector.pesoPorDriver[topDriver.id] || 0}% de tu estructura de coste — un movimiento sostenido en esta magnitud presiona el margen de la empresa tipo del sector.`,
+    consider: `Revisa el Impact Simulator para cuantificar el efecto en tu margen y valora la prioridad correspondiente en el Decision Center.`,
+  };
+  const decisionsForSector = DECISIONS[effSector.id];
+  const topDecisionTitle = decisionsForSector[0].title;
+  const causalityChain = [ topDriver.name, 'Costes operativos', 'EBITDA', 'Cash flow', 'Libertad estratégica' ];
+
+  const selectedDriverRaw = DRIVERS_RAW.find(d => d.id === selectedDriverId) || DRIVERS_RAW[0];
+
+  const sectorTiles = SECTOR_TILE_ORDER.map(key => SECTORS_RAW[key] || { id:key, name:key, locked:true });
+  const sectorLocked = LOCKED_SECTORS.includes(selectedSectorId);
+  let sectorDetail = { estructura: [], driverChips: [], riesgos: [], oportunidades: [] };
+  if (!sectorLocked) {
+    const sec = SECTORS_RAW[selectedSectorId];
+    sectorDetail = { estructura: sec.estructura, riesgos: sec.riesgos, oportunidades: sec.oportunidades,
+      driverChips: sec.driversIds.map(id => DRIVERS_RAW.find(x => x.id === id)) };
+  }
+
+  const simSector = SECTORS_RAW[simSectorId] || effSector;
+  const structureLinkedIds = new Set(Object.values(simSector.estructuraDriverMap || {}).flat());
+  const simDriverIds = simSector.driversIds.filter(id => structureLinkedIds.has(id));
+  const activeSimDriverId = simDriverIds.includes(simDriverId) ? simDriverId : simDriverIds[0];
+  const simDriverRaw = DRIVERS_RAW.find(d => d.id === activeSimDriverId);
+  const pesoDefault = simSector.pesoPorDriver[activeSimDriverId] || 10;
+  const peso = simPeso ?? pesoDefault;
+  const variacion = simVariacion ?? Math.round(simDriverRaw.yoy);
+  const margenActual = simSector.margenBase;
+  const costeActual = 100 - margenActual;
+  const costeNuevo = costeActual * (1 + (peso / 100) * (variacion / 100));
+  const margenNuevo = 100 - costeNuevo;
+  const delta = margenNuevo - margenActual;
+  const deltaColor = delta < -0.05 ? ACCENT_700 : (delta > 0.05 ? TEXT : N600);
+  let simNarrativa;
+  if (delta < -0.05) simNarrativa = `Si ${simDriverRaw.name.toLowerCase()} varía un ${fmtPct(variacion)} y pesa un ${peso}% de tu coste, tu margen bajaría de ${margenActual.toFixed(1)}% a ${margenNuevo.toFixed(1)}% — ${Math.abs(delta).toFixed(1)} puntos porcentuales que conviene anticipar.`;
+  else if (delta > 0.05) simNarrativa = `Con esta variación, tu margen mejoraría de ${margenActual.toFixed(1)}% a ${margenNuevo.toFixed(1)}%, ganando ${delta.toFixed(1)} puntos porcentuales.`;
+  else simNarrativa = 'Con estos parámetros el impacto sobre el margen es prácticamente neutro.';
+  const hasProfile = !!profile;
+
+  const costeActualComb = 100 - simSector.margenBase;
+  let costeCombinadoNuevo = 0;
+  const estructuraMap = simSector.estructuraDriverMap || {};
+  const estructuraSim = simSector.estructura.map(([label, pctBase, color], idx) => {
+    const key = simSectorId + '_' + idx;
+    const linkedIds = estructuraMap[idx] || [];
+    const isActiveLine = linkedIds.includes(activeSimDriverId);
+    const hasInsumoPicker = linkedIds.length > 1;
+    const pct = (isActiveLine && !hasInsumoPicker) ? peso : pctBase;
+    const defaultSelected = linkedIds.includes(activeSimDriverId) ? [activeSimDriverId] : (linkedIds.length ? [linkedIds[0]] : []);
+    const selectedIds = relevantInsumos[key] || defaultSelected;
+    let defaultVar = 0;
+    if (selectedIds.length) {
+      const weighted = selectedIds.map(id => ({ w: id === activeSimDriverId ? peso : (simSector.pesoPorDriver[id] || 1), val: id === activeSimDriverId ? variacion : DRIVERS_RAW.find(d => d.id === id).yoy }));
+      const totalW = weighted.reduce((a, x) => a + x.w, 0) || 1;
+      defaultVar = weighted.reduce((a, x) => a + x.val * x.w, 0) / totalW;
+    }
+    const v = isActiveLine ? defaultVar : (estrVars[key] ?? defaultVar);
+    const shareRevenue = costeActualComb * (pct / 100);
+    const contribPP = shareRevenue * (v / 100);
+    costeCombinadoNuevo += shareRevenue * (1 + v / 100);
+    return { label, color, pct, v, contribPP, key, isActiveLine, hasInsumoPicker, linkedIds, selectedIds };
+  });
+  const currentInflGeneral = inflGeneral ?? DRIVERS_RAW.find(d => d.id === 'inflacion').yoy;
+  costeCombinadoNuevo += costeActualComb * (currentInflGeneral / 100);
+  const tiposLabel = fmtPct(DRIVERS_RAW.find(d => d.id === 'tipos').yoy);
+  const margenCombinado = 100 - costeCombinadoNuevo;
+  const deltaComb = margenCombinado - simSector.margenBase;
+  const deltaCombColor = deltaComb < -0.05 ? ACCENT_700 : (deltaComb > 0.05 ? TEXT : N600);
+  let simCombNarrativa;
+  if (deltaComb < -0.05) simCombNarrativa = `Sumando las variaciones fijadas en cada partida, el margen caería de ${simSector.margenBase.toFixed(1)}% a ${margenCombinado.toFixed(1)}%, una pérdida combinada de ${Math.abs(deltaComb).toFixed(1)} puntos porcentuales.`;
+  else if (deltaComb > 0.05) simCombNarrativa = `Con estas variaciones combinadas, el margen mejoraría de ${simSector.margenBase.toFixed(1)}% a ${margenCombinado.toFixed(1)}%, ganando ${deltaComb.toFixed(1)} puntos porcentuales.`;
+  else simCombNarrativa = 'Con los valores actuales de cada partida, el efecto combinado sobre el margen es prácticamente neutro.';
+  let ebitdaCombImpactLabel = '';
+  if (hasProfile) { const band = REVENUE_BANDS.find(b => b.id === profile.revenueBandId); ebitdaCombImpactLabel = fmtEur(Math.round(band.mid * 1000000 * (deltaComb / 100))); }
+
+  const askCopilot = (userText, aiText) => setCopilotThread(t => [...t, { role:'user', text:userText }, { role:'ai', text:aiText }]);
+  const copilotPrompts = [
+    { label:'¿Qué ha cambiado hoy?', a:() => askCopilot('¿Qué ha cambiado hoy?', `${brief.changed} ¿Quieres que lo traduzca a un número de margen para tu negocio en el Simulador?`) },
+    { label:'¿Debería subir precios ahora?', a:() => askCopilot('¿Debería subir precios ahora?', `Depende de cuánta demanda perderías. Con la presión actual de ${topDriver.name.toLowerCase()}, un traslado parcial de precio suele compensar sin dañar volumen. ¿Sabes qué elasticidad tiene tu producto principal?`) },
+    { label:'Explica de dónde sale esta previsión', a:() => askCopilot('Explica de dónde sale esta previsión', `Uso la estructura de coste promedio del sector (Banco de España — Central de Balances) y la variación publicada por la fuente oficial del driver. No conozco tus cifras reales, así que todo esto es una estimación modelada, no un dato de tu empresa.`) },
+    { label:'¿Qué prioridad debería mirar primero?', a:() => askCopilot('¿Qué prioridad debería mirar primero?', `Yo empezaría por "${topDecisionTitle}" — es la de mayor impacto y urgencia combinados ahora mismo. ¿Quieres que te explique el razonamiento completo?`) },
+    { label:'¿Cómo negocio la tarifa eléctrica?', a:() => askCopilot('¿Cómo negocio la tarifa eléctrica?', `Tres pasos concretos: 1) pide oferta a al menos dos comercializadoras más antes de renovar, usando tu curva de consumo de los últimos 12 meses; 2) valora fijar precio a plazo si tu volumen es predecible, para eliminar volatilidad; 3) pregunta por descuento por compromiso de permanencia o por desplazar consumo a horas valle. ¿Quieres que lo lleve al Simulador para ver cuánto margen liberaría un 5-10% de ahorro en tarifa?`) },
+  ];
+
+  const times = ['hace 32 min', 'hace 1 h', 'hace 3 h', 'hace 5 h', 'hace 9 h', 'hace 1 día'];
+  const feedItems = DRIVERS_RAW.slice(0, 6).map((d, i) => ({ time: times[i], fuente: d.fuente, text: `${d.name}: ${fmtPct(d.yoy)} interanual`, detalle: d.desc, i }));
+
+  const tabs = [ ['brief','Executive Brief'], ['drivers','Drivers'], ['sectors','Sector Intelligence'], ['simulator','Impact Simulator'], ['decisions','Decision Center'], ['opportunities','Opportunities'] ];
+
+  return (
+    <div style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
+      <div style={{borderBottom:`2px solid ${DIVIDER}`, background:SURFACE, height:34, display:'flex', alignItems:'center', overflow:'hidden'}}>
+        <div style={{display:'flex', whiteSpace:'nowrap', animation:'krs-scroll 46s linear infinite'}}>
+          {tickerLoop.map((t,i) => (
+            <span key={i} style={{display:'inline-flex', alignItems:'center', gap:7, padding:'0 18px', borderRight:`1px solid ${DIVIDER}`, fontSize:11, fontWeight:600}}>
+              <span style={{color:N600}}>{t.name}</span>
+              <span style={{fontWeight:800, color:t.color}}>{t.valueLabel}</span>
+              <span style={{color:N500}}>{t.fuente}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="nav" style={{padding:'12px 24px', flexWrap:'wrap', rowGap:10}}>
+        <span style={{display:'flex', alignItems:'center', gap:8, marginRight:'auto'}}>
+          <span className="nav-brand" style={{margin:0}}>KAIROS</span>
+          <a href="https://www.dbcg.es/" style={{textDecoration:'none'}}>{tag('by DBCG','outline')}</a>
+        </span>
+        <span style={{display:'flex', alignItems:'center', gap:16, flexWrap:'wrap'}}>
+          {tabs.map(([id,label]) => (
+            <span key={id} onClick={() => setTab(id)} style={{cursor:'pointer', fontSize:14, fontWeight: tab===id?700:400, color: tab===id?ACCENT_700:TEXT}}>{label}</span>
+          ))}
+        </span>
+        <span style={{display:'flex', alignItems:'center', gap:12, marginLeft:'auto'}}>
+          <span style={{fontSize:11, whiteSpace:'nowrap', color:N600}}>{profileSummary}</span>
+          <Btn kind={copilotOpen?'primary':'secondary'} onClick={() => setCopilotOpen(!copilotOpen)} style={{whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:8}}>
+            <span style={{width:7,height:7,borderRadius:'50%',background:'currentColor',display:'inline-block',animation:'krs-pulse 2s ease-in-out infinite'}}></span>Brandt AI
+          </Btn>
+        </span>
+      </div>
+
+      <div style={{flex:1, display:'flex', minHeight:0}}>
+        <div style={{flex:1, minWidth:0, padding:'32px 24px', maxWidth:1200, margin:'0 auto', width:'100%', boxSizing:'border-box'}}>
+
+          {showOnboarding && (
+            <Card tint style={{marginBottom:32}}>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, flexWrap:'wrap'}}>
+                <div>
+                  <Kicker>Personaliza tu Kairos — 20 segundos</Kicker>
+                  <h3 style={{marginTop:6, maxWidth:'50ch'}}>Dinos tu sector y tamaño para traducir las cifras de mercado a tu margen, no al promedio genérico.</h3>
+                </div>
+                <Btn kind="ghost" onClick={() => setOnboardingDismissed(true)}>Usar promedios de sector →</Btn>
+              </div>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:24, marginTop:16, alignItems:'start'}}>
+                <div>
+                  <div style={{fontSize:12, fontWeight:700, marginBottom:8}}>Sector</div>
+                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+                    {Object.values(SECTORS_RAW).map(sec => (
+                      <label key={sec.id} style={{fontSize:12.5, padding:'7px 11px', border:`1px solid ${onboardSector===sec.id?ACCENT:TEXT}`, background:onboardSector===sec.id?ACCENT_100:'transparent', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6}}>
+                        <input type="radio" name="onbSector" checked={onboardSector===sec.id} onChange={() => setOnboardSector(sec.id)}/>{sec.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:12, fontWeight:700, marginBottom:8}}>Facturación anual</div>
+                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+                    {REVENUE_BANDS.map(b => (
+                      <label key={b.id} style={{fontSize:12.5, padding:'7px 11px', border:`1px solid ${onboardRevenue===b.id?ACCENT:TEXT}`, background:onboardRevenue===b.id?ACCENT_100:'transparent', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6}}>
+                        <input type="radio" name="onbRevenue" checked={onboardRevenue===b.id} onChange={() => setOnboardRevenue(b.id)}/>{b.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontSize:12, fontWeight:700, marginBottom:8}}>Empleados</div>
+                  <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
+                    {HEADCOUNT_BANDS.map(b => (
+                      <label key={b.id} style={{fontSize:12.5, padding:'7px 11px', border:`1px solid ${onboardHeadcount===b.id?ACCENT:TEXT}`, background:onboardHeadcount===b.id?ACCENT_100:'transparent', cursor:'pointer', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:6}}>
+                        <input type="radio" name="onbHeadcount" checked={onboardHeadcount===b.id} onChange={() => setOnboardHeadcount(b.id)}/>{b.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Btn kind="primary" disabled={!canConfirmProfile} onClick={confirmProfile} style={{marginTop:24}}>Aplicar a mi Kairos →</Btn>
+            </Card>
+          )}
+
+          {tab === 'brief' && (
+            <div>
+              <Kicker>Executive Brief · {effSector.name}</Kicker>
+              <h2 style={{maxWidth:'32ch', marginTop:6}}>Esto es lo que necesitas saber antes de tu próxima decisión.</h2>
+              <div style={{fontSize:12, color:N600, marginTop:6}}>Actualizado 7 ago 2026, 09:40 · Fuentes: INE · BCE · OMIE · CORES</div>
+              <Hr/>
+              {!briefReady ? (
+                <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16}}>
+                  {[0,1,2].map(i => <div key={i} style={{height:140, background:SURFACE, animation:'krs-shimmer 1.4s ease-in-out infinite'}}/>)}
+                </div>
+              ) : (
+                <div>
+                  <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16}}>
+                    <Card><Kicker>Qué cambió</Kicker><div style={{fontSize:15, fontWeight:600, marginTop:8}}>{brief.changed}</div></Card>
+                    <Card><Kicker>Por qué importa</Kicker><div style={{fontSize:15, fontWeight:600, marginTop:8}}>{brief.matters}</div></Card>
+                    <Card><Kicker>Qué considerar</Kicker><div style={{fontSize:15, fontWeight:600, marginTop:8}}>{brief.consider}</div></Card>
+                  </div>
+                  <h6 style={{marginTop:32, fontSize:14}}>Cadena de causalidad — {topDriver.name}</h6>
+                  <div style={{display:'flex', alignItems:'center', gap:8, marginTop:12, flexWrap:'wrap'}}>
+                    {causalityChain.map((c,i) => (
+                      <span key={i} style={{display:'flex', alignItems:'center', gap:8}}>
+                        {tag(c, i===0?'accent':'neutral', {fontSize:12.5, padding:'8px 14px'})}
+                        {i < causalityChain.length-1 && <span style={{color:N600}}>→</span>}
+                      </span>
+                    ))}
+                  </div>
+                  <Card style={{marginTop:32, display:'flex', flexDirection:'row', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap'}}>
+                    <span style={{fontSize:13}}>Prioridad principal en tu Decision Center: <b>{topDecisionTitle}</b></span>
+                    <Btn kind="ghost" onClick={() => setTab('decisions')}>Ver Decision Center →</Btn>
+                  </Card>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'drivers' && (
+            <div>
+              <Kicker>Drivers</Kicker>
+              <h2 style={{marginTop:6}}>Señales externas que mueven tu negocio</h2>
+              <Hr/>
+              <div style={{display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:24, alignItems:'start'}}>
+                <div>
+                  <table style={{width:'100%', borderCollapse:'collapse'}}>
+                    <thead><tr style={{borderBottom:`2px solid ${TEXT}`}}>
+                      <th style={{textAlign:'left', fontSize:11, textTransform:'uppercase', padding:'6px 4px'}}>Driver</th>
+                      <th style={{textAlign:'left', fontSize:11, textTransform:'uppercase', padding:'6px 4px'}}>Confianza</th>
+                      <th style={{textAlign:'right', fontSize:11, textTransform:'uppercase', padding:'6px 4px'}}>Var. interanual</th>
+                    </tr></thead>
+                    <tbody>
+                      {DRIVERS_RAW.map(d => (
+                        <tr key={d.id} onClick={() => setSelectedDriverId(d.id)} style={{cursor:'pointer', background: d.id===selectedDriverId?ACCENT_100:'transparent', borderBottom:`1px solid ${DIVIDER}`}}>
+                          <td style={{padding:'10px 4px', fontSize:13.5}}>{d.name}</td>
+                          <td style={{padding:'10px 4px'}}>{tag(d.confidence, d.confidence==='Alta'?'accent':d.confidence==='Media'?'outline':'neutral')}</td>
+                          <td style={{padding:'10px 4px', textAlign:'right', fontWeight:800, color:driverColor(d.yoy)}}>{fmtPct(d.yoy)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <h6 style={{marginTop:24, color:N600, fontSize:13}}>Cobertura en construcción</h6>
+                  <div style={{display:'flex', flexWrap:'wrap', gap:8, marginTop:8}}>
+                    {LIMITED_DRIVERS.map(ld => <span key={ld}>{tag(ld,'neutral')}</span>)}
+                  </div>
+                </div>
+                <Card>
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
+                    <div>
+                      <div style={{fontSize:19, fontWeight:800}}>{selectedDriverRaw.name}</div>
+                      <div style={{fontSize:12, color:N600, marginTop:4}}>Fuente: {selectedDriverRaw.fuente} · Confianza {selectedDriverRaw.confidence}</div>
+                    </div>
+                    {tag(fmtPct(selectedDriverRaw.yoy), driverTagKind(selectedDriverRaw.yoy))}
+                  </div>
+                  <svg width="100%" height="34" viewBox="0 0 100 34" preserveAspectRatio="none" style={{marginTop:12, display:'block'}}>
+                    <polyline points={selectedDriverRaw.spark} fill="none" stroke={driverColor(selectedDriverRaw.yoy)} strokeWidth="2"></polyline>
+                  </svg>
+                  <h3 style={{marginTop:12, fontSize:20}}>{selectedDriverRaw.current.toLocaleString('es-ES')} {selectedDriverRaw.unit}</h3>
+                  <p style={{fontSize:13.5, lineHeight:1.5, marginTop:8}}>{selectedDriverRaw.desc}</p>
+                  <div style={{fontSize:12, color:N600}}>Afecta a: {selectedDriverRaw.sectors.map(id => SECTORS_RAW[id].name).join(', ')}</div>
+                  {effSector.driversIds.includes(selectedDriverRaw.id) && (
+                    <Btn kind="primary" style={{marginTop:12}} onClick={() => { setTab('simulator'); setSimSectorId(effSector.id); setSimDriverId(selectedDriverRaw.id); setSimPeso(null); setSimVariacion(null); }}>Simular impacto en mi margen →</Btn>
+                  )}
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {tab === 'sectors' && (
+            <div>
+              <Kicker>Sector Intelligence</Kicker>
+              <h2 style={{marginTop:6}}>Tu vertical, visto a través de todos los drivers</h2>
+              <Hr/>
+              <div style={{display:'flex', gap:8, flexWrap:'wrap', marginBottom:24}}>
+                {sectorTiles.map(sec => (
+                  <Btn key={sec.id} kind={selectedSectorId===sec.id?'primary':'secondary'} disabled={sec.locked} onClick={() => !sec.locked && setSelectedSectorId(sec.id)}>{sec.name}</Btn>
+                ))}
+              </div>
+              {sectorLocked ? (
+                <div style={{border:`2px dashed ${DIVIDER}`, padding:32, textAlign:'center'}}>
+                  <h4>Este sector aún no tiene datos verificados</h4>
+                  <p style={{maxWidth:'44ch', margin:'8px auto 0', color:N600}}>Kairos solo muestra información con fuente y confianza declaradas. Este vertical entra en Fase 2 del roadmap de cobertura.</p>
+                </div>
+              ) : (
+                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, alignItems:'start'}}>
+                  <div>
+                    <h6 style={{fontSize:13}}>Estructura de coste promedio</h6>
+                    <Card style={{marginTop:8}}>
+                      <div style={{display:'flex', height:8, gap:1}}>
+                        {sectorDetail.estructura.map(([label,pct,color],i) => <div key={i} style={{width:pct+'%', background:color}}/>)}
+                      </div>
+                      <div style={{display:'flex', flexWrap:'wrap', gap:16, marginTop:12}}>
+                        {sectorDetail.estructura.map(([label,pct,color],i) => (
+                          <div key={i} style={{display:'flex', alignItems:'center', gap:6, fontSize:12}}>
+                            <span style={{width:9,height:9,background:color,display:'inline-block'}}/>{label}<span style={{color:N600}}>{pct}%</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{fontSize:11, color:N600, marginTop:12}}>Empresa tipo del sector · Fuente: Banco de España — Central de Balances</div>
+                    </Card>
+                    <h6 style={{marginTop:24, fontSize:13}}>Drivers relevantes</h6>
+                    <div style={{display:'flex', flexWrap:'wrap', gap:8, marginTop:8}}>
+                      {sectorDetail.driverChips.map(d => (
+                        <span key={d.id} onClick={() => { setTab('drivers'); setSelectedDriverId(d.id); }}>{tag(`${d.name} ${fmtPct(d.yoy)}`, 'outline', {cursor:'pointer'})}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h6 style={{fontSize:13}}>Riesgos</h6>
+                    {sectorDetail.riesgos.map((r,i) => <Card key={i} style={{marginTop:8}}><p style={{fontSize:13.5, lineHeight:1.5, margin:0}}>{r}</p></Card>)}
+                    <h6 style={{marginTop:16, fontSize:13}}>Oportunidades</h6>
+                    {sectorDetail.oportunidades.map((o,i) => <Card key={i} tint style={{marginTop:8}}><p style={{fontSize:13.5, lineHeight:1.5, margin:0}}>{o}</p></Card>)}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'simulator' && (
+            <div>
+              <Kicker>Impact Simulator</Kicker>
+              <h2 style={{marginTop:6}}>Si esto se mueve, ¿qué pasa con mi margen?</h2>
+              <p style={{color:N600, fontSize:14}}>Empresa tipo de {simSector.name} · ajusta el peso del driver y la variación esperada</p>
+
+              {hasProfile && (
+                <Card style={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', marginTop:12}}>
+                  <div style={{display:'flex', gap:24, flexWrap:'wrap'}}>
+                    <div><div style={{fontSize:11, color:N600}}>Tu empresa — sector</div><div style={{fontWeight:800}}>{profileCard.sector}</div></div>
+                    <div><div style={{fontSize:11, color:N600}}>Facturación</div><div style={{fontWeight:800}}>{profileCard.revenue}</div></div>
+                    <div><div style={{fontSize:11, color:N600}}>Empleados</div><div style={{fontWeight:800}}>{profileCard.headcount}</div></div>
+                  </div>
+                  <Btn kind="ghost" onClick={editProfile}>Editar →</Btn>
+                </Card>
+              )}
+              <Hr/>
+
+              <h6 style={{fontSize:14}}>1. Elige el insumo a modelar y su peso en tu coste</h6>
+              <p style={{color:N600, maxWidth:'70ch', fontSize:13.5}}>Cuando una partida agrupa varios insumos (p. ej. Materia prima en alimentación), marca abajo cuáles son realmente relevantes para tu negocio — el modelo dejará de promediar insumos que no te afectan.</p>
+              <div style={{display:'flex', gap:8, flexWrap:'wrap', margin:'8px 0 16px'}}>
+                {simDriverIds.map(id => { const d = DRIVERS_RAW.find(x=>x.id===id);
+                  const lineIdx = Object.keys(estructuraMap).find(k => (estructuraMap[k]||[]).includes(id));
+                  const lineKey = lineIdx != null ? simSectorId+'_'+lineIdx : null;
+                  return <Btn key={id} kind={id===activeSimDriverId?'primary':'secondary'} onClick={() => { const next={...estrVars}; if(lineKey) delete next[lineKey]; setEstrVars(next); setSimDriverId(id); setSimPeso(null); setSimVariacion(null); }}>{d.name}</Btn>;
+                })}
+              </div>
+
+              <Card>
+                <div style={{fontSize:13}}>Peso del insumo en tu estructura de coste: <b>{peso}%</b></div>
+                <input type="range" min="0" max="60" value={peso} onChange={e => setSimPeso(Number(e.target.value))} style={{width:'100%'}}/>
+                <div style={{fontSize:13, marginTop:8}}>Variación de precio esperada: <b>{fmtPct(variacion)}</b></div>
+                <input type="range" min="-30" max="60" value={variacion} onChange={e => setSimVariacion(Number(e.target.value))} style={{width:'100%'}}/>
+                <p style={{fontSize:11.5, color:N600, marginTop:8}}>Modelo simplificado de traspaso directo a coste, sin ajuste de sustitución ni repercusión a precio de venta. Los resultados se reflejan abajo, en tu estructura completa. Base: estructura de coste promedio del sector, Banco de España — Central de Balances.</p>
+              </Card>
+
+              <h6 style={{marginTop:32, fontSize:14}}>2. Presión macro general</h6>
+              <p style={{color:N600, maxWidth:'70ch', fontSize:13.5}}>La inflación no es un insumo de tu coste: tensiona toda la estructura a la vez. Los tipos de interés tampoco son coste operativo — encarecen tu financiación, no tu margen. Por eso van aparte.</p>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginTop:12}}>
+                <Card>
+                  <div style={{fontSize:13}}>Inflación general esperada (IPC): <b>{fmtPct(currentInflGeneral)}</b></div>
+                  <input type="range" min="-5" max="10" step="0.1" value={currentInflGeneral} onChange={e => setInflGeneral(Number(e.target.value))} style={{width:'100%'}}/>
+                  <p style={{fontSize:11.5, color:N600, marginTop:8}}>Se aplica como una presión uniforme sobre el 100% de tu estructura de coste, no sobre una partida concreta.</p>
+                </Card>
+                <Card>
+                  <div style={{fontSize:13}}>Tipos de interés (BCE): <b>{tiposLabel}</b></div>
+                  <p style={{fontSize:13.5, marginTop:8}}>No se simula aquí: no afecta tu margen operativo, sino tu coste financiero (intereses de deuda). Consulta su efecto en Drivers y Decision Center.</p>
+                </Card>
+              </div>
+
+              <h6 style={{marginTop:32, fontSize:14}}>3. Tu estructura completa, con todo aplicado</h6>
+              <p style={{color:N600, maxWidth:'70ch', fontSize:13.5}}>Este es el único resultado de margen y EBITDA de la plataforma — combina el insumo que estás modelando, la presión macro general y el resto de partidas.</p>
+              <Card style={{marginTop:12}}>
+                <div style={{display:'flex', flexDirection:'column', gap:16}}>
+                  {estructuraSim.map(p => (
+                    <div key={p.key}>
+                      <div style={{display:'grid', gridTemplateColumns:'170px 1fr 90px 90px', gap:12, alignItems:'center'}}>
+                        <div style={{display:'flex', alignItems:'center', gap:8, fontSize:12.5}}>
+                          <span style={{width:9,height:9,background:p.color,flexShrink:0,display:'inline-block'}}/>{p.label}
+                          <span style={{color:N600, fontSize:10.5}}>({p.pct}%)</span>
+                        </div>
+                        <input type="range" min="-30" max="60" value={p.v}
+                          onChange={e => p.isActiveLine ? setSimVariacion(Number(e.target.value)) : setEstrVars({...estrVars, [p.key]: Number(e.target.value)})} style={{width:'100%'}}/>
+                        <div style={{fontSize:12.5, textAlign:'right', fontWeight:600}}>{fmtPct(p.v)}</div>
+                        <div style={{fontSize:11.5, textAlign:'right', color: p.contribPP>0.05?ACCENT_700:(p.contribPP<-0.05?TEXT:N600)}}>{(p.contribPP>=0?'+':'')+p.contribPP.toFixed(1)+' pp'}</div>
+                      </div>
+                      {p.hasInsumoPicker && (
+                        <div style={{display:'flex', gap:6, flexWrap:'wrap', margin:'6px 0 0 18px'}}>
+                          {p.linkedIds.map(id => { const d = DRIVERS_RAW.find(x=>x.id===id); const checked = p.selectedIds.includes(id);
+                            return <span key={id} onClick={() => { const next = checked ? p.selectedIds.filter(x=>x!==id) : [...p.selectedIds, id]; setRelevantInsumos({...relevantInsumos, [p.key]: next}); }}>
+                              {tag(`${d.name} ${fmtPct(d.yoy)}`, checked?'accent':'outline', {cursor:'pointer', fontSize:10.5})}
+                            </span>; })}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <Hr/>
+                <div style={{display:'flex', alignItems:'baseline', gap:16, flexWrap:'wrap'}}>
+                  <div><div style={{fontSize:11, color:N600}}>Margen actual</div><h3 style={{marginTop:4}}>{margenActual.toFixed(1)}%</h3></div>
+                  <span style={{color:N600}}>→</span>
+                  <div><div style={{fontSize:11, color:N600}}>Margen combinado proyectado</div><h3 style={{marginTop:4, color:deltaCombColor}}>{margenCombinado.toFixed(1)}%</h3></div>
+                  <span style={{marginLeft:'auto'}}>{tag((deltaComb>=0?'+':'')+deltaComb.toFixed(1)+' pp', deltaComb<-0.05?'accent':deltaComb>0.05?'neutral':'outline')}</span>
+                </div>
+                {hasProfile && <p style={{fontSize:13.5, marginTop:8}}>≈ <b>{ebitdaCombImpactLabel}</b> de EBITDA anual combinado — estimación modelada sobre tu segmento.</p>}
+                <p style={{fontSize:13.5}}>{simCombNarrativa}</p>
+              </Card>
+            </div>
+          )}
+
+          {tab === 'decisions' && (
+            <div>
+              <Kicker>Decision Center</Kicker>
+              <h2 style={{marginTop:6}}>Máximo tres prioridades. Nunca una orden.</h2>
+              <Hr/>
+              <div style={{display:'flex', flexDirection:'column', gap:12}}>
+                {decisionsForSector.map((dec,i) => (
+                  <Card key={i}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:16, flexWrap:'wrap'}}>
+                      <div style={{fontWeight:800, fontSize:15, maxWidth:'44ch'}}>{dec.title}</div>
+                      <div style={{display:'flex', gap:6, flexShrink:0}}>
+                        {tag(`Impacto: ${dec.impact}`,'neutral')}{tag(`Urgencia: ${dec.urgency}`,'neutral')}{tag(`Confianza: ${dec.confidence}`, dec.confidence==='Alta'?'accent':dec.confidence==='Media'?'outline':'neutral')}
+                      </div>
+                    </div>
+                    <p style={{fontSize:13.5, lineHeight:1.5}}>{dec.body}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab === 'opportunities' && (
+            <div>
+              <Kicker>Opportunities</Kicker>
+              <h2 style={{marginTop:6}}>No todo lo que cambia es una amenaza</h2>
+              <Hr/>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+                {OPPORTUNITIES[effSector.id].map((op,i) => (
+                  <Card key={i} tint>
+                    <div style={{fontWeight:800, fontSize:15}}>{op.title}</div>
+                    <p style={{fontSize:13.5, lineHeight:1.5}}>{op.body}</p>
+                    <div style={{fontSize:11, color:N600}}>Confianza {op.confidence} · Fuente: {op.fuente}</div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {copilotOpen && (
+          <div style={{width:340, flexShrink:0, borderLeft:`2px solid ${TEXT}`, background:SURFACE, display:'flex', flexDirection:'column', padding:16}}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <div style={{display:'flex', alignItems:'center', gap:8}}>
+                <span style={{width:7,height:7,borderRadius:'50%',background:ACCENT,display:'inline-block',animation:'krs-pulse 2s ease-in-out infinite'}}/>
+                <h4>Brandt AI</h4>
+              </div>
+              <span onClick={() => setCopilotOpen(false)} style={{cursor:'pointer', fontSize:18, lineHeight:1, padding:4}}>×</span>
+            </div>
+            <p style={{fontSize:12, color:N600, marginTop:6}}>Piensa como tu director de estrategia. No es un chatbot genérico — prueba una de estas preguntas.</p>
+            <div style={{flex:1, overflowY:'auto', marginTop:12, display:'flex', flexDirection:'column', gap:8}}>
+              {copilotThread.map((m,i) => (
+                <div key={i} style={{alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'88%', background: m.role==='user'?ACCENT_100:'#fff', border:`1px solid ${DIVIDER}`, padding:'10px 13px', fontSize:12.5, lineHeight:1.55}}>{m.text}</div>
+              ))}
+            </div>
+            <div style={{marginTop:12, display:'flex', flexDirection:'column', gap:6}}>
+              {copilotPrompts.map((p,i) => <Btn key={i} kind="secondary" onClick={p.a} style={{width:'100%'}}>{p.label}</Btn>)}
+            </div>
+            <p style={{fontSize:11, color:N600, marginTop:12, borderTop:`1px solid ${DIVIDER}`, paddingTop:8}}>Beta · respuestas guionizadas para esta demo. La entrada libre llega en la Fase 4 del roadmap.</p>
+          </div>
+        )}
+      </div>
+
+      <div style={{borderTop:`2px solid ${TEXT}`, background:SURFACE}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 24px', cursor:'pointer'}} onClick={() => setFeedOpen(!feedOpen)}>
+          <h6 style={{color:N600, fontSize:13}}>Live Feed · señales recientes</h6>
+          <span style={{fontSize:11, color:N600}}>{feedOpen?'Ocultar ▲':'Mostrar ▼'}</span>
+        </div>
+        {feedOpen && (
+          <div style={{display:'flex', overflowX:'auto', padding:'0 24px 12px'}}>
+            {feedItems.map(f => (
+              <div key={f.i} onClick={() => setFeedExpanded(feedExpanded===f.i?null:f.i)} style={{minWidth:220, flexShrink:0, padding:'10px 16px 10px 0', borderRight:`1px solid ${DIVIDER}`, marginRight:16, cursor:'pointer'}}>
+                <div style={{display:'flex', justifyContent:'space-between', gap:10}}>
+                  <span style={{fontSize:9.5, color:N500}}>{f.time}</span>
+                  <span style={{fontSize:9.5, color:ACCENT_700}}>{f.fuente}</span>
+                </div>
+                <div style={{fontSize:12, marginTop:4, lineHeight:1.4}}>{f.text}</div>
+                {feedExpanded===f.i && <div style={{fontSize:11, color:N600, marginTop:6, lineHeight:1.5, borderLeft:`2px solid ${ACCENT}`, paddingLeft:8}}>{f.detalle}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{textAlign:'center', padding:'14px 24px', borderTop:`1px solid ${DIVIDER}`, fontSize:11.5, color:N600}}>
+        <a href="index.html" style={{color:N600}}>Inicio DBCG</a> · <a href="index.html#trabajo" style={{color:N600}}>Cómo trabajo</a> · <a href="index.html#trayectoria" style={{color:N600}}>Trayectoria</a> · <a href="aviso-legal.html" style={{color:N600}}>Aviso legal</a> · <a href="politica-privacidad.html" style={{color:N600}}>Privacidad</a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
