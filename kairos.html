@@ -104,7 +104,11 @@ function Kicker({ children }) { return <div className="card-kicker">{children}</
 function Muted({ children, style }) { return <span className="text-muted" style={{ fontSize:13, ...style }}>{children}</span>; }
 function Hr() { return <hr className="hr" />; }
 
-const DRIVERS_RAW = [
+// Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
+// o todavía no tiene snapshot en KV. Los 4 drivers con API oficial (inflación, tipos,
+// laboral, colorantes) se refrescan a diario vía /api/refresh-drivers; el resto queda
+// en estos valores hasta la fase 2 (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
+const DRIVERS_RAW_FALLBACK = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
     desc:'El Gasóleo A promedia 1,76 €/l a nivel nacional en la primera semana de agosto de 2026 (con máximos regionales cercanos a 2,00 €/l), tras cinco subidas semanales consecutivas ligadas al conflicto en Oriente Medio y la retirada parcial de la bonificación fiscal (Boletín Petrolero UE / Ministerio de Transportes). Mueve directamente el coste de transporte y logística.', sectors:['manufactura','alimentacion'] },
   { id:'acero', name:'Acero corrugado (índice Cámara de España)', unit:'puntos (índice)', current:223.21, yoy:15, spark:'0,16 15,18 30,15 45,17 60,14 75,15 90,13 100,15', fuente:'Cámara de España', confidence:'Alta', verified:true, asOf:'abr 2026 (último dato público)',
@@ -414,8 +418,33 @@ function App() {
   const [feedOpen, setFeedOpen] = useState(true);
   const [feedExpanded, setFeedExpanded] = useState(null);
   const [decisionStatus, setDecisionStatus] = useState({});
+  const [driversData, setDriversData] = useState(DRIVERS_RAW_FALLBACK);
+  const [driversLoading, setDriversLoading] = useState(true);
 
   useEffect(() => { const t = setTimeout(() => setBriefReady(true), 550); return () => clearTimeout(t); }, []);
+
+  // Sustituye los valores hardcodeados por el snapshot en vivo de /api/drivers en cuanto
+  // llega. Si la llamada falla (red caída, KV vacío, etc.) se quedan los valores de
+  // DRIVERS_RAW_FALLBACK — nunca se rompe la UI ni se bloquea el render inicial.
+  useEffect(() => {
+    let cancelado = false;
+    fetch('/api/drivers')
+      .then(r => { if (!r.ok) throw new Error('drivers fetch failed'); return r.json(); })
+      .then(json => {
+        if (cancelado) return;
+        const live = Array.isArray(json && json.drivers) ? json.drivers : [];
+        if (live.length === 0) return;
+        setDriversData(DRIVERS_RAW_FALLBACK.map(d => {
+          const liveDriver = live.find(x => x.id === d.id);
+          return liveDriver ? { ...d, ...liveDriver } : d;
+        }));
+      })
+      .catch(() => { /* sin conexión con /api/drivers: se mantiene el fallback hardcodeado */ })
+      .finally(() => { if (!cancelado) setDriversLoading(false); });
+    return () => { cancelado = true; };
+  }, []);
+
+  const DRIVERS_RAW = driversData;
 
   const effSector = SECTORS_RAW[(profile && profile.sectorId) || selectedSectorId];
 
