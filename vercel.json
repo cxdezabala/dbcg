@@ -2,7 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "trailingSlash": false,
   "crons": [
-    { "path": "/api/refresh-drivers", "schedule": "0 7 * * *" }
+    { "path": "/api/refresh-drivers", "schedule": "0 7 * * *" },
+    { "path": "/api/refresh-projections", "schedule": "5 7 * * *" }
   ],
   "rewrites": [
     { "source": "/kairos", "destination": "/kairos.html" },
