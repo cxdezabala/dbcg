@@ -104,7 +104,11 @@ function Kicker({ children }) { return <div className="card-kicker">{children}</
 function Muted({ children, style }) { return <span className="text-muted" style={{ fontSize:13, ...style }}>{children}</span>; }
 function Hr() { return <hr className="hr" />; }
 
-const DRIVERS_RAW = [
+// Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
+// o todavía no tiene snapshot en KV. Los 4 drivers con API oficial (inflación, tipos,
+// laboral, colorantes) se refrescan a diario vía /api/refresh-drivers; el resto queda
+// en estos valores hasta la fase 2 (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
+const DRIVERS_RAW_FALLBACK = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
     desc:'El Gasóleo A promedia 1,76 €/l a nivel nacional en la primera semana de agosto de 2026 (con máximos regionales cercanos a 2,00 €/l), tras cinco subidas semanales consecutivas ligadas al conflicto en Oriente Medio y la retirada parcial de la bonificación fiscal (Boletín Petrolero UE / Ministerio de Transportes). Mueve directamente el coste de transporte y logística.', sectors:['manufactura','alimentacion'] },
   { id:'acero', name:'Acero corrugado (índice Cámara de España)', unit:'puntos (índice)', current:223.21, yoy:15, spark:'0,16 15,18 30,15 45,17 60,14 75,15 90,13 100,15', fuente:'Cámara de España', confidence:'Alta', verified:true, asOf:'abr 2026 (último dato público)',
@@ -388,7 +392,11 @@ const OPPORTUNITIES = {
 // nivel 2 = previsión de organismo oficial interpolada al horizonte.
 // h.mXX = variación % esperada sobre el valor actual, con banda lo/hi.
 // Un horizonte en null = no hay fuente forward fiable; no se rellena con extrapolación.
-const PROJECTIONS = {
+// Este objeto es el fallback si /api/projections no responde o KV todavía no
+// tiene snapshot. electricidad, gas_natural, inflacion, smi y peajes se
+// refrescan a diario vía /api/refresh-projections; el resto queda en estos
+// valores de plantilla hasta implementar su fuente forward (fase 3, Nivel 3/4).
+const PROJECTIONS_FALLBACK = {
   fuel:        { nivel:1, metodo:'Curva de futuros gasóleo ICE', fuente:'ICE Gasoil', h:{ m30:{v:1.8,lo:-2.4,hi:6.0}, m90:{v:2.6,lo:-5.1,hi:10.3}, m180:{v:1.2,lo:-9.4,hi:11.8} } },
   gas_natural: { nivel:1, metodo:'Curva MIBGAS / TTF por vencimiento', fuente:'MIBGAS', h:{ m30:{v:4.2,lo:-1.9,hi:10.4}, m90:{v:9.7,lo:-3.6,hi:23.0}, m180:{v:6.1,lo:-11.2,hi:23.4} } },
   electricidad:{ nivel:1, metodo:'Curva OMIP (futuro eléctrico español)', fuente:'OMIP', h:{ m30:{v:-6.5,lo:-14.0,hi:1.0}, m90:{v:-14.2,lo:-26.5,hi:-1.9}, m180:{v:-8.8,lo:-24.0,hi:6.4} } },
@@ -400,6 +408,7 @@ const PROJECTIONS = {
   inflacion:   { nivel:2, metodo:'Proyección macro Banco de España, interpolada', fuente:'Banco de España', h:{ m30:{v:-2.9,lo:-8.6,hi:2.9}, m90:{v:-8.6,lo:-17.1,hi:0}, m180:{v:-14.3,lo:-25.7,hi:-2.9} } },
   laboral:     { nivel:2, metodo:'Proyección de remuneración por asalariado (BdE), interpolada', fuente:'Banco de España', h:{ m30:null, m90:{v:1.1,lo:0.4,hi:1.8}, m180:{v:2.3,lo:1.0,hi:3.6} } },
   peajes:      { nivel:2, metodo:'Revisión tarifaria anual ya publicada (efectiva 1 ene 2027)', fuente:'Min. Transportes', h:{ m30:{v:0,lo:0,hi:0}, m90:{v:0,lo:0,hi:0}, m180:{v:0,lo:0,hi:0} } },
+  smi:         { nivel:2, metodo:'Subida ya publicada (RD 126/2026); sin nueva revisión conocida en este horizonte', fuente:'BOE', h:{ m30:{v:0,lo:0,hi:0}, m90:{v:0,lo:0,hi:0}, m180:{v:0,lo:0,hi:0} } },
 };
 const HORIZONS = [ {id:'m30',label:'30 días'}, {id:'m90',label:'90 días'}, {id:'m180',label:'180 días'} ];
 const REVENUE_BANDS = [ {id:'b1',label:'< 2M €',mid:1.5}, {id:'b2',label:'2–5M €',mid:3.5}, {id:'b3',label:'5–15M €',mid:9}, {id:'b4',label:'15–25M €',mid:20} ];
@@ -434,8 +443,55 @@ function App() {
   const [feedOpen, setFeedOpen] = useState(true);
   const [feedExpanded, setFeedExpanded] = useState(null);
   const [decisionStatus, setDecisionStatus] = useState({});
+  const [driversData, setDriversData] = useState(DRIVERS_RAW_FALLBACK);
+  const [driversLoading, setDriversLoading] = useState(true);
+  const [projectionsData, setProjectionsData] = useState(PROJECTIONS_FALLBACK);
+  const [projectionsLoading, setProjectionsLoading] = useState(true);
 
   useEffect(() => { const t = setTimeout(() => setBriefReady(true), 550); return () => clearTimeout(t); }, []);
+
+  // Sustituye los valores hardcodeados por el snapshot en vivo de /api/drivers en cuanto
+  // llega. Si la llamada falla (red caída, KV vacío, etc.) se quedan los valores de
+  // DRIVERS_RAW_FALLBACK — nunca se rompe la UI ni se bloquea el render inicial.
+  useEffect(() => {
+    let cancelado = false;
+    fetch('/api/drivers')
+      .then(r => { if (!r.ok) throw new Error('drivers fetch failed'); return r.json(); })
+      .then(json => {
+        if (cancelado) return;
+        const live = Array.isArray(json && json.drivers) ? json.drivers : [];
+        if (live.length === 0) return;
+        setDriversData(DRIVERS_RAW_FALLBACK.map(d => {
+          const liveDriver = live.find(x => x.id === d.id);
+          return liveDriver ? { ...d, ...liveDriver } : d;
+        }));
+      })
+      .catch(() => { /* sin conexión con /api/drivers: se mantiene el fallback hardcodeado */ })
+      .finally(() => { if (!cancelado) setDriversLoading(false); });
+    return () => { cancelado = true; };
+  }, []);
+
+  // Mismo patrón para /api/projections: los drivers con fetcher implementado
+  // (electricidad, gas_natural, inflacion, smi, peajes) se sustituyen por el
+  // valor en vivo; el resto se queda con PROJECTIONS_FALLBACK (o ausente, si
+  // no hay fuente forward todavía) — nunca se inventa un horizonte.
+  useEffect(() => {
+    let cancelado = false;
+    fetch('/api/projections')
+      .then(r => { if (!r.ok) throw new Error('projections fetch failed'); return r.json(); })
+      .then(json => {
+        if (cancelado) return;
+        const live = json && json.projections && typeof json.projections === 'object' ? json.projections : null;
+        if (!live || Object.keys(live).length === 0) return;
+        setProjectionsData({ ...PROJECTIONS_FALLBACK, ...live });
+      })
+      .catch(() => { /* sin conexión con /api/projections: se mantiene el fallback hardcodeado */ })
+      .finally(() => { if (!cancelado) setProjectionsLoading(false); });
+    return () => { cancelado = true; };
+  }, []);
+
+  const DRIVERS_RAW = driversData;
+  const PROJECTIONS = projectionsData;
 
   const effSector = SECTORS_RAW[(profile && profile.sectorId) || selectedSectorId];
 
