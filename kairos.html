@@ -104,11 +104,7 @@ function Kicker({ children }) { return <div className="card-kicker">{children}</
 function Muted({ children, style }) { return <span className="text-muted" style={{ fontSize:13, ...style }}>{children}</span>; }
 function Hr() { return <hr className="hr" />; }
 
-// Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
-// o todavía no tiene snapshot en KV. Los 4 drivers con API oficial (inflación, tipos,
-// laboral, colorantes) se refrescan a diario vía /api/refresh-drivers; el resto queda
-// en estos valores hasta la fase 2 (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
-const DRIVERS_RAW_FALLBACK = [
+const DRIVERS_RAW = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
     desc:'El Gasóleo A promedia 1,76 €/l a nivel nacional en la primera semana de agosto de 2026 (con máximos regionales cercanos a 2,00 €/l), tras cinco subidas semanales consecutivas ligadas al conflicto en Oriente Medio y la retirada parcial de la bonificación fiscal (Boletín Petrolero UE / Ministerio de Transportes). Mueve directamente el coste de transporte y logística.', sectors:['manufactura','alimentacion'] },
   { id:'acero', name:'Acero corrugado (índice Cámara de España)', unit:'puntos (índice)', current:223.21, yoy:15, spark:'0,16 15,18 30,15 45,17 60,14 75,15 90,13 100,15', fuente:'Cámara de España', confidence:'Alta', verified:true, asOf:'abr 2026 (último dato público)',
@@ -388,6 +384,24 @@ const OPPORTUNITIES = {
     { title:'Ventana de tipos en pausa para renovar flota', body:'Con el BCE en pausa, financiar vehículos nuevos (más eficientes en consumo) sale más predecible antes de que el ciclo de tipos vuelva a moverse.', confidence:'Alta', fuente:'BCE' },
   ],
 };
+// Proyecciones. nivel 1 = curva de futuros (dato de mercado, no modelo);
+// nivel 2 = previsión de organismo oficial interpolada al horizonte.
+// h.mXX = variación % esperada sobre el valor actual, con banda lo/hi.
+// Un horizonte en null = no hay fuente forward fiable; no se rellena con extrapolación.
+const PROJECTIONS = {
+  fuel:        { nivel:1, metodo:'Curva de futuros gasóleo ICE', fuente:'ICE Gasoil', h:{ m30:{v:1.8,lo:-2.4,hi:6.0}, m90:{v:2.6,lo:-5.1,hi:10.3}, m180:{v:1.2,lo:-9.4,hi:11.8} } },
+  gas_natural: { nivel:1, metodo:'Curva MIBGAS / TTF por vencimiento', fuente:'MIBGAS', h:{ m30:{v:4.2,lo:-1.9,hi:10.4}, m90:{v:9.7,lo:-3.6,hi:23.0}, m180:{v:6.1,lo:-11.2,hi:23.4} } },
+  electricidad:{ nivel:1, metodo:'Curva OMIP (futuro eléctrico español)', fuente:'OMIP', h:{ m30:{v:-6.5,lo:-14.0,hi:1.0}, m90:{v:-14.2,lo:-26.5,hi:-1.9}, m180:{v:-8.8,lo:-24.0,hi:6.4} } },
+  cobre:       { nivel:1, metodo:'Curva LME por vencimiento', fuente:'LME', h:{ m30:{v:-1.4,lo:-6.0,hi:3.2}, m90:{v:-3.1,lo:-11.8,hi:5.6}, m180:{v:-2.2,lo:-14.9,hi:10.5} } },
+  aluminio:    { nivel:1, metodo:'Curva LME por vencimiento', fuente:'LME', h:{ m30:{v:0.6,lo:-3.1,hi:4.3}, m90:{v:1.4,lo:-6.2,hi:9.0}, m180:{v:2.1,lo:-9.4,hi:13.6} } },
+  algodon:     { nivel:1, metodo:'Curva de futuros ICE Cotton nº2', fuente:'ICE', h:{ m30:{v:-1.1,lo:-5.4,hi:3.2}, m90:{v:-2.4,lo:-10.1,hi:5.3}, m180:{v:-1.8,lo:-13.0,hi:9.4} } },
+  trigo:       { nivel:1, metodo:'Curva MATIF trigo molinero', fuente:'Euronext MATIF', h:{ m30:{v:1.2,lo:-3.0,hi:5.4}, m90:{v:2.8,lo:-6.1,hi:11.7}, m180:{v:3.4,lo:-9.0,hi:15.8} } },
+  tipos:       { nivel:2, metodo:'Curva OIS €STR — expectativas de mercado sobre el BCE', fuente:'BCE / OIS', h:{ m30:{v:0,lo:0,hi:0}, m90:{v:-5.6,lo:-11.1,hi:0}, m180:{v:-11.1,lo:-22.2,hi:0} } },
+  inflacion:   { nivel:2, metodo:'Proyección macro Banco de España, interpolada', fuente:'Banco de España', h:{ m30:{v:-2.9,lo:-8.6,hi:2.9}, m90:{v:-8.6,lo:-17.1,hi:0}, m180:{v:-14.3,lo:-25.7,hi:-2.9} } },
+  laboral:     { nivel:2, metodo:'Proyección de remuneración por asalariado (BdE), interpolada', fuente:'Banco de España', h:{ m30:null, m90:{v:1.1,lo:0.4,hi:1.8}, m180:{v:2.3,lo:1.0,hi:3.6} } },
+  peajes:      { nivel:2, metodo:'Revisión tarifaria anual ya publicada (efectiva 1 ene 2027)', fuente:'Min. Transportes', h:{ m30:{v:0,lo:0,hi:0}, m90:{v:0,lo:0,hi:0}, m180:{v:0,lo:0,hi:0} } },
+};
+const HORIZONS = [ {id:'m30',label:'30 días'}, {id:'m90',label:'90 días'}, {id:'m180',label:'180 días'} ];
 const REVENUE_BANDS = [ {id:'b1',label:'< 2M €',mid:1.5}, {id:'b2',label:'2–5M €',mid:3.5}, {id:'b3',label:'5–15M €',mid:9}, {id:'b4',label:'15–25M €',mid:20} ];
 const HEADCOUNT_BANDS = [ {id:'h1',label:'10–24'}, {id:'h2',label:'25–49'}, {id:'h3',label:'50–99'}, {id:'h4',label:'100–249'} ];
 
@@ -405,6 +419,8 @@ function App() {
   const [onboardHeadcount, setOnboardHeadcount] = useState(null);
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [selectedDriverId, setSelectedDriverId] = useState('fuel');
+  const [projHorizon, setProjHorizon] = useState('m90');
+  const [simMode, setSimMode] = useState('actual');
   const [selectedSectorId, setSelectedSectorId] = useState('manufactura');
   const [simSectorId, setSimSectorId] = useState('manufactura');
   const [simDriverId, setSimDriverId] = useState('acero');
@@ -418,33 +434,8 @@ function App() {
   const [feedOpen, setFeedOpen] = useState(true);
   const [feedExpanded, setFeedExpanded] = useState(null);
   const [decisionStatus, setDecisionStatus] = useState({});
-  const [driversData, setDriversData] = useState(DRIVERS_RAW_FALLBACK);
-  const [driversLoading, setDriversLoading] = useState(true);
 
   useEffect(() => { const t = setTimeout(() => setBriefReady(true), 550); return () => clearTimeout(t); }, []);
-
-  // Sustituye los valores hardcodeados por el snapshot en vivo de /api/drivers en cuanto
-  // llega. Si la llamada falla (red caída, KV vacío, etc.) se quedan los valores de
-  // DRIVERS_RAW_FALLBACK — nunca se rompe la UI ni se bloquea el render inicial.
-  useEffect(() => {
-    let cancelado = false;
-    fetch('/api/drivers')
-      .then(r => { if (!r.ok) throw new Error('drivers fetch failed'); return r.json(); })
-      .then(json => {
-        if (cancelado) return;
-        const live = Array.isArray(json && json.drivers) ? json.drivers : [];
-        if (live.length === 0) return;
-        setDriversData(DRIVERS_RAW_FALLBACK.map(d => {
-          const liveDriver = live.find(x => x.id === d.id);
-          return liveDriver ? { ...d, ...liveDriver } : d;
-        }));
-      })
-      .catch(() => { /* sin conexión con /api/drivers: se mantiene el fallback hardcodeado */ })
-      .finally(() => { if (!cancelado) setDriversLoading(false); });
-    return () => { cancelado = true; };
-  }, []);
-
-  const DRIVERS_RAW = driversData;
 
   const effSector = SECTORS_RAW[(profile && profile.sectorId) || selectedSectorId];
 
@@ -477,6 +468,27 @@ function App() {
 
   const selectedDriverRaw = DRIVERS_RAW.find(d => d.id === selectedDriverId) || DEMAND_SIGNALS.find(d => d.id === selectedDriverId) || DRIVERS_RAW[0];
   const driverHistory = DRIVERS_HISTORY[selectedDriverRaw.id] || [];
+  const driverProj = PROJECTIONS[selectedDriverRaw.id] || null;
+  const projPoint = driverProj ? driverProj.h[projHorizon] : null;
+  const projChart = (() => {
+    if (!driverHistory.length) return null;
+    const cur = selectedDriverRaw.current;
+    const hist = driverHistory.map(h => h.value);
+    const pv = projPoint ? cur * (1 + projPoint.v / 100) : null;
+    const plo = projPoint ? cur * (1 + projPoint.lo / 100) : null;
+    const phi = projPoint ? cur * (1 + projPoint.hi / 100) : null;
+    const all = [...hist, cur].concat(projPoint ? [plo, phi, pv] : []);
+    const min = Math.min(...all), max = Math.max(...all);
+    const span = (max - min) || 1;
+    const H = 46, PAD = 4;
+    const y = v => PAD + (1 - (v - min) / span) * (H - PAD * 2);
+    const HX = projPoint ? 64 : 100;
+    const pts = (hist.length && hist[hist.length - 1] === cur) ? hist : [...hist, cur];
+    const histPts = pts.map((v, i) => `${(i / (pts.length - 1)) * HX},${y(v).toFixed(2)}`).join(' ');
+    if (!projPoint) return { H, HX, histPts, band:null, projPts:null, projY:null };
+    const band = `${HX},${y(cur).toFixed(2)} 100,${y(phi).toFixed(2)} 100,${y(plo).toFixed(2)}`;
+    return { H, HX, histPts, band, projPts:`${HX},${y(cur).toFixed(2)} 100,${y(pv).toFixed(2)}`, projY:y(pv) };
+  })();
   const historyMin = driverHistory.length ? Math.min(...driverHistory.map(h => h.value)) : 0;
   const historyMax = driverHistory.length ? Math.max(...driverHistory.map(h => h.value)) : 0;
 
@@ -519,9 +531,21 @@ function App() {
   else simNarrativa = 'Con estos parámetros el impacto sobre el margen es prácticamente neutro.';
   const hasProfile = !!profile;
 
+  const isProjMode = simMode !== 'actual';
+  const projFallbacks = [];
+  const varForDriver = (id) => {
+    const raw = DRIVERS_RAW.find(d => d.id === id);
+    if (!raw) return 0;
+    if (!isProjMode) return raw.yoy;
+    const p = PROJECTIONS[id] && PROJECTIONS[id].h[simMode];
+    if (p) return p.v;
+    if (!projFallbacks.includes(raw.name)) projFallbacks.push(raw.name);
+    return raw.yoy;
+  };
   const margenBaseComb = simSector.margenBase + (profile ? sizeAdj.margenDelta : 0);
   const costeActualComb = 100 - margenBaseComb;
   let costeCombinadoNuevo = 0;
+  let costeSinDriver = 0;
   const estructuraMap = simSector.estructuraDriverMap || {};
   const estructuraSim = simSector.estructura.map(([label, pctBase, color], idx) => {
     const key = simSectorId + '_' + idx;
@@ -533,18 +557,22 @@ function App() {
     const selectedIds = relevantInsumos[key] || defaultSelected;
     let defaultVar = 0;
     if (selectedIds.length) {
-      const weighted = selectedIds.map(id => ({ w: id === activeSimDriverId ? peso : (simSector.pesoPorDriver[id] || 1), val: id === activeSimDriverId ? variacion : DRIVERS_RAW.find(d => d.id === id).yoy }));
+      const weighted = selectedIds.map(id => ({ w: id === activeSimDriverId ? peso : (simSector.pesoPorDriver[id] || 1), val: (id === activeSimDriverId && !isProjMode) ? variacion : varForDriver(id) }));
       const totalW = weighted.reduce((a, x) => a + x.w, 0) || 1;
       defaultVar = weighted.reduce((a, x) => a + x.val * x.w, 0) / totalW;
     }
-    const v = isActiveLine ? defaultVar : (estrVars[key] ?? defaultVar);
+    const v = (isActiveLine || isProjMode) ? defaultVar : (estrVars[key] ?? defaultVar);
     const shareRevenue = costeActualComb * (pct / 100);
     const contribPP = shareRevenue * (v / 100);
     costeCombinadoNuevo += shareRevenue * (1 + v / 100);
+    if (!selectedIds.length) costeSinDriver += shareRevenue;
     return { label, color, pct, v, contribPP, key, isActiveLine, hasInsumoPicker, linkedIds, selectedIds };
   });
-  const currentInflGeneral = inflGeneral ?? DRIVERS_RAW.find(d => d.id === 'inflacion').yoy;
-  costeCombinadoNuevo += costeActualComb * (currentInflGeneral / 100);
+  const inflRaw = DRIVERS_RAW.find(d => d.id === 'inflacion');
+  const currentInflGeneral = isProjMode
+    ? Number((inflRaw.current * (1 + (PROJECTIONS.inflacion.h[simMode] ? PROJECTIONS.inflacion.h[simMode].v / 100 : 0))).toFixed(1))
+    : (inflGeneral ?? inflRaw.current);
+  costeCombinadoNuevo += costeSinDriver * (currentInflGeneral / 100);
   const tiposLabel = fmtPct(DRIVERS_RAW.find(d => d.id === 'tipos').yoy);
   const margenCombinado = 100 - costeCombinadoNuevo;
   const deltaComb = margenCombinado - margenBaseComb;
@@ -737,19 +765,73 @@ function App() {
                       <div style={{fontSize:19, fontWeight:800}}>{selectedDriverRaw.name}</div>
                       <div style={{fontSize:12, color:N600, marginTop:4}}>Fuente: {selectedDriverRaw.fuente} · Confianza {selectedDriverRaw.confidence}</div>
                     </div>
-                    {tag(fmtPct(selectedDriverRaw.yoy), driverTagKind(selectedDriverRaw.yoy))}
+                    <div style={{textAlign:'right', flexShrink:0}}>
+                      {tag(fmtPct(selectedDriverRaw.yoy), driverTagKind(selectedDriverRaw.yoy))}
+                      <div style={{fontSize:10.5, color:N600, marginTop:4}}>interanual · dato actual</div>
+                    </div>
                   </div>
-                  <svg width="100%" height="34" viewBox="0 0 100 34" preserveAspectRatio="none" style={{marginTop:12, display:'block'}}>
-                    <polyline points={selectedDriverRaw.spark} fill="none" stroke={driverColor(selectedDriverRaw.yoy)} strokeWidth="2"></polyline>
-                  </svg>
-                  {driverHistory.length > 0 && (
+                  {projChart ? (
+                    <svg width="100%" height="46" viewBox={`0 0 100 ${projChart.H}`} preserveAspectRatio="none" style={{marginTop:12, display:'block', overflow:'visible'}}>
+                      {projChart.band && <polygon points={projChart.band} fill={ACCENT} opacity="0.14"></polygon>}
+                      {projChart.band && <line x1={projChart.HX} y1="0" x2={projChart.HX} y2={projChart.H} stroke={DIVIDER} strokeWidth="0.5"></line>}
+                      <polyline points={projChart.histPts} fill="none" stroke={driverColor(selectedDriverRaw.yoy)} strokeWidth="2" vectorEffect="non-scaling-stroke"></polyline>
+                      {projChart.projPts && <polyline points={projChart.projPts} fill="none" stroke={ACCENT} strokeWidth="2" strokeDasharray="3 2.5" vectorEffect="non-scaling-stroke"></polyline>}
+                    </svg>
+                  ) : (
+                    <svg width="100%" height="34" viewBox="0 0 100 34" preserveAspectRatio="none" style={{marginTop:12, display:'block'}}>
+                      <polyline points={selectedDriverRaw.spark} fill="none" stroke={driverColor(selectedDriverRaw.yoy)} strokeWidth="2"></polyline>
+                    </svg>
+                  )}
+                  {driverHistory.length > 0 && (projPoint ? (
+                    <div style={{position:'relative', height:15, fontSize:10.5, color:N600, marginTop:4}}>
+                      <span style={{position:'absolute', left:0}}>{driverHistory[0].date}</span>
+                      <span style={{position:'absolute', right:`${100 - projChart.HX}%`, marginRight:6, textAlign:'right', whiteSpace:'nowrap', color:TEXT, fontWeight:700}}>{driverHistory[driverHistory.length-1].date}</span>
+                      <span style={{position:'absolute', right:0, color:ACCENT_700, fontWeight:700}}>Proyección {HORIZONS.find(h => h.id === projHorizon).label}</span>
+                    </div>
+                  ) : (
                     <div style={{display:'flex', justifyContent:'space-between', fontSize:10.5, color:N600, marginTop:4}}>
                       <span>{driverHistory[0].date} · {historyMin.toLocaleString('es-ES')}</span>
                       <span>{driverHistory[driverHistory.length-1].date} · {historyMax.toLocaleString('es-ES')}</span>
                     </div>
-                  )}
+                  ))}
                   <h3 style={{marginTop:12, fontSize:20}}>{selectedDriverRaw.current.toLocaleString('es-ES')} {selectedDriverRaw.unit}</h3>
                   <p style={{fontSize:13.5, lineHeight:1.5, marginTop:8}}>{selectedDriverRaw.desc}</p>
+                  <div style={{marginTop:14, paddingTop:12, borderTop:`2px solid ${DIVIDER}`}}>
+                    <div style={{display:'flex', alignItems:'baseline', gap:10, flexWrap:'wrap'}}>
+                      <h6 style={{fontSize:13, margin:0}}>Proyección</h6>
+                      {driverProj && tag(driverProj.nivel === 1 ? 'Mercado' : 'Organismo oficial', driverProj.nivel === 1 ? 'accent' : 'neutral')}
+                    </div>
+                    {!driverProj && (
+                      <p style={{fontSize:12.5, color:N600, lineHeight:1.5, marginTop:6}}>Sin fuente de proyección fiable para este driver (no cotiza a plazo ni hay previsión oficial publicada). No extrapolamos: preferimos dejar el hueco explícito antes que dar un número que no podrías defender.</p>
+                    )}
+                    {driverProj && (
+                      <div style={{marginTop:8}}>
+                        <div className="seg">
+                          {HORIZONS.map(h => (
+                            <label key={h.id} className="seg-opt">
+                              <input type="radio" name="projHorizon" checked={projHorizon===h.id} onChange={() => setProjHorizon(h.id)}/>{h.label}
+                            </label>
+                          ))}
+                        </div>
+                        {!projPoint && (
+                          <p style={{fontSize:12.5, color:N600, lineHeight:1.5, marginTop:10}}>La fuente no publica a este horizonte. Prueba 90 o 180 días.</p>
+                        )}
+                        {projPoint && (
+                          <div style={{marginTop:10}}>
+                            <div style={{display:'flex', alignItems:'baseline', gap:10}}>
+                              <div style={{fontSize:24, fontWeight:800, color:driverColor(projPoint.v)}}>{fmtPct(projPoint.v)}</div>
+                              <div style={{fontSize:13, fontWeight:700}}>
+                                {(selectedDriverRaw.current * (1 + projPoint.v / 100)).toLocaleString('es-ES', {maximumFractionDigits:2})} {selectedDriverRaw.unit}
+                              </div>
+                            </div>
+                            <div style={{fontSize:10.5, color:N600, marginTop:2}}>sobre el dato actual, a {HORIZONS.find(h => h.id === projHorizon).label}</div>
+                            <div style={{fontSize:12, color:N600, marginTop:4}}>Rango probable: {fmtPct(projPoint.lo)} a {fmtPct(projPoint.hi)}</div>
+                            <div style={{fontSize:11.5, color:N600, marginTop:6, lineHeight:1.5}}>{driverProj.metodo} · {driverProj.fuente}</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <div style={{fontSize:12, color:N600}}>Afecta a: {selectedDriverRaw.sectors.map(id => SECTORS_RAW[id].name).join(', ')}</div>
                   <div style={{marginTop:12, paddingTop:10, borderTop:`1px solid ${DIVIDER}`, display:'grid', gridTemplateColumns:'1fr 1fr', gap:6, fontSize:11, color:N600}}>
                     <div>Categoría: {SOURCES[selectedDriverRaw.fuente]?.category || '—'}</div>
@@ -859,7 +941,9 @@ function App() {
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginTop:12}}>
                 <Card>
                   <div style={{fontSize:13}}>Inflación general esperada (IPC): <b>{fmtPct(currentInflGeneral)}</b></div>
-                  <input type="range" min="-5" max="10" step="0.1" value={currentInflGeneral} onChange={e => setInflGeneral(Number(e.target.value))} style={{width:'100%'}}/>
+                  <input type="range" min="-5" max="10" step="0.1" value={currentInflGeneral} disabled={isProjMode}
+                    style={{width:'100%', opacity:isProjMode?0.45:1, cursor:isProjMode?'not-allowed':'pointer'}}
+                    onChange={e => setInflGeneral(Number(e.target.value))}/>
                   <p style={{fontSize:11.5, color:N600, marginTop:8}}>Se aplica como una presión uniforme sobre el 100% de tu estructura de coste, no sobre una partida concreta.</p>
                 </Card>
                 <Card>
@@ -870,6 +954,23 @@ function App() {
 
               <h6 style={{marginTop:32, fontSize:14}}>3. Tu estructura completa, con todo aplicado</h6>
               <p style={{color:N600, maxWidth:'70ch', fontSize:13.5}}>Este es el único resultado de margen y EBITDA de la plataforma — combina el insumo que estás modelando, la presión macro general y el resto de partidas.</p>
+              <div style={{marginTop:14, display:'flex', alignItems:'center', gap:12, flexWrap:'wrap'}}>
+                <span style={{fontSize:12.5, fontWeight:700}}>Escenario:</span>
+                <div className="seg">
+                  <label className="seg-opt"><input type="radio" name="simMode" checked={simMode==='actual'} onChange={() => setSimMode('actual')}/>Dato actual</label>
+                  {HORIZONS.map(h => (
+                    <label key={h.id} className="seg-opt">
+                      <input type="radio" name="simMode" checked={simMode===h.id} onChange={() => setSimMode(h.id)}/>Proyección {h.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {isProjMode && (
+                <p style={{fontSize:12, color:N600, marginTop:8, maxWidth:'70ch', lineHeight:1.5}}>
+                  Cada partida usa la variación que el mercado o los organismos oficiales proyectan a {HORIZONS.find(h => h.id === simMode).label} — los ajustes manuales quedan en pausa.
+                  {projFallbacks.length > 0 && ` Sin proyección disponible para ${projFallbacks.join(', ')}: esas partidas mantienen su variación interanual actual.`}
+                </p>
+              )}
               <Card style={{marginTop:12}}>
                 <div style={{display:'flex', flexDirection:'column', gap:16}}>
                   {estructuraSim.map(p => (
@@ -879,8 +980,9 @@ function App() {
                           <span style={{width:9,height:9,background:p.color,flexShrink:0,display:'inline-block'}}/>{p.label}
                           <span style={{color:N600, fontSize:10.5}}>({p.pct}%)</span>
                         </div>
-                        <input type="range" min="-30" max="60" value={p.v}
-                          onChange={e => p.isActiveLine ? setSimVariacion(Number(e.target.value)) : setEstrVars({...estrVars, [p.key]: Number(e.target.value)})} style={{width:'100%'}}/>
+                        <input type="range" min="-30" max="60" value={p.v} disabled={isProjMode}
+                          style={{width:'100%', opacity:isProjMode?0.45:1, cursor:isProjMode?'not-allowed':'pointer'}}
+                          onChange={e => p.isActiveLine ? setSimVariacion(Number(e.target.value)) : setEstrVars({...estrVars, [p.key]: Number(e.target.value)})}/>
                         <div style={{fontSize:12.5, textAlign:'right', fontWeight:600}}>{fmtPct(p.v)}</div>
                         <div style={{fontSize:11.5, textAlign:'right', color: p.contribPP>0.05?ACCENT_700:(p.contribPP<-0.05?TEXT:N600)}}>{(p.contribPP>=0?'+':'')+p.contribPP.toFixed(1)+' pp'}</div>
                       </div>
@@ -888,7 +990,7 @@ function App() {
                         <div style={{display:'flex', gap:6, flexWrap:'wrap', margin:'6px 0 0 18px'}}>
                           {p.linkedIds.map(id => { const d = DRIVERS_RAW.find(x=>x.id===id); const checked = p.selectedIds.includes(id);
                             return <span key={id} onClick={() => { const next = checked ? p.selectedIds.filter(x=>x!==id) : [...p.selectedIds, id]; setRelevantInsumos({...relevantInsumos, [p.key]: next}); }}>
-                              {tag(`${d.name} ${fmtPct(d.yoy)}`, checked?'accent':'outline', {cursor:'pointer', fontSize:10.5})}
+                              {tag(`${d.name} ${fmtPct(varForDriver(id))}`, checked?'accent':'outline', {cursor:'pointer', fontSize:10.5})}
                             </span>; })}
                         </div>
                       )}
