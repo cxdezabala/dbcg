@@ -1,0 +1,9 @@
+{
+  "name": "dbcg-kairos",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sitio estatico DBCG/Kairos + funciones serverless de Vercel para el pipeline de datos de drivers.",
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  }
+}
