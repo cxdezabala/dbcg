@@ -10,34 +10,31 @@
 //      forma proporcional — nunca que invente partidas nuevas ni cifras
 //      sueltas. La respuesta se valida estrictamente antes de aceptarla.
 //
-// IMPORTANT — nivel de confianza de este fichero: la EEE es una tabla
-// multidimensional (CNAE x variable x año), no un código de serie plano como
-// los de sources.js. No hay salida de red hacia ine.es en este entorno de
-// desarrollo para confirmar operación/tabla exactas, así que en vez de
-// adivinar un ID de tabla fijo (muy frágil), se busca la tabla en tiempo de
-// ejecución por coincidencia de texto en su nombre — más resiliente, pero
-// sigue siendo mejor esfuerzo. Si la operación/tabla no se encuentra, el
-// fetch falla limpio y ese sector se queda con la estructura de referencia
-// (fallback hardcodeado) — nunca se rompe la UI ni se muestra un dato
-// inventado como si fuera oficial.
-
+// IDs de operación (Tempus3, el `Id` que espera la URL — no el `Cod_IOE` del
+// catálogo IOE, que es un número distinto) confirmados a mano contra
+// https://servicios.ine.es/wstempus/js/ES/OPERACIONES_DISPONIBLES el
+// 12 ago 2026, porque este entorno de desarrollo no tiene salida de red hacia
+// ine.es para consultarlo por sí solo. Un intento anterior usó por error el
+// Cod_IOE (30048) en vez del Id (24) y siempre devolvía cuerpo vacío.
 const INE_BASE = 'https://servicios.ine.es/wstempus/js/ES';
+const EEE_OPERACION = {
+  industrial: '24',  // Estadística Estructural de Empresas: Sector Industrial
+  comercio: '256',   // Estadística Estructural de Empresas: Sector Comercio
+  servicios: '130',  // Estadística Estructural de Empresas: Sector Servicios
+};
 
-// Código de operación EEE Sector Industrial — mejor esfuerzo (visto como 30048
-// en el Inventario de Operaciones Estadísticas del INE), sin confirmar contra
-// la API en vivo. EEE Sector Comercio y EEE Sector Servicios son operaciones
-// *distintas* del INE con su propio código, que no se ha podido identificar
-// desde este entorno — por eso solo se intentan aquí los sectores de Kairos
-// que caen dentro de EEE Industrial.
-const EEE_OPERACION_INDUSTRIAL = '30048';
-
-// Sectores de Kairos con mapeo a CNAE dentro de EEE Sector Industrial. El
-// resto (comercio, hosteleria, transporte, construccion) necesita investigar
-// primero su propia fuente — ver nota al final del fichero.
+// Sectores de Kairos con mapeo a CNAE dentro de alguna de las tres EEE. Solo
+// construccion queda fuera: la EEE del INE cubre Industria/Comercio/Servicios
+// pero no tiene una operación dedicada a Construcción — necesitaría otra
+// fuente (Encuesta Anual de Construcción del INE, o SEOPAN/Fundación Laboral
+// de la Construcción).
 const CNAE_POR_SECTOR = {
-  manufactura: { cnae: ['24', '25', '29'], etiqueta: 'metalurgia y vehículos de motor' },
-  alimentacion: { cnae: ['10'], etiqueta: 'industria de la alimentación' },
-  textil: { cnae: ['13', '14'], etiqueta: 'industria textil y confección' },
+  manufactura: { macroSector: 'industrial', cnae: ['24', '25', '29'], etiqueta: 'metalurgia y vehículos de motor' },
+  alimentacion: { macroSector: 'industrial', cnae: ['10'], etiqueta: 'industria de la alimentación' },
+  textil: { macroSector: 'industrial', cnae: ['13', '14'], etiqueta: 'industria textil y confección' },
+  comercio: { macroSector: 'comercio', cnae: ['45', '46', '47'], etiqueta: 'comercio al por mayor y al por menor' },
+  hosteleria: { macroSector: 'servicios', cnae: ['55', '56'], etiqueta: 'hostelería' },
+  transporte: { macroSector: 'servicios', cnae: ['49', '50', '51', '52', '53'], etiqueta: 'transporte y almacenamiento' },
 };
 
 // Errores explícitos (status + un trozo del cuerpo) en vez de dejar que
@@ -56,8 +53,10 @@ async function fetchJson(url) {
   }
 }
 
-async function fetchEEERatios(cnaeList, etiqueta) {
-  const tablas = await fetchJson(`${INE_BASE}/TABLAS_OPERACION/${EEE_OPERACION_INDUSTRIAL}?det=0`);
+async function fetchEEERatios(macroSector, cnaeList, etiqueta) {
+  const operacion = EEE_OPERACION[macroSector];
+  if (!operacion) throw new Error(`EEE: sin operación configurada para "${macroSector}"`);
+  const tablas = await fetchJson(`${INE_BASE}/TABLAS_OPERACION/${operacion}?det=0`);
   if (!Array.isArray(tablas) || tablas.length === 0) throw new Error('EEE: la operación no devolvió tablas');
 
   const tablaPersonal = tablas.find(t => /gastos de personal/i.test(t.Nombre || ''));
@@ -148,7 +147,7 @@ Los "pct" deben sumar 100 (±1 por redondeo).`;
 async function reconcileSector(sectorId, sectorName, currentEstructura) {
   const cfg = CNAE_POR_SECTOR[sectorId];
   if (!cfg) throw new Error(`${sectorId}: sin mapeo CNAE a EEE todavía`);
-  const eeeRatios = await fetchEEERatios(cfg.cnae, cfg.etiqueta);
+  const eeeRatios = await fetchEEERatios(cfg.macroSector, cfg.cnae, cfg.etiqueta);
   const { estructura, notas } = await reconcileWithLLM({ sectorName, currentEstructura, eeeRatios });
   return {
     estructura,
@@ -162,17 +161,9 @@ async function reconcileSector(sectorId, sectorName, currentEstructura) {
 module.exports = { reconcileSector, CNAE_POR_SECTOR };
 
 // ---------------------------------------------------------------------------
-// Sectores de Kairos sin fuente EEE confirmada todavía — no rellenar con una
-// suposición, investigar primero:
+// construccion: sin fuente EEE — no rellenar con una suposición, investigar
+// primero. La EEE del INE cubre Industria/Comercio/Servicios, pero no tiene
+// una operación dedicada a Construcción. Posible fuente alternativa: Encuesta
+// Anual de Construcción del INE, o datos sectoriales de SEOPAN/Fundación
+// Laboral de la Construcción.
 // ---------------------------------------------------------------------------
-//
-// comercio      -> EEE Sector Comercio existe como operación INE propia,
-//                  pero no se identificó su código de operación desde este
-//                  entorno (sin salida de red a ine.es).
-// hosteleria,
-// transporte    -> caerían dentro de EEE Sector Servicios (otra operación
-//                  distinta), tampoco identificada todavía.
-// construccion  -> la EEE del INE cubre Industria/Comercio/Servicios, pero
-//                  no Construcción de forma explícita — necesita otra fuente
-//                  (posible: Encuesta Anual de Construcción del INE, o datos
-//                  sectoriales de SEOPAN/Fundación Laboral de la Construcción).

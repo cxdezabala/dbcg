@@ -322,11 +322,11 @@ const SECTORS_RAW = {
     riesgos:['El combustible pesa un 35% de tu coste y sube un 18,9% interanual (CORES) — la partida más expuesta de tu estructura, sin cobertura si no tienes contrato a plazo.', 'Los peajes subieron entre 3,64% y 4,68% desde enero 2026 (Min. Transportes) — ajuste ya aplicado, sin margen de negociación al ser tarifa regulada.', 'El coste laboral estructural (+5,4%, INE) se suma a un sector con escasez de conductores profesionales, lo que limita tu capacidad de contener esta partida.'],
     oportunidades:['El gasto en peajes es solo un 8% de tu coste — la exposición real está en combustible; negociar un contrato de gasóleo a precio fijo con tu proveedor amortigua más margen que optimizar rutas de peaje.', 'Los tipos del BCE en pausa (2,25%) abren ventana para renovar flota con financiación más predecible antes de la próxima revisión de tipos en septiembre.'] },
 };
-// Bloqueados hasta que tengan su propia fuente real de estructura de coste
-// (ver api/_lib/cost-structure-sources.js — comercio y transporte/hostelería
-// caerían en operaciones EEE distintas del INE aún sin identificar, y
-// construcción no tiene una EEE dedicada).
-const LOCKED_SECTORS = ['comercio', 'construccion', 'hosteleria', 'transporte'];
+// Bloqueado hasta que tenga su propia fuente real de estructura de coste
+// (ver api/_lib/cost-structure-sources.js — la EEE del INE cubre
+// Industria/Comercio/Servicios pero no tiene una operación dedicada a
+// Construcción). El resto de sectores ya tienen mapeo CNAE confirmado.
+const LOCKED_SECTORS = ['construccion'];
 const SECTOR_TILE_ORDER = ['comercio','construccion','alimentacion','manufactura','textil','hosteleria','transporte'];
 
 const DECISIONS = {

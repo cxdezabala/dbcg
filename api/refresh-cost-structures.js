@@ -20,6 +20,9 @@ const SECTORES_A_RECONCILIAR = {
   manufactura: { nombre: 'Industria del metal y automoción', estructura: [['Acero laminado', 41], ['Energía', 10], ['Componentes', 14], ['Personal', 25], ['Otros', 10]] },
   alimentacion: { nombre: 'Industria de la alimentación', estructura: [['Materia prima', 45], ['Energía', 8], ['Envase', 10], ['Personal', 27], ['Otros', 10]] },
   textil: { nombre: 'Textil y confección', estructura: [['Algodón fibra', 36], ['Energía', 8], ['Colorantes y acabado', 10], ['Personal', 33], ['Otros', 13]] },
+  comercio: { nombre: 'Comercio', estructura: [['Mercancía / compra de producto', 40], ['Alquiler local', 12], ['Personal', 28], ['Energía', 5], ['Otros', 15]] },
+  hosteleria: { nombre: 'Hostelería y turismo', estructura: [['Materia prima (alimentos y bebida)', 32], ['Personal', 30], ['Alquiler local', 10], ['Energía', 8], ['Otros', 20]] },
+  transporte: { nombre: 'Transporte y logística', estructura: [['Combustible', 35], ['Personal (conductores)', 30], ['Mantenimiento y flota', 12], ['Peajes', 8], ['Otros', 15]] },
 };
 
 module.exports = async function handler(req, res) {
