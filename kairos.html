@@ -322,7 +322,11 @@ const SECTORS_RAW = {
     riesgos:['El combustible pesa un 35% de tu coste y sube un 18,9% interanual (CORES) — la partida más expuesta de tu estructura, sin cobertura si no tienes contrato a plazo.', 'Los peajes subieron entre 3,64% y 4,68% desde enero 2026 (Min. Transportes) — ajuste ya aplicado, sin margen de negociación al ser tarifa regulada.', 'El coste laboral estructural (+5,4%, INE) se suma a un sector con escasez de conductores profesionales, lo que limita tu capacidad de contener esta partida.'],
     oportunidades:['El gasto en peajes es solo un 8% de tu coste — la exposición real está en combustible; negociar un contrato de gasóleo a precio fijo con tu proveedor amortigua más margen que optimizar rutas de peaje.', 'Los tipos del BCE en pausa (2,25%) abren ventana para renovar flota con financiación más predecible antes de la próxima revisión de tipos en septiembre.'] },
 };
-const LOCKED_SECTORS = [];
+// Bloqueados hasta que tengan su propia fuente real de estructura de coste
+// (ver api/_lib/cost-structure-sources.js — comercio y transporte/hostelería
+// caerían en operaciones EEE distintas del INE aún sin identificar, y
+// construcción no tiene una EEE dedicada).
+const LOCKED_SECTORS = ['comercio', 'construccion', 'hosteleria', 'transporte'];
 const SECTOR_TILE_ORDER = ['comercio','construccion','alimentacion','manufactura','textil','hosteleria','transporte'];
 
 const DECISIONS = {
@@ -600,7 +604,10 @@ function App() {
   const historyMin = driverHistory.length ? Math.min(...driverHistory.map(h => h.value)) : 0;
   const historyMax = driverHistory.length ? Math.max(...driverHistory.map(h => h.value)) : 0;
 
-  const sectorTiles = SECTOR_TILE_ORDER.map(key => SECTORS_RAW[key] || { id:key, name:key, locked:true });
+  const sectorTiles = SECTOR_TILE_ORDER.map(key => {
+    const sec = SECTORS_RAW[key];
+    return sec ? { ...sec, locked: LOCKED_SECTORS.includes(key) } : { id:key, name:key, locked:true };
+  });
   const sectorLocked = LOCKED_SECTORS.includes(selectedSectorId);
   const ESTRUCTURA_COLORS = [N300, ACCENT, N400, N600, N800];
   let sectorDetail = { estructura: [], driverChips: [], riesgos: [], oportunidades: [], fuenteEstructura: null };
