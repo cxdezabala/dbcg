@@ -6,9 +6,13 @@
 // mismo driver — nunca rompe el snapshot completo. Los drivers sin fetcher
 // implementado (ver projection-sources.js) simplemente no aparecen en el
 // snapshot; kairos.html los deja en null vía su fallback, no se inventan.
+// Además, por cada fuente que sí responde, añade un punto {date, m30, m90,
+// m180} al histórico de esa proyección (cómo ha evolucionado el pronóstico
+// a cada horizonte, un punto por día) — no se pisa, se acumula.
 
-const { getProjectionsSnapshot, saveProjectionsSnapshot } = require('./_lib/kv');
+const { getProjectionsSnapshot, saveProjectionsSnapshot, appendProjectionsHistory } = require('./_lib/kv');
 const { PROJECTION_SOURCES } = require('./_lib/projection-sources');
+const { formatFechaCorta } = require('./_lib/format');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -29,11 +33,20 @@ module.exports = async function handler(req, res) {
 
   const projections = { ...previoProjections };
   const errores = [];
+  const puntosHistoricos = {};
+  const hoy = formatFechaCorta(new Date());
 
   resultados.forEach((resultado, i) => {
     const { id } = PROJECTION_SOURCES[i];
     if (resultado.status === 'fulfilled' && resultado.value) {
       projections[id] = resultado.value; // reemplaza con la proyección fresca
+      const h = resultado.value.h || {};
+      puntosHistoricos[id] = {
+        date: hoy,
+        m30: h.m30 ? h.m30.v : null,
+        m90: h.m90 ? h.m90.v : null,
+        m180: h.m180 ? h.m180.v : null,
+      };
       return;
     }
     errores.push({ id, error: (resultado.reason && resultado.reason.message) || String(resultado.reason) });
@@ -41,11 +54,13 @@ module.exports = async function handler(req, res) {
   });
 
   const snapshot = await saveProjectionsSnapshot(projections);
+  if (Object.keys(puntosHistoricos).length > 0) await appendProjectionsHistory(puntosHistoricos);
 
   res.status(200).json({
     ok: true,
     updatedAt: snapshot.updatedAt,
     count: Object.keys(projections).length,
+    historyPoints: Object.keys(puntosHistoricos).length,
     errores,
   });
 };

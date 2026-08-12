@@ -190,7 +190,11 @@ const SOURCES = {
 
 // Histórico verificado (7 ago 2026) — series reales usadas para sparklines con eje temporal y para redactar el Brief.
 // Cada punto: {date:'MMM AA', value}. Fuentes citadas en DRIVERS_RAW/SOURCES.
-const DRIVERS_HISTORY = {
+// Esta es la base histórica anterior al pipeline en vivo: a partir de aquí,
+// /api/refresh-drivers añade un punto nuevo por día para los drivers que sí
+// están conectados (ver /api/drivers → history), y kairos.html los concatena
+// después de estos puntos de referencia — nunca se pisan ni se inventan.
+const DRIVERS_HISTORY_FALLBACK = {
   fuel: [
     { date:'mar 2026', value:1.49 }, { date:'abr 2026', value:1.52 }, { date:'may 2026', value:1.55 },
     { date:'jun 2026', value:1.60 }, { date:'jul 2026', value:1.70 }, { date:'7 ago 2026', value:1.76 },
@@ -461,6 +465,7 @@ function App() {
   const [driversLoading, setDriversLoading] = useState(true);
   const [liveDriverIds, setLiveDriverIds] = useState([]);
   const [driversUpdatedAt, setDriversUpdatedAt] = useState(null);
+  const [driversHistoryData, setDriversHistoryData] = useState(DRIVERS_HISTORY_FALLBACK);
   const [projectionsData, setProjectionsData] = useState(PROJECTIONS_FALLBACK);
   const [projectionsLoading, setProjectionsLoading] = useState(true);
 
@@ -483,6 +488,16 @@ function App() {
         }));
         setLiveDriverIds(live.map(x => x.id));
         setDriversUpdatedAt(json.updatedAt || null);
+        const liveHistory = json.history && typeof json.history === 'object' ? json.history : {};
+        if (Object.keys(liveHistory).length > 0) {
+          setDriversHistoryData(prev => {
+            const merged = { ...prev };
+            Object.keys(liveHistory).forEach(id => {
+              merged[id] = [...(DRIVERS_HISTORY_FALLBACK[id] || []), ...liveHistory[id]];
+            });
+            return merged;
+          });
+        }
       })
       .catch(() => { /* sin conexión con /api/drivers: se mantiene el fallback hardcodeado */ })
       .finally(() => { if (!cancelado) setDriversLoading(false); });
@@ -510,6 +525,7 @@ function App() {
 
   const DRIVERS_RAW = driversData;
   const PROJECTIONS = projectionsData;
+  const DRIVERS_HISTORY = driversHistoryData;
 
   const effSector = SECTORS_RAW[(profile && profile.sectorId) || selectedSectorId];
 
