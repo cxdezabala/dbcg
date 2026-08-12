@@ -8,9 +8,9 @@
 <link rel="canonical" href="https://www.dbcg.es/kairos">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script crossorigin="anonymous" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-<script crossorigin="anonymous" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-<script crossorigin="anonymous" integrity="sha384-1qlE7MZPM2pHD/pBZCU/yB8UCP52RYL8bge/qNdfNBCWToySp8/M+JL2waXU4hjJ" src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
 <style>
 :root {
   --color-bg:#f3f2f2; --color-surface:#eae9e9; --color-text:#201e1d; --color-accent:#ec3013; --color-accent-2:#e15b47;
@@ -104,11 +104,7 @@ function Kicker({ children }) { return <div className="card-kicker">{children}</
 function Muted({ children, style }) { return <span className="text-muted" style={{ fontSize:13, ...style }}>{children}</span>; }
 function Hr() { return <hr className="hr" />; }
 
-// Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
-// o todavía no tiene snapshot en KV. Los 4 drivers con API oficial (inflación, tipos,
-// laboral, colorantes) se refrescan a diario vía /api/refresh-drivers; el resto queda
-// en estos valores hasta la fase 2 (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
-const DRIVERS_RAW_FALLBACK = [
+const DRIVERS_RAW = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
     desc:'El Gasóleo A promedia 1,76 €/l a nivel nacional en la primera semana de agosto de 2026 (con máximos regionales cercanos a 2,00 €/l), tras cinco subidas semanales consecutivas ligadas al conflicto en Oriente Medio y la retirada parcial de la bonificación fiscal (Boletín Petrolero UE / Ministerio de Transportes). Mueve directamente el coste de transporte y logística.', sectors:['manufactura','alimentacion'] },
   { id:'acero', name:'Acero corrugado (índice Cámara de España)', unit:'puntos (índice)', current:223.21, yoy:15, spark:'0,16 15,18 30,15 45,17 60,14 75,15 90,13 100,15', fuente:'Cámara de España', confidence:'Alta', verified:true, asOf:'abr 2026 (último dato público)',
@@ -392,11 +388,7 @@ const OPPORTUNITIES = {
 // nivel 2 = previsión de organismo oficial interpolada al horizonte.
 // h.mXX = variación % esperada sobre el valor actual, con banda lo/hi.
 // Un horizonte en null = no hay fuente forward fiable; no se rellena con extrapolación.
-// Este objeto es el fallback si /api/projections no responde o KV todavía no
-// tiene snapshot. electricidad, gas_natural, inflacion, smi y peajes se
-// refrescan a diario vía /api/refresh-projections; el resto queda en estos
-// valores de plantilla hasta implementar su fuente forward (fase 3, Nivel 3/4).
-const PROJECTIONS_FALLBACK = {
+const PROJECTIONS = {
   fuel:        { nivel:1, metodo:'Curva de futuros gasóleo ICE', fuente:'ICE Gasoil', h:{ m30:{v:1.8,lo:-2.4,hi:6.0}, m90:{v:2.6,lo:-5.1,hi:10.3}, m180:{v:1.2,lo:-9.4,hi:11.8} } },
   gas_natural: { nivel:1, metodo:'Curva MIBGAS / TTF por vencimiento', fuente:'MIBGAS', h:{ m30:{v:4.2,lo:-1.9,hi:10.4}, m90:{v:9.7,lo:-3.6,hi:23.0}, m180:{v:6.1,lo:-11.2,hi:23.4} } },
   electricidad:{ nivel:1, metodo:'Curva OMIP (futuro eléctrico español)', fuente:'OMIP', h:{ m30:{v:-6.5,lo:-14.0,hi:1.0}, m90:{v:-14.2,lo:-26.5,hi:-1.9}, m180:{v:-8.8,lo:-24.0,hi:6.4} } },
@@ -408,7 +400,6 @@ const PROJECTIONS_FALLBACK = {
   inflacion:   { nivel:2, metodo:'Proyección macro Banco de España, interpolada', fuente:'Banco de España', h:{ m30:{v:-2.9,lo:-8.6,hi:2.9}, m90:{v:-8.6,lo:-17.1,hi:0}, m180:{v:-14.3,lo:-25.7,hi:-2.9} } },
   laboral:     { nivel:2, metodo:'Proyección de remuneración por asalariado (BdE), interpolada', fuente:'Banco de España', h:{ m30:null, m90:{v:1.1,lo:0.4,hi:1.8}, m180:{v:2.3,lo:1.0,hi:3.6} } },
   peajes:      { nivel:2, metodo:'Revisión tarifaria anual ya publicada (efectiva 1 ene 2027)', fuente:'Min. Transportes', h:{ m30:{v:0,lo:0,hi:0}, m90:{v:0,lo:0,hi:0}, m180:{v:0,lo:0,hi:0} } },
-  smi:         { nivel:2, metodo:'Subida ya publicada (RD 126/2026); sin nueva revisión conocida en este horizonte', fuente:'BOE', h:{ m30:{v:0,lo:0,hi:0}, m90:{v:0,lo:0,hi:0}, m180:{v:0,lo:0,hi:0} } },
 };
 const HORIZONS = [ {id:'m30',label:'30 días'}, {id:'m90',label:'90 días'}, {id:'m180',label:'180 días'} ];
 const REVENUE_BANDS = [ {id:'b1',label:'< 2M €',mid:1.5}, {id:'b2',label:'2–5M €',mid:3.5}, {id:'b3',label:'5–15M €',mid:9}, {id:'b4',label:'15–25M €',mid:20} ];
@@ -440,58 +431,13 @@ function App() {
   const [inflGeneral, setInflGeneral] = useState(null);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copilotThread, setCopilotThread] = useState([]);
+  const [copilotInput, setCopilotInput] = useState('');
+  const [copilotBusy, setCopilotBusy] = useState(false);
   const [feedOpen, setFeedOpen] = useState(true);
   const [feedExpanded, setFeedExpanded] = useState(null);
   const [decisionStatus, setDecisionStatus] = useState({});
-  const [driversData, setDriversData] = useState(DRIVERS_RAW_FALLBACK);
-  const [driversLoading, setDriversLoading] = useState(true);
-  const [projectionsData, setProjectionsData] = useState(PROJECTIONS_FALLBACK);
-  const [projectionsLoading, setProjectionsLoading] = useState(true);
 
   useEffect(() => { const t = setTimeout(() => setBriefReady(true), 550); return () => clearTimeout(t); }, []);
-
-  // Sustituye los valores hardcodeados por el snapshot en vivo de /api/drivers en cuanto
-  // llega. Si la llamada falla (red caída, KV vacío, etc.) se quedan los valores de
-  // DRIVERS_RAW_FALLBACK — nunca se rompe la UI ni se bloquea el render inicial.
-  useEffect(() => {
-    let cancelado = false;
-    fetch('/api/drivers')
-      .then(r => { if (!r.ok) throw new Error('drivers fetch failed'); return r.json(); })
-      .then(json => {
-        if (cancelado) return;
-        const live = Array.isArray(json && json.drivers) ? json.drivers : [];
-        if (live.length === 0) return;
-        setDriversData(DRIVERS_RAW_FALLBACK.map(d => {
-          const liveDriver = live.find(x => x.id === d.id);
-          return liveDriver ? { ...d, ...liveDriver } : d;
-        }));
-      })
-      .catch(() => { /* sin conexión con /api/drivers: se mantiene el fallback hardcodeado */ })
-      .finally(() => { if (!cancelado) setDriversLoading(false); });
-    return () => { cancelado = true; };
-  }, []);
-
-  // Mismo patrón para /api/projections: los drivers con fetcher implementado
-  // (electricidad, gas_natural, inflacion, smi, peajes) se sustituyen por el
-  // valor en vivo; el resto se queda con PROJECTIONS_FALLBACK (o ausente, si
-  // no hay fuente forward todavía) — nunca se inventa un horizonte.
-  useEffect(() => {
-    let cancelado = false;
-    fetch('/api/projections')
-      .then(r => { if (!r.ok) throw new Error('projections fetch failed'); return r.json(); })
-      .then(json => {
-        if (cancelado) return;
-        const live = json && json.projections && typeof json.projections === 'object' ? json.projections : null;
-        if (!live || Object.keys(live).length === 0) return;
-        setProjectionsData({ ...PROJECTIONS_FALLBACK, ...live });
-      })
-      .catch(() => { /* sin conexión con /api/projections: se mantiene el fallback hardcodeado */ })
-      .finally(() => { if (!cancelado) setProjectionsLoading(false); });
-    return () => { cancelado = true; };
-  }, []);
-
-  const DRIVERS_RAW = driversData;
-  const PROJECTIONS = projectionsData;
 
   const effSector = SECTORS_RAW[(profile && profile.sectorId) || selectedSectorId];
 
@@ -640,13 +586,70 @@ function App() {
   let ebitdaCombImpactLabel = '';
   if (hasProfile) { const band = REVENUE_BANDS.find(b => b.id === profile.revenueBandId); ebitdaCombImpactLabel = fmtEur(Math.round(band.mid * 1000000 * (deltaComb / 100))); }
 
+  // Snapshot de la sesión que se envía al modelo como contexto: perfil, drivers,
+  // estructura de coste y el resultado del simulador tal y como los ve el usuario ahora.
+  const kairosContext = {
+    fecha_datos: DATA_SNAPSHOT,
+    perfil: hasProfile ? {
+      sector: simSector.label,
+      facturacion_tramo: REVENUE_BANDS.find(b => b.id === profile.revenueBandId).label,
+      empleados_tramo: HEADCOUNT_BANDS.find(b => b.id === profile.headcountBandId).label,
+    } : null,
+    escenario: isProjMode ? `proyección a ${HORIZONS.find(h => h.id === simMode).label}` : 'último dato publicado',
+    drivers: DRIVERS_RAW.map(d => {
+      const p = PROJECTIONS[d.id];
+      const ph = p && p.h[simMode];
+      return {
+        nombre: d.name, valor_actual: `${d.current} ${d.unit}`, variacion_interanual_pct: d.yoy,
+        fuente: d.fuente, confianza: d.confidence,
+        proyeccion: ph ? { horizonte: simMode, variacion_pct: ph.v, rango: [ph.lo, ph.hi], metodo: p.metodo, fuente: p.fuente } : null,
+      };
+    }),
+    estructura_coste: estructuraSim.map(p => ({ partida: p.label, pct_sobre_coste: p.pct, variacion_aplicada_pct: Number(p.v.toFixed(1)), contribucion_pp: Number(p.contribPP.toFixed(2)) })),
+    inflacion_general_pct: currentInflGeneral,
+    resultado_simulador: {
+      margen_base_pct: Number(margenBaseComb.toFixed(1)),
+      margen_proyectado_pct: Number(margenCombinado.toFixed(1)),
+      delta_pp: Number(deltaComb.toFixed(1)),
+      impacto_ebitda_eur: hasProfile ? ebitdaCombImpactLabel : null,
+      nota: 'El impacto en euros usa el punto medio del tramo de facturación, no la cifra real de la empresa.',
+    },
+    brief_hoy: brief,
+    decision_prioritaria: topDecisionTitle,
+    titulares_feed: DRIVERS_RAW.slice(0, 6).map(d => ({ titular: `${d.name} ${fmtPct(d.yoy)}`, texto: d.desc.split('. ')[0] + '.', fuente: d.fuente })),
+    drivers_sin_proyeccion: projFallbacks,
+  };
+
   const askCopilot = (userText, aiText) => setCopilotThread(t => [...t, { role:'user', text:userText }, { role:'ai', text:aiText }]);
+
+  const sendToBrandt = async (question, fallback) => {
+    if (!question.trim() || copilotBusy) return;
+    const history = copilotThread.slice(-8).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }));
+    setCopilotThread(t => [...t, { role:'user', text:question }]);
+    setCopilotInput('');
+    setCopilotBusy(true);
+    try {
+      const res = await fetch('/api/brandt', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ question, history, context: kairosContext }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.answer) throw new Error('respuesta vacía');
+      setCopilotThread(t => [...t, { role:'ai', text:data.answer }]);
+    } catch (e) {
+      setCopilotThread(t => [...t, { role:'ai', text: fallback || 'No he podido conectar con el motor de análisis ahora mismo. Vuelve a intentarlo en un momento — mientras, los números del panel y del simulador siguen siendo válidos.', offline:!fallback }]);
+    } finally {
+      setCopilotBusy(false);
+    }
+  };
+
   const copilotPrompts = [
-    { label:'¿Qué ha cambiado hoy?', a:() => askCopilot('¿Qué ha cambiado hoy?', `${brief.changed} ¿Quieres que lo traduzca a un número de margen para tu negocio en el Simulador?`) },
-    { label:'¿Debería subir precios ahora?', a:() => askCopilot('¿Debería subir precios ahora?', `Depende de cuánta demanda perderías. Con la presión actual de ${topDriver.name.toLowerCase()}, un traslado parcial de precio suele compensar sin dañar volumen. ¿Sabes qué elasticidad tiene tu producto principal?`) },
-    { label:'Explica de dónde sale esta previsión', a:() => askCopilot('Explica de dónde sale esta previsión', `Uso la estructura de coste promedio del sector (Banco de España — Central de Balances) y la variación publicada por la fuente oficial del driver. No conozco tus cifras reales, así que todo esto es una estimación modelada, no un dato de tu empresa.`) },
-    { label:'¿Qué prioridad debería mirar primero?', a:() => askCopilot('¿Qué prioridad debería mirar primero?', `Yo empezaría por "${topDecisionTitle}" — es la de mayor impacto y urgencia combinados ahora mismo. ¿Quieres que te explique el razonamiento completo?`) },
-    { label:'¿Cómo negocio la tarifa eléctrica?', a:() => askCopilot('¿Cómo negocio la tarifa eléctrica?', `Tres pasos concretos: 1) pide oferta a al menos dos comercializadoras más antes de renovar, usando tu curva de consumo de los últimos 12 meses; 2) valora fijar precio a plazo si tu volumen es predecible, para eliminar volatilidad; 3) pregunta por descuento por compromiso de permanencia o por desplazar consumo a horas valle. ¿Quieres que lo lleve al Simulador para ver cuánto margen liberaría un 5-10% de ahorro en tarifa?`) },
+    { label:'¿Qué ha cambiado hoy?', a:() => sendToBrandt('¿Qué ha cambiado hoy?', `${brief.changed} ¿Quieres que lo traduzca a un número de margen para tu negocio en el Simulador?`) },
+    { label:'¿Debería subir precios ahora?', a:() => sendToBrandt('¿Debería subir precios ahora?', `Depende de cuánta demanda perderías. Con la presión actual de ${topDriver.name.toLowerCase()}, un traslado parcial de precio suele compensar sin dañar volumen. ¿Sabes qué elasticidad tiene tu producto principal?`) },
+    { label:'Explica de dónde sale esta previsión', a:() => sendToBrandt('Explica de dónde sale esta previsión', `Uso la estructura de coste promedio del sector (Banco de España — Central de Balances) y la variación publicada por la fuente oficial del driver. No conozco tus cifras reales, así que todo esto es una estimación modelada, no un dato de tu empresa.`) },
+    { label:'¿Qué prioridad debería mirar primero?', a:() => sendToBrandt('¿Qué prioridad debería mirar primero?', `Yo empezaría por "${topDecisionTitle}" — es la de mayor impacto y urgencia combinados ahora mismo. ¿Quieres que te explique el razonamiento completo?`) },
+    { label:'¿Cómo negocio la tarifa eléctrica?', a:() => sendToBrandt('¿Cómo negocio la tarifa eléctrica?', `Tres pasos concretos: 1) pide oferta a al menos dos comercializadoras más antes de renovar, usando tu curva de consumo de los últimos 12 meses; 2) valora fijar precio a plazo si tu volumen es predecible, para eliminar volatilidad; 3) pregunta por descuento por compromiso de permanencia o por desplazar consumo a horas valle. ¿Quieres que lo lleve al Simulador para ver cuánto margen liberaría un 5-10% de ahorro en tarifa?`) },
   ];
 
   const times = ['hace 32 min', 'hace 1 h', 'hace 3 h', 'hace 5 h', 'hace 9 h', 'hace 1 día'];
@@ -1125,16 +1128,26 @@ function App() {
               </div>
               <span onClick={() => setCopilotOpen(false)} style={{cursor:'pointer', fontSize:18, lineHeight:1, padding:4}}>×</span>
             </div>
-            <p style={{fontSize:12, color:N600, marginTop:6}}>Piensa como tu director de estrategia. No es un chatbot genérico — prueba una de estas preguntas.</p>
+            <p style={{fontSize:12, color:N600, marginTop:6}}>Piensa como tu director de estrategia. Ve tu sector, tus drivers y el resultado de tu simulador — pregúntale lo que quieras.</p>
             <div style={{flex:1, overflowY:'auto', marginTop:12, display:'flex', flexDirection:'column', gap:8}}>
               {copilotThread.map((m,i) => (
-                <div key={i} style={{alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'88%', background: m.role==='user'?ACCENT_100:'#fff', border:`1px solid ${DIVIDER}`, padding:'10px 13px', fontSize:12.5, lineHeight:1.55}}>{m.text}</div>
+                <div key={i} style={{alignSelf: m.role==='user'?'flex-end':'flex-start', maxWidth:'88%', background: m.role==='user'?ACCENT_100:'#fff', border:`1px solid ${m.offline?ACCENT:DIVIDER}`, padding:'10px 13px', fontSize:12.5, lineHeight:1.55, whiteSpace:'pre-wrap'}}>{m.text}</div>
               ))}
+              {copilotBusy && (
+                <div style={{alignSelf:'flex-start', background:'#fff', border:`1px solid ${DIVIDER}`, padding:'10px 13px', fontSize:12.5, color:N600, display:'flex', alignItems:'center', gap:8}}>
+                  <span style={{width:7,height:7,borderRadius:'50%',background:ACCENT,display:'inline-block',animation:'krs-pulse 1.2s ease-in-out infinite'}}></span>Analizando tu contexto…
+                </div>
+              )}
             </div>
+            <form onSubmit={e => { e.preventDefault(); sendToBrandt(copilotInput); }} style={{marginTop:12, display:'flex', gap:6}}>
+              <input className="input" value={copilotInput} onChange={e => setCopilotInput(e.target.value)} disabled={copilotBusy}
+                placeholder="Pregúntale sobre tus números…" style={{flex:1, minWidth:0, fontSize:12.5}}/>
+              <Btn kind="primary" type="submit" disabled={copilotBusy || !copilotInput.trim()} style={{flexShrink:0}}>Enviar</Btn>
+            </form>
             <div style={{marginTop:12, display:'flex', flexDirection:'column', gap:6}}>
-              {copilotPrompts.map((p,i) => <Btn key={i} kind="secondary" onClick={p.a} style={{width:'100%'}}>{p.label}</Btn>)}
+              {copilotPrompts.map((p,i) => <Btn key={i} kind="secondary" onClick={p.a} disabled={copilotBusy} style={{width:'100%'}}>{p.label}</Btn>)}
             </div>
-            <p style={{fontSize:11, color:N600, marginTop:12, borderTop:`1px solid ${DIVIDER}`, paddingTop:8}}>Beta · respuestas guionizadas para esta demo. La entrada libre llega en la Fase 4 del roadmap.</p>
+            <p style={{fontSize:11, color:N600, marginTop:12, borderTop:`1px solid ${DIVIDER}`, paddingTop:8}}>Beta · responde con los datos de esta sesión. Si el motor no está disponible, verás una respuesta de reserva.</p>
           </div>
         )}
       </div>
