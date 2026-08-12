@@ -1,0 +1,168 @@
+// Prefijo "_" => Vercel no convierte este directorio en una ruta pública.
+//
+// Estructura de coste por sector, con dos pasos:
+//   1) Traer los ratios AGREGADOS y reales del INE (Estadística Estructural
+//      de Empresas, EEE) para el CNAE que corresponde a cada sector de Kairos
+//      — gastos de personal, consumos de explotación, etc., como % real.
+//   2) Pedirle a un modelo (mismo OPENAI_API_KEY que usa Brandt AI) que
+//      reasigne las partidas específicas ACTUALES de Kairos (p.ej. "Acero
+//      laminado", "Combustible") DENTRO de esas categorías oficiales, de
+//      forma proporcional — nunca que invente partidas nuevas ni cifras
+//      sueltas. La respuesta se valida estrictamente antes de aceptarla.
+//
+// IMPORTANT — nivel de confianza de este fichero: la EEE es una tabla
+// multidimensional (CNAE x variable x año), no un código de serie plano como
+// los de sources.js. No hay salida de red hacia ine.es en este entorno de
+// desarrollo para confirmar operación/tabla exactas, así que en vez de
+// adivinar un ID de tabla fijo (muy frágil), se busca la tabla en tiempo de
+// ejecución por coincidencia de texto en su nombre — más resiliente, pero
+// sigue siendo mejor esfuerzo. Si la operación/tabla no se encuentra, el
+// fetch falla limpio y ese sector se queda con la estructura de referencia
+// (fallback hardcodeado) — nunca se rompe la UI ni se muestra un dato
+// inventado como si fuera oficial.
+
+const INE_BASE = 'https://servicios.ine.es/wstempus/js/ES';
+
+// Código de operación EEE Sector Industrial — mejor esfuerzo (visto como 30048
+// en el Inventario de Operaciones Estadísticas del INE), sin confirmar contra
+// la API en vivo. EEE Sector Comercio y EEE Sector Servicios son operaciones
+// *distintas* del INE con su propio código, que no se ha podido identificar
+// desde este entorno — por eso solo se intentan aquí los sectores de Kairos
+// que caen dentro de EEE Industrial.
+const EEE_OPERACION_INDUSTRIAL = '30048';
+
+// Sectores de Kairos con mapeo a CNAE dentro de EEE Sector Industrial. El
+// resto (comercio, hosteleria, transporte, construccion) necesita investigar
+// primero su propia fuente — ver nota al final del fichero.
+const CNAE_POR_SECTOR = {
+  manufactura: { cnae: ['24', '25', '29'], etiqueta: 'metalurgia y vehículos de motor' },
+  alimentacion: { cnae: ['10'], etiqueta: 'industria de la alimentación' },
+  textil: { cnae: ['13', '14'], etiqueta: 'industria textil y confección' },
+};
+
+async function fetchJson(url) {
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!res.ok) throw new Error(`${url} respondió ${res.status}`);
+  return res.json();
+}
+
+async function fetchEEERatios(cnaeList, etiqueta) {
+  const tablas = await fetchJson(`${INE_BASE}/TABLAS_OPERACION/${EEE_OPERACION_INDUSTRIAL}?det=0`);
+  if (!Array.isArray(tablas) || tablas.length === 0) throw new Error('EEE: la operación no devolvió tablas');
+
+  const tablaPersonal = tablas.find(t => /gastos de personal/i.test(t.Nombre || ''));
+  const tablaConsumos = tablas.find(t => /consumo|compras/i.test(t.Nombre || ''));
+  if (!tablaPersonal || !tablaConsumos) throw new Error('EEE: no se encontraron las tablas de personal/consumos esperadas');
+
+  const [datosPersonal, datosConsumos] = await Promise.all([
+    fetchJson(`${INE_BASE}/DATOS_TABLA/${tablaPersonal.Id}?nult=1`),
+    fetchJson(`${INE_BASE}/DATOS_TABLA/${tablaConsumos.Id}?nult=1`),
+  ]);
+
+  const matchCnae = serie => {
+    const nombre = (serie.Nombre || '');
+    return cnaeList.some(c => nombre.includes(c)) || nombre.toLowerCase().includes(etiqueta.toLowerCase());
+  };
+  const puntoPersonal = (Array.isArray(datosPersonal) ? datosPersonal : []).find(matchCnae);
+  const puntoConsumos = (Array.isArray(datosConsumos) ? datosConsumos : []).find(matchCnae);
+  if (!puntoPersonal || !puntoConsumos) throw new Error(`EEE: no se encontró el desglose para CNAE ${cnaeList.join('/')}`);
+
+  const valorPersonal = puntoPersonal.Data && puntoPersonal.Data[0] && puntoPersonal.Data[0].Valor;
+  const valorConsumos = puntoConsumos.Data && puntoConsumos.Data[0] && puntoConsumos.Data[0].Valor;
+  if (typeof valorPersonal !== 'number' || typeof valorConsumos !== 'number') throw new Error('EEE: valores no numéricos en la respuesta');
+
+  const anyo = (puntoPersonal.Data[0].Anyo || puntoPersonal.Data[0].T3_Periodo || new Date().getFullYear()) + '';
+  return { personal_pct: valorPersonal, consumos_pct: valorConsumos, asOf: anyo };
+}
+
+// --- Reconciliación por IA: números oficiales agregados -> partidas específicas de Kairos ---
+
+async function reconcileWithLLM({ sectorName, currentEstructura, eeeRatios }) {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) throw new Error('OPENAI_API_KEY no configurada');
+  const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+
+  const prompt = `Eres un analista financiero. Tienes la estructura de coste ACTUAL de un sector (partidas específicas, estimación editorial de un consultor) y los ratios OFICIALES agregados del INE (Estadística Estructural de Empresas) para ese mismo sector.
+
+Sector: ${sectorName}
+
+Estructura actual (editorial, partidas específicas, suman ~100):
+${JSON.stringify(currentEstructura.map(([label, pct]) => ({ label, pct })))}
+
+Ratios oficiales agregados (INE EEE, año ${eeeRatios.asOf}, % sobre cifra de negocio):
+{"gastos_de_personal_pct": ${eeeRatios.personal_pct}, "consumos_de_explotacion_pct": ${eeeRatios.consumos_pct}}
+
+Tarea: reasigna las partidas específicas actuales DENTRO de estas dos categorías oficiales (más "Otros" para lo que no encaje), de forma proporcional, para que la partida de personal sume el % oficial de personal y el resto de partidas de coste (materiales, energía, componentes...) sumen el % oficial de consumos. No inventes partidas que no estén ya en la lista actual. No cambies el nombre de las partidas existentes.
+
+Devuelve SOLO un JSON con este formato exacto, sin texto adicional ni markdown:
+{"estructura": [{"label": "...", "pct": 00.0}], "notas": "explicación breve de los criterios de reasignación, en una frase"}
+
+Los "pct" deben sumar 100 (±1 por redondeo).`;
+
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: 'Devuelves únicamente JSON válido, sin comentarios ni texto fuera del JSON.' },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.2,
+      response_format: { type: 'json_object' },
+    }),
+  });
+  if (!r.ok) throw new Error(`OpenAI respondió ${r.status}`);
+  const data = await r.json();
+  const raw = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+  if (!raw) throw new Error('Respuesta vacía de OpenAI');
+
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch (e) { throw new Error('OpenAI no devolvió JSON válido'); }
+
+  // Validación estricta: nunca se acepta ni se muestra un dato que no pase esto.
+  if (!Array.isArray(parsed.estructura) || parsed.estructura.length === 0) throw new Error('Formato inesperado: falta "estructura"');
+  let total = 0;
+  const limpio = parsed.estructura.map(item => {
+    if (!item || typeof item.label !== 'string' || typeof item.pct !== 'number' || !Number.isFinite(item.pct) || item.pct < 0) {
+      throw new Error('Partida inválida en la respuesta del modelo');
+    }
+    total += item.pct;
+    return [item.label, Math.round(item.pct * 10) / 10];
+  });
+  if (Math.abs(total - 100) > 3) throw new Error(`Los porcentajes suman ${total.toFixed(1)}, no ~100 — se descarta`);
+
+  return { estructura: limpio, notas: typeof parsed.notas === 'string' ? parsed.notas.slice(0, 500) : '' };
+}
+
+async function reconcileSector(sectorId, sectorName, currentEstructura) {
+  const cfg = CNAE_POR_SECTOR[sectorId];
+  if (!cfg) throw new Error(`${sectorId}: sin mapeo CNAE a EEE todavía`);
+  const eeeRatios = await fetchEEERatios(cfg.cnae, cfg.etiqueta);
+  const { estructura, notas } = await reconcileWithLLM({ sectorName, currentEstructura, eeeRatios });
+  return {
+    estructura,
+    fuente: 'INE — Estadística Estructural de Empresas',
+    metodo: `Ratios oficiales EEE ${eeeRatios.asOf} (CNAE ${cfg.cnae.join('/')}) reasignados por IA sobre las partidas de Kairos`,
+    notas,
+    asOf: eeeRatios.asOf,
+  };
+}
+
+module.exports = { reconcileSector, CNAE_POR_SECTOR };
+
+// ---------------------------------------------------------------------------
+// Sectores de Kairos sin fuente EEE confirmada todavía — no rellenar con una
+// suposición, investigar primero:
+// ---------------------------------------------------------------------------
+//
+// comercio      -> EEE Sector Comercio existe como operación INE propia,
+//                  pero no se identificó su código de operación desde este
+//                  entorno (sin salida de red a ine.es).
+// hosteleria,
+// transporte    -> caerían dentro de EEE Sector Servicios (otra operación
+//                  distinta), tampoco identificada todavía.
+// construccion  -> la EEE del INE cubre Industria/Comercio/Servicios, pero
+//                  no Construcción de forma explícita — necesita otra fuente
+//                  (posible: Encuesta Anual de Construcción del INE, o datos
+//                  sectoriales de SEOPAN/Fundación Laboral de la Construcción).
