@@ -28,13 +28,69 @@ const EEE_OPERACION = {
 // pero no tiene una operación dedicada a Construcción — necesitaría otra
 // fuente (Encuesta Anual de Construcción del INE, o SEOPAN/Fundación Laboral
 // de la Construcción).
+//
+// sectorLabels: nombres EXACTOS de división CNAE-2009 tal como los usa el
+// INE en la tabla "Principales magnitudes según actividad principal" (p.ej.
+// "Nacional. Gastos de personal. Industria de la alimentación. Dato base.").
+// El código CNAE numérico NO aparece en ese texto — solo sirve aquí como
+// referencia/documentación. Cuando un sector de Kairos agrupa varias
+// divisiones CNAE (p.ej. manufactura = metalurgia + productos metálicos +
+// vehículos de motor), se suman los valores de todas las divisiones
+// listadas. Confirmado contra datos reales del INE (12 ago 2026) para
+// manufactura/alimentacion/textil (macroSector industrial); comercio,
+// hosteleria y transporte usan la nomenclatura oficial CNAE-2009 pero aún
+// no se han verificado contra la respuesta real de sus tablas EEE.
 const CNAE_POR_SECTOR = {
-  manufactura: { macroSector: 'industrial', cnae: ['24', '25', '29'], etiqueta: 'metalurgia y vehículos de motor' },
-  alimentacion: { macroSector: 'industrial', cnae: ['10'], etiqueta: 'industria de la alimentación' },
-  textil: { macroSector: 'industrial', cnae: ['13', '14'], etiqueta: 'industria textil y confección' },
-  comercio: { macroSector: 'comercio', cnae: ['45', '46', '47'], etiqueta: 'comercio al por mayor y al por menor' },
-  hosteleria: { macroSector: 'servicios', cnae: ['55', '56'], etiqueta: 'hostelería' },
-  transporte: { macroSector: 'servicios', cnae: ['49', '50', '51', '52', '53'], etiqueta: 'transporte y almacenamiento' },
+  manufactura: {
+    macroSector: 'industrial',
+    cnae: ['24', '25', '29'],
+    etiqueta: 'metalurgia y vehículos de motor',
+    sectorLabels: [
+      'Metalurgia; fabricación de productos de hierro, acero y ferroaleaciones',
+      'Fabricación de productos metálicos, excepto maquinaria y equipo',
+      'Fabricación de vehículos de motor, remolques y semirremolques',
+    ],
+  },
+  alimentacion: {
+    macroSector: 'industrial',
+    cnae: ['10'],
+    etiqueta: 'industria de la alimentación',
+    sectorLabels: ['Industria de la alimentación'],
+  },
+  textil: {
+    macroSector: 'industrial',
+    cnae: ['13', '14'],
+    etiqueta: 'industria textil y confección',
+    sectorLabels: ['Industria textil', 'Confección de prendas de vestir'],
+  },
+  comercio: {
+    macroSector: 'comercio',
+    cnae: ['45', '46', '47'],
+    etiqueta: 'comercio al por mayor y al por menor',
+    sectorLabels: [
+      'Venta y reparación de vehículos de motor y motocicletas',
+      'Comercio al por mayor e intermediarios del comercio, excepto de vehículos de motor y motocicletas',
+      'Comercio al por menor, excepto de vehículos de motor y motocicletas',
+    ],
+  },
+  hosteleria: {
+    macroSector: 'servicios',
+    cnae: ['55', '56'],
+    etiqueta: 'hostelería',
+    sectorLabels: ['Servicios de alojamiento', 'Servicios de comidas y bebidas'],
+  },
+  transporte: {
+    macroSector: 'servicios',
+    cnae: ['49', '50', '51', '52', '53'],
+    etiqueta: 'transporte y almacenamiento',
+    sectorLabels: [
+      'Transporte terrestre y por tubería',
+      'Transporte marítimo y por vías navegables interiores',
+      'Transporte aéreo',
+      'Almacenamiento y actividades anexas al transporte',
+      'Actividades postales y de correos',
+    ],
+  },
 };
 
 // Errores explícitos (status + un trozo del cuerpo) en vez de dejar que
@@ -53,35 +109,76 @@ async function fetchJson(url) {
   }
 }
 
-async function fetchEEERatios(macroSector, cnaeList, etiqueta) {
+// La EEE no tiene una tabla por magnitud: todo vive en UNA tabla ancha
+// ("Principales magnitudes según actividad principal (CNAE-2009 a 1, 2, 3 y 4
+// dígitos)"), con una fila por combinación magnitud × división CNAE. Cada
+// fila se nombra así (confirmado contra datos reales del INE, 12 ago 2026):
+//   "Nacional. Gastos de personal. Industria de la alimentación. Dato base."
+// El código CNAE numérico no aparece nunca en el texto — solo el nombre
+// oficial de la división. Cada operación (industrial/comercio/servicios)
+// suele tener DOS versiones de esta tabla: una serie antigua descontinuada
+// y la vigente (mismo título, Id distinto) — se elige la de
+// Ultima_Modificacion más reciente.
+const TABLA_PRINCIPALES_MAGNITUDES_REGEX = /principales magnitudes/i;
+const TABLA_ACTIVIDAD_PRINCIPAL_REGEX = /actividad principal/i;
+
+function normalizarNombre(nombre) {
+  return (nombre || '').replace(/\s+/g, ' ').trim();
+}
+
+function valorParaMagnitudYLabel(filas, magnitud, label) {
+  const prefijo = `Nacional. ${magnitud}. ${label}.`;
+  const fila = filas.find(f => {
+    const nombre = normalizarNombre(f.Nombre);
+    return nombre.startsWith(prefijo) && /dato base\.?$/i.test(nombre);
+  });
+  const dato = fila && Array.isArray(fila.Data) ? fila.Data[0] : null;
+  if (!dato || typeof dato.Valor !== 'number') return null;
+  return { valor: dato.Valor, anyo: dato.Anyo };
+}
+
+function sumarMagnitudSobreLabels(filas, magnitud, labels) {
+  let total = 0;
+  let anyo = null;
+  for (const label of labels) {
+    const encontrado = valorParaMagnitudYLabel(filas, magnitud, label);
+    if (!encontrado) throw new Error(`EEE: no se encontró "${magnitud}" para "${label}"`);
+    total += encontrado.valor;
+    anyo = encontrado.anyo || anyo;
+  }
+  return { total, anyo };
+}
+
+async function fetchEEERatios(macroSector, sectorLabels, etiqueta) {
   const operacion = EEE_OPERACION[macroSector];
   if (!operacion) throw new Error(`EEE: sin operación configurada para "${macroSector}"`);
   const tablas = await fetchJson(`${INE_BASE}/TABLAS_OPERACION/${operacion}?det=0`);
   if (!Array.isArray(tablas) || tablas.length === 0) throw new Error('EEE: la operación no devolvió tablas');
 
-  const tablaPersonal = tablas.find(t => /gastos de personal/i.test(t.Nombre || ''));
-  const tablaConsumos = tablas.find(t => /consumo|compras/i.test(t.Nombre || ''));
-  if (!tablaPersonal || !tablaConsumos) throw new Error('EEE: no se encontraron las tablas de personal/consumos esperadas');
+  const candidatas = tablas.filter(t =>
+    TABLA_PRINCIPALES_MAGNITUDES_REGEX.test(t.Nombre || '') && TABLA_ACTIVIDAD_PRINCIPAL_REGEX.test(t.Nombre || '')
+  );
+  if (candidatas.length === 0) throw new Error('EEE: no se encontró la tabla "Principales magnitudes según actividad principal"');
+  const tabla = candidatas.reduce((mejor, actual) => {
+    const fechaActual = new Date(actual.Ultima_Modificacion || 0).getTime();
+    const fechaMejor = new Date(mejor.Ultima_Modificacion || 0).getTime();
+    return fechaActual > fechaMejor ? actual : mejor;
+  });
 
-  const [datosPersonal, datosConsumos] = await Promise.all([
-    fetchJson(`${INE_BASE}/DATOS_TABLA/${tablaPersonal.Id}?nult=1`),
-    fetchJson(`${INE_BASE}/DATOS_TABLA/${tablaConsumos.Id}?nult=1`),
-  ]);
+  const filas = await fetchJson(`${INE_BASE}/DATOS_TABLA/${tabla.Id}?nult=1`);
+  if (!Array.isArray(filas) || filas.length === 0) throw new Error(`EEE: la tabla ${tabla.Id} no devolvió filas`);
 
-  const matchCnae = serie => {
-    const nombre = (serie.Nombre || '');
-    return cnaeList.some(c => nombre.includes(c)) || nombre.toLowerCase().includes(etiqueta.toLowerCase());
+  const cifra = sumarMagnitudSobreLabels(filas, 'Cifra de negocios', sectorLabels);
+  const personal = sumarMagnitudSobreLabels(filas, 'Gastos de personal', sectorLabels);
+  const compras = sumarMagnitudSobreLabels(filas, 'Total de compras de bienes y servicios', sectorLabels);
+  if (!(cifra.total > 0)) throw new Error(`EEE: cifra de negocio no positiva para "${etiqueta}"`);
+
+  const anyo = (cifra.anyo || personal.anyo || compras.anyo || new Date().getFullYear()) + '';
+  return {
+    personal_pct: (personal.total / cifra.total) * 100,
+    consumos_pct: (compras.total / cifra.total) * 100,
+    asOf: anyo,
   };
-  const puntoPersonal = (Array.isArray(datosPersonal) ? datosPersonal : []).find(matchCnae);
-  const puntoConsumos = (Array.isArray(datosConsumos) ? datosConsumos : []).find(matchCnae);
-  if (!puntoPersonal || !puntoConsumos) throw new Error(`EEE: no se encontró el desglose para CNAE ${cnaeList.join('/')}`);
-
-  const valorPersonal = puntoPersonal.Data && puntoPersonal.Data[0] && puntoPersonal.Data[0].Valor;
-  const valorConsumos = puntoConsumos.Data && puntoConsumos.Data[0] && puntoConsumos.Data[0].Valor;
-  if (typeof valorPersonal !== 'number' || typeof valorConsumos !== 'number') throw new Error('EEE: valores no numéricos en la respuesta');
-
-  const anyo = (puntoPersonal.Data[0].Anyo || puntoPersonal.Data[0].T3_Periodo || new Date().getFullYear()) + '';
-  return { personal_pct: valorPersonal, consumos_pct: valorConsumos, asOf: anyo };
 }
 
 // --- Reconciliación por IA: números oficiales agregados -> partidas específicas de Kairos ---
@@ -147,7 +244,7 @@ Los "pct" deben sumar 100 (±1 por redondeo).`;
 async function reconcileSector(sectorId, sectorName, currentEstructura) {
   const cfg = CNAE_POR_SECTOR[sectorId];
   if (!cfg) throw new Error(`${sectorId}: sin mapeo CNAE a EEE todavía`);
-  const eeeRatios = await fetchEEERatios(cfg.macroSector, cfg.cnae, cfg.etiqueta);
+  const eeeRatios = await fetchEEERatios(cfg.macroSector, cfg.sectorLabels, cfg.etiqueta);
   const { estructura, notas } = await reconcileWithLLM({ sectorName, currentEstructura, eeeRatios });
   return {
     estructura,
