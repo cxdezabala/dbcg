@@ -468,6 +468,7 @@ function App() {
   const [driversHistoryData, setDriversHistoryData] = useState(DRIVERS_HISTORY_FALLBACK);
   const [projectionsData, setProjectionsData] = useState(PROJECTIONS_FALLBACK);
   const [projectionsLoading, setProjectionsLoading] = useState(true);
+  const [costStructuresLive, setCostStructuresLive] = useState({});
 
   useEffect(() => { const t = setTimeout(() => setBriefReady(true), 550); return () => clearTimeout(t); }, []);
 
@@ -520,6 +521,23 @@ function App() {
       })
       .catch(() => { /* sin conexión con /api/projections: se mantiene el fallback hardcodeado */ })
       .finally(() => { if (!cancelado) setProjectionsLoading(false); });
+    return () => { cancelado = true; };
+  }, []);
+
+  // Estructura de coste por sector: solo para los sectores con mapeo CNAE
+  // confirmado (ver cost-structure-sources.js) llega un dato real del INE,
+  // reasignado por IA sobre las partidas actuales. El resto de sectores se
+  // queda con la estructura editorial de SECTORS_RAW — no se inventa nada.
+  useEffect(() => {
+    let cancelado = false;
+    fetch('/api/cost-structures')
+      .then(r => { if (!r.ok) throw new Error('cost-structures fetch failed'); return r.json(); })
+      .then(json => {
+        if (cancelado) return;
+        const live = json && json.sectores && typeof json.sectores === 'object' ? json.sectores : {};
+        setCostStructuresLive(live);
+      })
+      .catch(() => { /* sin conexión con /api/cost-structures: se mantiene la estructura editorial */ });
     return () => { cancelado = true; };
   }, []);
 
@@ -584,21 +602,27 @@ function App() {
 
   const sectorTiles = SECTOR_TILE_ORDER.map(key => SECTORS_RAW[key] || { id:key, name:key, locked:true });
   const sectorLocked = LOCKED_SECTORS.includes(selectedSectorId);
-  let sectorDetail = { estructura: [], driverChips: [], riesgos: [], oportunidades: [] };
+  const ESTRUCTURA_COLORS = [N300, ACCENT, N400, N600, N800];
+  let sectorDetail = { estructura: [], driverChips: [], riesgos: [], oportunidades: [], fuenteEstructura: null };
   if (!sectorLocked) {
     const sec = SECTORS_RAW[selectedSectorId];
-    const personalIdx = sec.estructura.findIndex(([label]) => label.includes('Personal'));
-    const otrosIdx = sec.estructura.length - 1;
-    let estructuraAdj = sec.estructura;
+    const liveEstructura = costStructuresLive[selectedSectorId];
+    const estructuraBase = liveEstructura
+      ? liveEstructura.estructura.map(([label, pct], i) => [label, pct, ESTRUCTURA_COLORS[i % ESTRUCTURA_COLORS.length]])
+      : sec.estructura;
+    const personalIdx = estructuraBase.findIndex(([label]) => label.includes('Personal'));
+    const otrosIdx = estructuraBase.length - 1;
+    let estructuraAdj = estructuraBase;
     if (profile && personalIdx !== -1 && personalIdx !== otrosIdx) {
-      estructuraAdj = sec.estructura.map((line, i) => {
+      estructuraAdj = estructuraBase.map((line, i) => {
         if (i === personalIdx) return [line[0], Math.max(2, Math.round((line[1] + sizeAdj.personalDelta) * 10) / 10), line[2]];
         if (i === otrosIdx) return [line[0], Math.max(2, Math.round((line[1] - sizeAdj.personalDelta) * 10) / 10), line[2]];
         return line;
       });
     }
     sectorDetail = { estructura: estructuraAdj, riesgos: sec.riesgos, oportunidades: sec.oportunidades,
-      driverChips: sec.driversIds.map(id => DRIVERS_RAW.find(x => x.id === id)) };
+      driverChips: sec.driversIds.map(id => DRIVERS_RAW.find(x => x.id === id)),
+      fuenteEstructura: liveEstructura ? `${liveEstructura.fuente} (${liveEstructura.asOf}) · ${liveEstructura.metodo}` : null };
   }
 
   const simSector = SECTORS_RAW[simSectorId] || effSector;
@@ -1036,7 +1060,7 @@ function App() {
                           </div>
                         ))}
                       </div>
-                      <div style={{fontSize:11, color:N600, marginTop:12}}>Empresa tipo del sector · Fuente: Banco de España — Central de Balances</div>
+                      <div style={{fontSize:11, color:N600, marginTop:12}}>Empresa tipo del sector · Fuente: {sectorDetail.fuenteEstructura || 'estimación editorial (Banco de España — Central de Balances, referencia metodológica)'}</div>
                     </Card>
                     <h6 style={{marginTop:24, fontSize:13}}>Drivers relevantes</h6>
                     <div style={{display:'flex', flexWrap:'wrap', gap:8, marginTop:8}}>

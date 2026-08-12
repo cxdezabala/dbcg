@@ -6,6 +6,7 @@ const DRIVERS_KEY = 'kairos:drivers:snapshot';
 const PROJECTIONS_KEY = 'kairos:projections:snapshot';
 const DRIVERS_HISTORY_KEY = 'kairos:drivers:history';
 const PROJECTIONS_HISTORY_KEY = 'kairos:projections:history';
+const COST_STRUCTURES_KEY = 'kairos:cost-structures:snapshot';
 
 // Cuántos puntos guardamos por driver como máximo (con cron diario, ~180
 // puntos son unos 6 meses de histórico) — evita que la clave crezca sin límite.
@@ -105,10 +106,19 @@ async function appendProjectionsHistory(pointsById) {
   return appendHistoryPoints(PROJECTIONS_HISTORY_KEY, pointsById);
 }
 
+async function getCostStructuresSnapshot() {
+  return getJson(COST_STRUCTURES_KEY);
+}
+
+async function saveCostStructuresSnapshot(sectores) {
+  return setJson(COST_STRUCTURES_KEY, { updatedAt: new Date().toISOString(), sectores });
+}
+
 module.exports = {
   getSnapshot, saveSnapshot,
   getProjectionsSnapshot, saveProjectionsSnapshot,
   getDriversHistory, appendDriversHistory,
   getProjectionsHistory, appendProjectionsHistory,
-  DRIVERS_KEY, PROJECTIONS_KEY, DRIVERS_HISTORY_KEY, PROJECTIONS_HISTORY_KEY,
+  getCostStructuresSnapshot, saveCostStructuresSnapshot,
+  DRIVERS_KEY, PROJECTIONS_KEY, DRIVERS_HISTORY_KEY, PROJECTIONS_HISTORY_KEY, COST_STRUCTURES_KEY,
 };
