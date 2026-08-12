@@ -40,10 +40,20 @@ const CNAE_POR_SECTOR = {
   textil: { cnae: ['13', '14'], etiqueta: 'industria textil y confección' },
 };
 
+// Errores explícitos (status + un trozo del cuerpo) en vez de dejar que
+// JSON.parse falle con "Unexpected end of JSON input" — así el array
+// `errores` de /api/refresh-cost-structures dice qué pasó de verdad, sin
+// tener que reproducirlo a ciegas.
 async function fetchJson(url) {
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`${url} respondió ${res.status}`);
-  return res.json();
+  const texto = await res.text();
+  if (!res.ok) throw new Error(`${url} respondió ${res.status}: ${texto.slice(0, 200)}`);
+  if (!texto) throw new Error(`${url} respondió ${res.status} con cuerpo vacío`);
+  try {
+    return JSON.parse(texto);
+  } catch (e) {
+    throw new Error(`${url} no devolvió JSON válido (status ${res.status}): ${texto.slice(0, 200)}`);
+  }
 }
 
 async function fetchEEERatios(cnaeList, etiqueta) {
