@@ -418,6 +418,18 @@ function fmtPct(n) { const s = Math.abs(n).toFixed(1).replace('.', ','); return 
 function fmtEur(n) { return '€' + n.toLocaleString('es-ES', { maximumFractionDigits: 0 }); }
 function driverColor(yoy) { return Math.abs(yoy) >= 5 ? ACCENT_700 : (Math.abs(yoy) >= 1 ? TEXT : N600); }
 function driverTagKind(yoy) { return Math.abs(yoy) >= 5 ? 'accent' : (Math.abs(yoy) >= 1 ? 'outline' : 'neutral'); }
+function timeAgo(iso) {
+  if (!iso) return null;
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (!Number.isFinite(diffMs) || diffMs < 0) return null;
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'hace un momento';
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  const d = Math.floor(h / 24);
+  return `hace ${d} día${d === 1 ? '' : 's'}`;
+}
 
 function App() {
   const [tab, setTab] = useState('brief');
@@ -447,6 +459,8 @@ function App() {
   const [decisionStatus, setDecisionStatus] = useState({});
   const [driversData, setDriversData] = useState(DRIVERS_RAW_FALLBACK);
   const [driversLoading, setDriversLoading] = useState(true);
+  const [liveDriverIds, setLiveDriverIds] = useState([]);
+  const [driversUpdatedAt, setDriversUpdatedAt] = useState(null);
   const [projectionsData, setProjectionsData] = useState(PROJECTIONS_FALLBACK);
   const [projectionsLoading, setProjectionsLoading] = useState(true);
 
@@ -467,6 +481,8 @@ function App() {
           const liveDriver = live.find(x => x.id === d.id);
           return liveDriver ? { ...d, ...liveDriver } : d;
         }));
+        setLiveDriverIds(live.map(x => x.id));
+        setDriversUpdatedAt(json.updatedAt || null);
       })
       .catch(() => { /* sin conexión con /api/drivers: se mantiene el fallback hardcodeado */ })
       .finally(() => { if (!cancelado) setDriversLoading(false); });
@@ -708,8 +724,17 @@ function App() {
     { label:'¿Cómo negocio la tarifa eléctrica?', a:() => sendToBrandt('¿Cómo negocio la tarifa eléctrica?', `Tres pasos concretos: 1) pide oferta a al menos dos comercializadoras más antes de renovar, usando tu curva de consumo de los últimos 12 meses; 2) valora fijar precio a plazo si tu volumen es predecible, para eliminar volatilidad; 3) pregunta por descuento por compromiso de permanencia o por desplazar consumo a horas valle. ¿Quieres que lo lleve al Simulador para ver cuánto margen liberaría un 5-10% de ahorro en tarifa?`) },
   ];
 
-  const times = ['hace 32 min', 'hace 1 h', 'hace 3 h', 'hace 5 h', 'hace 9 h', 'hace 1 día'];
-  const feedItems = DRIVERS_RAW.slice(0, 6).map((d, i) => ({ time: times[i], fuente: d.fuente, text: d.desc.split('. ')[0] + '.', headline: `${d.name} ${fmtPct(d.yoy)}`, detalle: d.desc, i }));
+  // "time" refleja si el dato viene del pipeline en vivo (tiempo real desde
+  // el último refresh de /api/drivers) o sigue siendo el valor de referencia
+  // hardcodeado (fase 2 sin implementar) — nunca se inventa una antigüedad.
+  const feedItems = DRIVERS_RAW.slice(0, 6).map((d, i) => {
+    const isLive = liveDriverIds.includes(d.id);
+    return {
+      time: isLive ? (timeAgo(driversUpdatedAt) || 'En vivo') : 'Dato de referencia',
+      isLive, asOf: d.asOf,
+      fuente: d.fuente, text: d.desc.split('. ')[0] + '.', headline: `${d.name} ${fmtPct(d.yoy)}`, detalle: d.desc, i,
+    };
+  });
 
   const tabs = [ ['brief','Executive Brief'], ['drivers','Drivers'], ['sectors','Sector Intelligence'], ['simulator','Impact Simulator'], ['decisions','Decision Center'], ['opportunities','Opportunities'] ];
 
@@ -1227,7 +1252,7 @@ function App() {
                 </div>
                 <div style={{fontSize:9.5, color:ACCENT_700, fontWeight:700}}>{f.headline}</div>
                 <div style={{fontSize:12, marginTop:2, lineHeight:1.4}}>{f.text}</div>
-                {feedExpanded===f.i && <div style={{fontSize:11, color:N600, marginTop:6, lineHeight:1.5, borderLeft:`2px solid ${ACCENT}`, paddingLeft:8}}>{f.detalle}<div style={{marginTop:6, fontSize:10, color:N500}}>Actualizado {DATA_SNAPSHOT} · Frecuencia {SOURCES[f.fuente]?.frequency || '—'} · {SOURCES[f.fuente] ? <a href={SOURCES[f.fuente].url} target="_blank" rel="noopener">fuente →</a> : '—'}</div></div>}
+                {feedExpanded===f.i && <div style={{fontSize:11, color:N600, marginTop:6, lineHeight:1.5, borderLeft:`2px solid ${ACCENT}`, paddingLeft:8}}>{f.detalle}<div style={{marginTop:6, fontSize:10, color:N500}}>Actualizado {f.asOf} · Frecuencia {SOURCES[f.fuente]?.frequency || '—'} · {SOURCES[f.fuente] ? <a href={SOURCES[f.fuente].url} target="_blank" rel="noopener">fuente →</a> : '—'}</div></div>}
               </div>
             ))}
           </div>
