@@ -127,10 +127,14 @@ function normalizarNombre(nombre) {
 }
 
 function valorParaMagnitudYLabel(filas, magnitud, label) {
-  const prefijo = `Nacional. ${magnitud}. ${label}.`;
+  // Las tablas de industria usan "Nacional. {magnitud}...", pero las de
+  // comercio/servicios usan "Total Nacional. {magnitud}..." — confirmado
+  // contra datos reales del INE (12 ago 2026) para la operación de Comercio.
+  const sufijo = `${magnitud}. ${label}.`;
   const fila = filas.find(f => {
     const nombre = normalizarNombre(f.Nombre);
-    return nombre.startsWith(prefijo) && /dato base\.?$/i.test(nombre);
+    return (nombre.startsWith(`Nacional. ${sufijo}`) || nombre.startsWith(`Total Nacional. ${sufijo}`))
+      && /dato base\.?$/i.test(nombre);
   });
   const dato = fila && Array.isArray(fila.Data) ? fila.Data[0] : null;
   if (!dato || typeof dato.Valor !== 'number') return null;
