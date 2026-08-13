@@ -841,7 +841,7 @@ function App() {
                 <div style={{fontSize:12, fontWeight:700, marginBottom:8}}>Sector</div>
                 <select value={onboardSector || ''} onChange={e => setOnboardSector(e.target.value)} style={{width:'100%', maxWidth:420, padding:'10px 12px', fontSize:14, fontFamily:'inherit', background:BG, border:`1px solid ${DIVIDER}`, color:TEXT}}>
                   <option value="" disabled>Elige tu sector…</option>
-                  {Object.values(SECTORS_RAW).map(sec => <option key={sec.id} value={sec.id}>{sec.name}</option>)}
+                  {Object.values(SECTORS_RAW).filter(sec => !LOCKED_SECTORS.includes(sec.id)).map(sec => <option key={sec.id} value={sec.id}>{sec.name}</option>)}
                 </select>
               </div>
               <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, marginTop:20, alignItems:'start'}}>
