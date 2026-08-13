@@ -438,6 +438,14 @@ function timeAgo(iso) {
   const d = Math.floor(h / 24);
   return `hace ${d} día${d === 1 ? '' : 's'}`;
 }
+function fmtUpdatedAt(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const fecha = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }).replace(/\.(?=\s|$)/g, '');
+  const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  return `${fecha}, ${hora}`;
+}
 
 function App() {
   const [tab, setTab] = useState('brief');
@@ -708,7 +716,7 @@ function App() {
   // Snapshot de la sesión que se envía al modelo como contexto: perfil, drivers,
   // estructura de coste y el resultado del simulador tal y como los ve el usuario ahora.
   const kairosContext = {
-    fecha_datos: DATA_SNAPSHOT,
+    fecha_datos: fmtUpdatedAt(driversUpdatedAt) || DATA_SNAPSHOT,
     perfil: hasProfile ? {
       sector: simSector.name,
       facturacion_tramo: REVENUE_BANDS.find(b => b.id === profile.revenueBandId).label,
@@ -866,7 +874,7 @@ function App() {
             <div>
               <Kicker>Executive Brief · {effSector.name}</Kicker>
               <h2 style={{maxWidth:'32ch', marginTop:6}}>Esto es lo que necesitas saber antes de tu próxima decisión.</h2>
-              <div style={{fontSize:12, color:N600, marginTop:6}}>Actualizado 7 ago 2026, 09:40 · Fuentes: INE · BCE · OMIE · CORES · MAPA · FEGA · LME · ICE</div>
+              <div style={{fontSize:12, color:N600, marginTop:6}}>Actualizado {fmtUpdatedAt(driversUpdatedAt) || DATA_SNAPSHOT} · Fuentes: INE · BCE · OMIE · CORES · MAPA · FEGA · LME · ICE</div>
               <Hr/>
               {!briefReady ? (
                 <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16}}>
@@ -1025,7 +1033,7 @@ function App() {
                     <div>Licencia: {SOURCES[selectedDriverRaw.fuente]?.license || '—'}</div>
                     <div>Método: {SOURCES[selectedDriverRaw.fuente]?.method || '—'}</div>
                     <div>Frecuencia: {SOURCES[selectedDriverRaw.fuente]?.frequency || '—'}</div>
-                    <div>Actualizado: {DATA_SNAPSHOT}</div>
+                    <div>Actualizado: {selectedDriverRaw.asOf || DATA_SNAPSHOT}</div>
                     {SOURCES[selectedDriverRaw.fuente] && <div><a href={SOURCES[selectedDriverRaw.fuente].url} target="_blank" rel="noopener">Ver fuente →</a></div>}
                   </div>
                   {effSector.driversIds.includes(selectedDriverRaw.id) && (
