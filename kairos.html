@@ -105,9 +105,10 @@ function Muted({ children, style }) { return <span className="text-muted" style=
 function Hr() { return <hr className="hr" />; }
 
 // Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
-// o todavía no tiene snapshot en KV. Los 4 drivers con API oficial (inflación, tipos,
-// laboral, colorantes) se refrescan a diario vía /api/refresh-drivers; el resto queda
-// en estos valores hasta la fase 2 (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
+// o todavía no tiene snapshot en KV. Los 5 drivers con API oficial (inflación, tipos,
+// laboral, colorantes, ipri_general) se refrescan a diario vía /api/refresh-drivers; el
+// resto queda en estos valores hasta la fase 2 (scraping/proveedor de datos) — ver
+// KAIROS-DATA-PIPELINE.md.
 const DRIVERS_RAW_FALLBACK = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
     desc:'El Gasóleo A promedia 1,76 €/l a nivel nacional en la primera semana de agosto de 2026 (con máximos regionales cercanos a 2,00 €/l), tras cinco subidas semanales consecutivas ligadas al conflicto en Oriente Medio y la retirada parcial de la bonificación fiscal (Boletín Petrolero UE / Ministerio de Transportes). Mueve directamente el coste de transporte y logística.', sectors:['manufactura','alimentacion'] },
@@ -149,6 +150,8 @@ const DRIVERS_RAW_FALLBACK = [
     desc:'Las autopistas estatales de peaje subieron tarifas entre un 3,64% y un 4,68% desde el 1 de enero de 2026 (AP-9, AP-46 y AP-7 Alicante-Cartagena en el tramo alto; el resto en 3,64%), y un +2% en las vías gestionadas por SEITT. Ajuste ligado al IPC y a la retirada progresiva de la contención de 2022. Próxima revisión: enero de 2027.', sectors:['transporte'] },
   { id:'alquiler_comercial', name:'Alquiler de locales comerciales', unit:'% interanual (estimado)', current:3.8, yoy:0, spark:'0,15 15,16 30,17 45,18 60,19 75,20 90,21 100,22', fuente:'Estimación sectorial (prensa inmobiliaria)', confidence:'Baja', verified:false, asOf:'2026 (estimación)',
     desc:'Los locales comerciales no están sujetos al IRAV (el índice oficial del INE que topa el alquiler de vivienda) — se rigen por lo pactado en contrato, habitualmente referenciado al IPC general. Estimaciones de prensa inmobiliaria apuntan a una subida acumulada del entorno del 3,8% en 2026, pero no hay serie oficial específica para local comercial — confianza baja hasta encontrar una fuente primaria.', sectors:['comercio'] },
+  { id:'ipri_general', name:'Coste de mercancía (IPRI general, proxy)', unit:'índice base 100', current:125.469, yoy:0.9, spark:'0,14 15,15 30,16 45,15 60,17 75,16 90,18 100,17', fuente:'INE', confidence:'Media', verified:true, asOf:'2025 (dato anual)',
+    desc:'El IPRI general (Total industria) sube un +0,9% interanual en 2025 hasta 125,469 puntos (INE) — se usa como proxy del coste de reposición de mercancía para comercio a falta de un índice de precios de compra minorista específico. Dato anual, un punto por año.', sectors:['comercio'] },
   { id:'materiales_construccion', name:'Materiales de construcción (proxy IPRI)', unit:'% interanual', current:8.3, yoy:5.2, spark:'0,10 15,8 30,4 45,2 60,6 75,10 90,15 100,18', fuente:'INE', confidence:'Baja', verified:true, asOf:'abr 2026',
     desc:'El IPRI general subió un 8,3% interanual en abril de 2026 (+5,2 puntos vs. marzo), impulsado sobre todo por energía. No encontramos un índice español público específico para cemento — se usa el IPRI general como proxy direccional, y el acero corrugado (driver aparte) como referencia más precisa para armaduras. Tratar con cautela para decisiones de compra.', sectors:['construccion'] },
   { id:'cobre', name:'Cobre', unit:'€/tonelada', current:12063, yoy:48, spark:'0,8 15,10 30,9 45,12 60,15 75,18 90,22 100,24', fuente:'LME (benchmark internacional)', confidence:'Baja', verified:true, asOf:'23 jul 2026',
@@ -295,9 +298,9 @@ const SECTORS_RAW = {
     oportunidades:['El algodón acumula caídas semanales hasta mayo (–76,16 ¢/lb, –544 puntos) — mientras la tendencia continúe, comprar en spot capta más ahorro que fijar precio ahora.', 'Demanda creciente de producto de bajo impacto ambiental permite precio premium en ciertas colecciones.'] },
   comercio: { id:'comercio', name:'Comercio', margenBase:7,
     estructura:[['Mercancía / compra de producto',40,N300],['Alquiler local',12,ACCENT],['Personal',28,N400],['Energía',5,N600],['Otros',15,N800]],
-    estructuraDriverMap:{1:['alquiler_comercial'],2:['laboral','smi'],3:['electricidad']},
-    pesoPorDriver:{alquiler_comercial:12, laboral:28, smi:28, electricidad:5, inflacion:8, fuel:4, tipos:4},
-    driversIds:['fuel','electricidad','laboral','smi','alquiler_comercial','inflacion','tipos'],
+    estructuraDriverMap:{0:['ipri_general'],1:['alquiler_comercial'],2:['laboral','smi'],3:['electricidad']},
+    pesoPorDriver:{ipri_general:40, alquiler_comercial:12, laboral:28, smi:28, electricidad:5, inflacion:8, fuel:4, tipos:4},
+    driversIds:['ipri_general','fuel','electricidad','laboral','smi','alquiler_comercial','inflacion','tipos'],
     riesgos:['El SMI sube un 3,1% en 2026 (1.221 €/mes) y presiona directamente tu partida de personal, el 28% de tu coste — sin margen de negociación, es un mínimo legal.', 'El alquiler de local comercial no está topado por ley (a diferencia de la vivienda) — sigue lo pactado en contrato, típicamente indexado a un IPC que ronda el 3,5%.', 'El dato de alquiler comercial es una estimación de prensa, no una serie oficial — confianza baja hasta contrastar con tu contrato real.'],
     oportunidades:['Los tipos del BCE llevan dos reuniones en pausa (2,25%) — ventana de estabilidad para financiar renovación de stock o local sin sorpresas de coste financiero.', 'La energía pesa solo un 5% de tu coste — mucho menos expuesto que sectores industriales a la volatilidad eléctrica de este verano.'] },
   construccion: { id:'construccion', name:'Construcción', margenBase:8,

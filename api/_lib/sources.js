@@ -25,6 +25,8 @@ const INE_SERIES = {
   laboral: 'ETCL2402',
   // IPRI, Fabricación de colorantes y pigmentos — valor de índice base 100 (anual).
   colorantes: 'IPR43052',
+  // IPRI nacional, Total industria — valor de índice base 100 (anual, media anual).
+  ipri_general: 'IPR41388',
 };
 
 function round1(n) { return Math.round(n * 10) / 10; }
@@ -144,14 +146,37 @@ async function fetchColorantes() {
   };
 }
 
+// --- coste de mercancía / IPRI general (Total industria, INE) ---
+// Proxy del coste de reposición de mercancía para comercio: índice de precios
+// industriales general, un dato por año (media anual); "yoy" se calcula
+// frente al año inmediatamente anterior.
+async function fetchIpriGeneral() {
+  const puntos = await fetchIneSerie(INE_SERIES.ipri_general, 2);
+  const actual = puntos[puntos.length - 1];
+  const anterior = puntos.length > 1 ? puntos[puntos.length - 2] : actual;
+  const current = actual.Valor;
+  const yoy = round1(((current - anterior.Valor) / anterior.Valor) * 100);
+  const asOf = ineAsOf(actual);
+  return {
+    id: 'ipri_general',
+    current,
+    yoy,
+    asOf,
+    verified: true,
+    fuente: 'INE',
+    desc: `El IPRI general (Total industria) varía un ${yoy >= 0 ? '+' : ''}${yoy}% interanual (${asOf}), INE — usado como proxy del coste de reposición de mercancía.`,
+  };
+}
+
 const SOURCES = [
   { id: 'inflacion', run: fetchInflacion },
   { id: 'tipos', run: fetchTipos },
   { id: 'laboral', run: fetchLaboral },
   { id: 'colorantes', run: fetchColorantes },
+  { id: 'ipri_general', run: fetchIpriGeneral },
 ];
 
-module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes };
+module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes, fetchIpriGeneral };
 
 // ---------------------------------------------------------------------------
 // Fase 2 (sin implementar todavía) — resto de drivers de la tabla de fuentes.
