@@ -579,7 +579,13 @@ function App() {
   const sizeRank = profile ? Math.round(((REVENUE_BANDS.findIndex(b => b.id === profile.revenueBandId)) + (HEADCOUNT_BANDS.findIndex(b => b.id === profile.headcountBandId))) / 2) : 2;
   const sizeAdj = SIZE_ADJUST[sizeRank];
 
-  const topDriver = DRIVERS_RAW.filter(d => effSector.driversIds.includes(d.id)).sort((a,b) => Math.abs(b.yoy) - Math.abs(a.yoy))[0];
+  // Entre los drivers en vivo (refrescados a diario) se prioriza siempre el de mayor
+  // variación — solo si ninguno del sector está conectado todavía a una fuente en vivo
+  // se recurre a los de fallback, para no mostrar como "noticia de hoy" un dato
+  // congelado desde hace semanas (ver api/_lib/sources.js para la lista de conectados).
+  const sectorDrivers = DRIVERS_RAW.filter(d => effSector.driversIds.includes(d.id));
+  const liveSectorDrivers = sectorDrivers.filter(d => liveDriverIds.includes(d.id));
+  const topDriver = (liveSectorDrivers.length > 0 ? liveSectorDrivers : sectorDrivers).sort((a,b) => Math.abs(b.yoy) - Math.abs(a.yoy))[0];
   const brief = {
     changed: `${topDriver.name} se ha movido ${fmtPct(topDriver.yoy)} interanual, la variación más marcada entre los drivers de tu sector.`,
     matters: `Representa cerca de un ${effSector.pesoPorDriver[topDriver.id] || 0}% de tu estructura de coste — un movimiento sostenido en esta magnitud presiona el margen de la empresa tipo del sector.`,
