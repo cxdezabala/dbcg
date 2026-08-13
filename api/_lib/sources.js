@@ -23,8 +23,8 @@ const INE_SERIES = {
   inflacion: 'IPC251856',
   // ETCL: coste laboral por hora efectiva, índice general, valor absoluto €/hora (trimestral).
   laboral: 'ETCL2402',
-  // IPRI, bienes intermedios (industria química) — valor de índice base 100 (mensual).
-  colorantes: 'IPRI3383',
+  // IPRI, Fabricación de colorantes y pigmentos — valor de índice base 100 (anual).
+  colorantes: 'IPR43052',
 };
 
 function round1(n) { return Math.round(n * 10) / 10; }
@@ -74,7 +74,7 @@ async function fetchInflacion() {
 // frente a la observación anterior (misma semántica que el valor hardcodeado original).
 async function fetchTipos() {
   const json = await fetchJson(
-    'https://sdw-wsrest.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.DFR.LEV?lastNObservations=2&format=jsondata'
+    'https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.DFR.LEV?lastNObservations=2&format=jsondata'
   );
   const dataSet = json && json.dataSets && json.dataSets[0];
   const seriesMap = dataSet && dataSet.series;
@@ -123,15 +123,15 @@ async function fetchLaboral() {
   };
 }
 
-// --- colorantes / acabado textil (IPRI bienes intermedios químicos, INE) ---
-// Serie de índice base 100 (mensual); "yoy" se calcula frente al mismo mes
-// del año anterior (12 puntos atrás).
+// --- colorantes / acabado textil (IPRI, Fabricación de colorantes y pigmentos, INE) ---
+// Serie de índice base 100, un dato por año (media anual); "yoy" se calcula
+// frente al año inmediatamente anterior.
 async function fetchColorantes() {
-  const puntos = await fetchIneSerie(INE_SERIES.colorantes, 13);
+  const puntos = await fetchIneSerie(INE_SERIES.colorantes, 2);
   const actual = puntos[puntos.length - 1];
-  const haceUnAnyo = puntos.length >= 13 ? puntos[puntos.length - 13] : puntos[0];
+  const anterior = puntos.length > 1 ? puntos[puntos.length - 2] : actual;
   const current = actual.Valor;
-  const yoy = round1(((current - haceUnAnyo.Valor) / haceUnAnyo.Valor) * 100);
+  const yoy = round1(((current - anterior.Valor) / anterior.Valor) * 100);
   const asOf = ineAsOf(actual);
   return {
     id: 'colorantes',
