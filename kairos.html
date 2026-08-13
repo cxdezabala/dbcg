@@ -105,10 +105,10 @@ function Muted({ children, style }) { return <span className="text-muted" style=
 function Hr() { return <hr className="hr" />; }
 
 // Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
-// o todavía no tiene snapshot en KV. Los 5 drivers con API oficial (inflación, tipos,
-// laboral, colorantes, ipri_general) se refrescan a diario vía /api/refresh-drivers; el
-// resto queda en estos valores hasta la fase 2 (scraping/proveedor de datos) — ver
-// KAIROS-DATA-PIPELINE.md.
+// o todavía no tiene snapshot en KV. Los 6 drivers con API oficial (inflación, tipos,
+// laboral, colorantes, ipri_general, electricidad) se refrescan a diario vía
+// /api/refresh-drivers; el resto queda en estos valores hasta la fase 2
+// (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
 const DRIVERS_RAW_FALLBACK = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
     desc:'El Gasóleo A promedia 1,76 €/l a nivel nacional en la primera semana de agosto de 2026 (con máximos regionales cercanos a 2,00 €/l), tras cinco subidas semanales consecutivas ligadas al conflicto en Oriente Medio y la retirada parcial de la bonificación fiscal (Boletín Petrolero UE / Ministerio de Transportes). Mueve directamente el coste de transporte y logística.', sectors:['manufactura','alimentacion'] },
