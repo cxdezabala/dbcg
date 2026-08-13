@@ -74,7 +74,7 @@ async function fetchInflacion() {
 // frente a la observación anterior (misma semántica que el valor hardcodeado original).
 async function fetchTipos() {
   const json = await fetchJson(
-    'https://sdw-wsrest.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.DFR.LEV?lastNObservations=2&format=jsondata'
+    'https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.DFR.LEV?lastNObservations=2&format=jsondata'
   );
   const dataSet = json && json.dataSets && json.dataSets[0];
   const seriesMap = dataSet && dataSet.series;
