@@ -168,15 +168,99 @@ async function fetchIpriGeneral() {
   };
 }
 
+// --- electricidad industrial (OMIE, precio medio del mercado diario) ---
+const OMIE_BASE = 'https://www.omie.es/es/file-download';
+const MESES_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function addDaysUTC(date, dias) {
+  const d = new Date(date.getTime());
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d;
+}
+
+function formatEsDate(date) {
+  return `${date.getUTCDate()} ${MESES_ES[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+}
+
+async function fetchText(url) {
+  const res = await fetch(url, { headers: { Accept: 'text/plain' } });
+  if (!res.ok) throw new Error(`${url} respondió ${res.status}`);
+  return res.text();
+}
+
+// Precio medio del mercado diario para un día concreto. El fichero
+// MARGINALPDBC de OMIE trae dos columnas de precio (España/Portugal) que
+// casi siempre coinciden; solo divergen puntualmente por congestión en la
+// interconexión. Para no arriesgarnos a confundir el orden de las columnas
+// (no verificable contra la documentación oficial desde este entorno sin
+// salida a internet), se promedian ambas — el resultado es una media MIBEL
+// prácticamente idéntica a la de España en la inmensa mayoría de las horas.
+async function fetchOmieDayAvg(date) {
+  const filename = `marginalpdbc_${date.getUTCFullYear()}${pad2(date.getUTCMonth() + 1)}${pad2(date.getUTCDate())}.1`;
+  const url = `${OMIE_BASE}?parents%5B0%5D=marginalpdbc&filename=${filename}`;
+  const texto = await fetchText(url);
+  const precios = [];
+  texto.split('\n').forEach(linea => {
+    const campos = linea.trim().replace(/;$/, '').split(';');
+    if (campos.length < 6) return;
+    const p1 = Number(campos[4]);
+    const p2 = Number(campos[5]);
+    if (Number.isFinite(p1)) precios.push(p1);
+    if (Number.isFinite(p2)) precios.push(p2);
+  });
+  if (precios.length === 0) throw new Error(`OMIE ${filename}: sin precios parseables`);
+  return precios.reduce((a, b) => a + b, 0) / precios.length;
+}
+
+// Reintenta hacia atrás en el tiempo: fin de semana/festivo con publicación
+// tardía, o el cron ejecutándose antes de que OMIE publique el fichero de ayer.
+async function fetchOmieDayAvgConReintentos(desde, maxIntentos) {
+  let dia = desde;
+  let ultimoError;
+  for (let i = 0; i < maxIntentos; i++) {
+    try {
+      const media = await fetchOmieDayAvg(dia);
+      return { dia, media };
+    } catch (e) {
+      ultimoError = e;
+      dia = addDaysUTC(dia, -1);
+    }
+  }
+  throw ultimoError;
+}
+
+async function fetchElectricidad() {
+  const hoy = new Date();
+  const ayer = addDaysUTC(new Date(Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate())), -1);
+  const { dia, media } = await fetchOmieDayAvgConReintentos(ayer, 4);
+  const diaAnyoAnterior = addDaysUTC(dia, -364); // mismo día de la semana, ~1 año antes
+  const { media: mediaAnyoAnterior } = await fetchOmieDayAvgConReintentos(diaAnyoAnterior, 4);
+  const current = round1(media);
+  const yoy = round1(((media - mediaAnyoAnterior) / mediaAnyoAnterior) * 100);
+  const asOf = formatEsDate(dia);
+  return {
+    id: 'electricidad',
+    current,
+    yoy,
+    asOf,
+    verified: true,
+    fuente: 'OMIE',
+    desc: `El precio medio del mercado diario fue de ${current} €/MWh el ${asOf}, un ${yoy >= 0 ? '+' : ''}${yoy}% interanual frente al mismo día de la semana de hace un año (OMIE).`,
+  };
+}
+
 const SOURCES = [
   { id: 'inflacion', run: fetchInflacion },
   { id: 'tipos', run: fetchTipos },
   { id: 'laboral', run: fetchLaboral },
   { id: 'colorantes', run: fetchColorantes },
   { id: 'ipri_general', run: fetchIpriGeneral },
+  { id: 'electricidad', run: fetchElectricidad },
 ];
 
-module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes, fetchIpriGeneral };
+module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes, fetchIpriGeneral, fetchElectricidad };
 
 // ---------------------------------------------------------------------------
 // Fase 2 (sin implementar todavía) — resto de drivers de la tabla de fuentes.
