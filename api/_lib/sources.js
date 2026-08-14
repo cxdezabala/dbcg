@@ -25,8 +25,10 @@ const INE_SERIES = {
   laboral: 'ETCL2402',
   // IPRI, Fabricación de colorantes y pigmentos — valor de índice base 100 (anual).
   colorantes: 'IPR43052',
-  // IPRI nacional, Total industria — valor de índice base 100 (anual, media anual).
-  ipri_general: 'IPR41388',
+  // IPRI nacional, Índice general — tasa de variación interanual en % (mensual).
+  // Verificado contra el HTML de https://ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736147699&menu=ultiDatos&idp=1254735576715
+  // (dato de junio 2026, publicado 24/07/2026: código embebido junto al valor 7,0%).
+  ipri_general: 'IPR34953',
 };
 
 function round1(n) { return Math.round(n * 10) / 10; }
@@ -146,25 +148,24 @@ async function fetchColorantes() {
   };
 }
 
-// --- coste de mercancía / IPRI general (Total industria, INE) ---
-// Proxy del coste de reposición de mercancía para comercio: índice de precios
-// industriales general, un dato por año (media anual); "yoy" se calcula
-// frente al año inmediatamente anterior.
+// --- coste de mercancía / IPRI general (Índice general, INE) ---
+// Serie ya publicada como tasa interanual en % (mensual), igual que inflación:
+// "current" es el dato del mes, "yoy" es el cambio en puntos frente al mes
+// anterior (misma semántica que fetchInflacion).
 async function fetchIpriGeneral() {
   const puntos = await fetchIneSerie(INE_SERIES.ipri_general, 2);
   const actual = puntos[puntos.length - 1];
   const anterior = puntos.length > 1 ? puntos[puntos.length - 2] : actual;
   const current = actual.Valor;
-  const yoy = round1(((current - anterior.Valor) / anterior.Valor) * 100);
   const asOf = ineAsOf(actual);
   return {
     id: 'ipri_general',
     current,
-    yoy,
+    yoy: round1(current - anterior.Valor),
     asOf,
     verified: true,
     fuente: 'INE',
-    desc: `El IPRI general (Total industria) varía un ${yoy >= 0 ? '+' : ''}${yoy}% interanual (${asOf}), INE — usado como proxy del coste de reposición de mercancía.`,
+    desc: `El IPRI (Índice de Precios Industriales) general varía un ${current >= 0 ? '+' : ''}${current}% interanual (${asOf}), INE — usado como proxy del coste de reposición de mercancía.`,
   };
 }
 
