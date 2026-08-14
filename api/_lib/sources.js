@@ -144,7 +144,7 @@ async function fetchColorantes() {
     asOf,
     verified: true,
     fuente: 'INE',
-    desc: `El IPRI de bienes intermedios químicos (colorantes y acabados) varía un ${yoy >= 0 ? '+' : ''}${yoy}% interanual (${asOf}), INE.`,
+    desc: `El IPRI de bienes intermedios químicos (colorantes y acabados) varía un ${yoy >= 0 ? '+' : ''}${yoy}% interanual (${asOf}), INE. El valor ${current} es el nivel del índice (base 2021=100), no un porcentaje: por encima de 100 indica precios más altos que la media de 2021.`,
   };
 }
 
