@@ -79,8 +79,293 @@ function useTelosEngine() {
 
 function money(n) { return n == null || Number.isNaN(n) ? '—' : '$' + Math.round(n).toLocaleString('en-US'); }
 function money2(n) { return n == null || Number.isNaN(n) ? '—' : '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function short(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
+  return '$' + Math.round(n || 0);
+}
 function yearsLabel(n) { return n + (n === 1 ? ' año' : ' años'); }
 const NA = 'Pendiente de validación';
+const PREMIUM_END_AGE = 65;
+
+// ── Retiro: análisis derivado de project() ──────────────────────────────
+// Bisección para el IRR aproximado del valor garantizado -- mismo método que
+// Telos Advisor.dc.html (fuente de verdad), portado literalmente.
+function guaranteedIrr(annual, n, gcv) {
+  let lo = -0.2, hi = 0.2;
+  const f = r => (r === 0 ? annual * n : annual * ((Math.pow(1 + r, n) - 1) / r)) - gcv;
+  for (let i = 0; i < 80; i++) { const mid = (lo + hi) / 2; if (f(mid) > 0) hi = mid; else lo = mid; }
+  return (lo + hi) / 2;
+}
+
+function retirementAnalysis(lead, pr) {
+  if (!pr.ok) return { ok: false };
+  const annualIncome = pr.income * 12, diff = pr.projected - lead.benchmark_future_value;
+  return {
+    ok: true,
+    difference_projected_vs_3: diff,
+    difference_guaranteed_vs_3: pr.gcv - lead.benchmark_future_value,
+    diff_monthly: Math.abs(diff) / (pr.years * 12), diff_annual: Math.abs(diff) / pr.years,
+    gcv_ratio: pr.gcv / pr.total, pv_ratio: pr.projected / pr.total,
+    guaranteed_irr: guaranteedIrr(lead.annual_contribution, pr.years, pr.gcv),
+    income_monthly: pr.income, income_annual: annualIncome,
+    income_multiple: annualIncome / lead.annual_contribution,
+    break_even_years: pr.total / annualIncome,
+    break_even_age: pr.settlement + pr.total / annualIncome
+  };
+}
+
+// Construye todos los bloques de datos formateados (m, s1..s10, dbCurve,
+// longChart) que usan las 10 pantallas del Retirement Room. Puerto literal
+// de renderVals() en Telos Advisor.dc.html.
+function buildRetirementRoom(lead, pr, longAge) {
+  const a = retirementAnalysis(lead, pr);
+  const na = NA;
+  const m = pr.ok ? {
+    benchmark: money(lead.benchmark_future_value),
+    gcv: money(pr.gcv), projected: money(pr.projected),
+    total: money(pr.total), settlement: pr.settlement + ' años', years: pr.years,
+    annual: money(lead.annual_contribution), monthlyRef: 'equivale a ' + money2(lead.monthly_contribution) + ' / mes',
+    periodLabel: lead.current_age + ' → ' + PREMIUM_END_AGE + ' · ' + pr.years + ' aportaciones',
+    gcvRatio: (a.gcv_ratio * 100).toFixed(1) + '%',
+    diff: (a.difference_projected_vs_3 < 0 ? '−' : '+') + money(Math.abs(a.difference_projected_vs_3)),
+    diffMonthly: '≈ ' + money(a.diff_monthly) + ' / mes',
+    diffAnnual: '≈ ' + money(a.diff_annual) + ' al año',
+    incomeAnnual: money(a.income_annual), incomeMonthlyRef: 'equivale a ' + money(a.income_monthly) + ' / mes',
+    multiple: a.income_multiple.toFixed(2) + '×',
+    faceAmount: money(pr.face), db1: money(pr.db[0]),
+    sourceIds: (pr.source_projection_ids || []).join(', '),
+    cumulative: money(Math.max(a.income_annual * (longAge - pr.settlement), 0)),
+    cumulativeMeta: 'desde los ' + pr.settlement + ' hasta los ' + longAge + ' años · ' + money(a.income_annual) + ' al año'
+  } : {
+    benchmark: money(lead.benchmark_future_value), gcv: na, projected: na,
+    total: money(lead.total_nominal_contributions), settlement: na, years: lead.years_to_retirement,
+    annual: money(lead.annual_contribution), monthlyRef: 'equivale a ' + money2(lead.monthly_contribution) + ' / mes',
+    periodLabel: lead.current_age + ' → ' + lead.target_retirement_age,
+    gcvRatio: na, diff: na, diffMonthly: na, diffAnnual: na,
+    incomeAnnual: na, incomeMonthlyRef: na, multiple: na, faceAmount: na, db1: na,
+    sourceIds: '—', cumulative: na, cumulativeMeta: na
+  };
+
+  const s1 = [
+    { k: 'Edad actual', v: yearsLabel(lead.current_age), ref: '' },
+    { k: 'Edad objetivo', v: yearsLabel(lead.target_retirement_age), ref: '' },
+    { k: 'Aportación anual', v: money(lead.annual_contribution), ref: 'equivale a ' + money2(lead.monthly_contribution) + ' / mes' },
+    { k: 'Periodo', v: yearsLabel(lead.years_to_retirement), ref: yearsLabel(lead.years_to_retirement) + ' aportaciones anuales' },
+    { k: 'Total nominal aportado', v: money(lead.total_nominal_contributions), ref: '' },
+    { k: 'Referencia al 3%', v: money(lead.benchmark_future_value), ref: 'supuesto hipotético' }
+  ];
+  const s2 = [
+    { n: '01', short: 'Capacidad', t: '¿Cuánto puedes construir?',
+      note: 'Ancla la conversación en lo que ya decidió en Telos: la aportación anual es suya y es real. No introduzcas estructura todavía; confirma que la cifra le sigue pareciendo sostenible.' },
+    { n: '02', short: 'Interrupción', t: '¿Qué ocurre si no puedes terminar de construirlo?',
+      note: 'Aquí aparece el riesgo que el ahorro tradicional no cubre. Pregunta y espera: casi nadie ha pensado qué pasa con el objetivo familiar si el periodo de aportación se interrumpe.' },
+    { n: '03', short: 'Ingreso', t: '¿Cómo conviertes ese capital en ingresos durante el resto de tu vida?',
+      note: 'Traslada el foco del monto acumulado al ingreso mensual. Es la pregunta que prepara la pantalla de renta vitalicia; no adelantes cifras aún.' }
+  ];
+  const s3a = [
+    { k: 'Aportación anual', v: money(lead.annual_contribution), ref: money2(lead.monthly_contribution) + ' / mes' },
+    { k: 'Periodo', v: yearsLabel(lead.years_to_retirement), ref: '' },
+    { k: 'Total aportado', v: money(lead.total_nominal_contributions), ref: '' },
+    { k: 'Supuesto educativo', v: '3% anual constante', ref: '' }
+  ];
+  const s3b = [
+    { k: 'Misma aportación anual', v: money(lead.annual_contribution), ref: money2(lead.monthly_contribution) + ' / mes' },
+    { k: 'Mismo periodo', v: yearsLabel(pr.ok ? pr.years : lead.years_to_retirement), ref: pr.ok ? 'prima hasta los ' + PREMIUM_END_AGE : '' },
+    { k: 'Mismo total aportado', v: money(pr.ok ? pr.total : lead.total_nominal_contributions), ref: '' }
+  ];
+  const dbCurve = pr.ok ? [
+    { k: 'Primera aportación', age: yearsLabel(lead.current_age), v: money(pr.db[0]), note: 'protección inicial', fg: 'var(--color-accent-700)' },
+    { k: '5 años', age: yearsLabel(lead.current_age + 5), v: money(pr.db[1]), note: 'protección proyectada', fg: 'var(--color-neutral-900)' },
+    { k: '10 años', age: yearsLabel(lead.current_age + 10), v: money(pr.db[2]), note: 'protección proyectada', fg: 'var(--color-neutral-900)' },
+    { k: '15 años', age: yearsLabel(lead.current_age + 15), v: money(pr.db[3]), note: 'protección proyectada', fg: 'var(--color-neutral-900)' },
+    { k: 'Settlement', age: yearsLabel(pr.settlement), v: money(pr.projected), note: 'valor proyectado disponible', fg: 'var(--color-accent-700)' }
+  ] : [1, 2, 3, 4, 5].map((x, i) => ({ k: ['Primera aportación', '5 años', '10 años', '15 años', 'Settlement'][i], age: '—', v: na, note: '', fg: 'var(--color-neutral-500)' }));
+  const s7 = [
+    { n: '01', title: 'Capital', size: '22px', pad: '24px', edge: '1px solid var(--color-divider)', bg: '#fff', num: 'var(--color-neutral-500)',
+      text: 'Acceder al capital disponible según las condiciones contractuales aplicables.', value: '' },
+    { n: '02', title: 'Renta vitalicia', size: '26px', pad: '28px', edge: '1.5px dashed var(--color-accent-400)', bg: 'var(--color-accent-100)', num: 'var(--color-accent)',
+      text: 'Recibir una renta proyectada de por vida según las condiciones contractuales aplicables.', value: pr.ok ? money(a.income_annual) + ' / año' : na },
+    { n: '03', title: 'Ingreso', size: '22px', pad: '24px', edge: '1px solid var(--color-divider)', bg: '#fff', num: 'var(--color-neutral-500)',
+      text: 'Mantener la estructura de capital y recibir ingresos periódicos según las condiciones contractuales aplicables.', value: '' }
+  ];
+  const s8 = [
+    { k: 'Total nominal aportado', v: money(pr.ok ? pr.total : lead.total_nominal_contributions) },
+    { k: 'Renta anual proyectada', v: pr.ok ? money(a.income_annual) : na },
+    { k: 'Equivalencia nominal', v: pr.ok ? '≈ ' + a.break_even_years.toFixed(1) + ' años' : na }
+  ];
+  const s10 = [
+    { title: 'Tu aporte', rows: [
+      { k: 'Edad inicial', v: yearsLabel(lead.current_age), ref: '' },
+      { k: 'Aportación anual', v: money(lead.annual_contribution), ref: money2(lead.monthly_contribution) + ' / mes' },
+      { k: 'Periodo', v: yearsLabel(pr.ok ? pr.years : lead.years_to_retirement), ref: pr.ok ? 'prima hasta los ' + PREMIUM_END_AGE : '' },
+      { k: 'Edad objetivo', v: yearsLabel(lead.target_retirement_age), ref: '' },
+      { k: 'Total nominal aportado', v: money(pr.ok ? pr.total : lead.total_nominal_contributions), ref: '' }
+    ] },
+    { title: 'Acumulación', rows: [
+      { k: 'Valor garantizado', v: m.gcv, ref: '' },
+      { k: 'Valor proyectado (no garantizado)', v: m.projected, ref: '' },
+      { k: 'Referencia al 3%', v: m.benchmark, ref: '' },
+      { k: 'Diferencial vs 3%', v: m.diff, ref: m.diffAnnual }
+    ] },
+    { title: 'Durante el camino', rows: [
+      { k: 'Protección familiar', v: m.faceAmount, ref: 'desde la primera aportación' },
+      { k: 'Periodo cubierto', v: pr.ok ? lead.current_age + ' → ' + pr.settlement + ' años' : na, ref: '' }
+    ] },
+    { title: 'Al retiro', rows: [
+      { k: 'Renta vitalicia proyectada', v: pr.ok ? money(a.income_annual) + ' / año' : na, ref: pr.ok ? money(a.income_monthly) + ' / mes' : '' },
+      { k: 'Edad de settlement del producto', v: pr.ok ? pr.settlement + ' años' : na, ref: '' },
+      { k: 'Lifetime income multiple', v: m.multiple, ref: 'renta anual / aporte anual' },
+      { k: 'Break-even nominal', v: pr.ok ? a.break_even_age.toFixed(1) + ' años' : na, ref: '' }
+    ] }
+  ];
+
+  const startAge = pr.ok ? pr.settlement : 65;
+  const lgAges = [75, 80, 85, 90, 95];
+  const longAgeOptions = lgAges.filter(x => x > startAge);
+  const cum = lgAges.map(x => Math.max((pr.ok ? a.income_annual : 0) * (x - startAge), 0));
+  const maxCum = Math.max(...cum, 1);
+  const xAt = i => 52 + (i / (lgAges.length - 1)) * 560, yAt = v => 236 - (v / maxCum) * 220;
+  const line = cum.map((v, i) => (i ? 'L' : 'M') + xAt(i).toFixed(1) + ' ' + yAt(v).toFixed(1)).join(' ');
+  const selIdx = Math.max(lgAges.indexOf(longAge), 0);
+  const longChart = {
+    line, area: line + ' L612 236 L52 236 Z',
+    grid: [0, 0.5, 1].map(f => ({ y: (236 - f * 220).toFixed(1), ty: (240 - f * 220).toFixed(1), label: short(maxCum * f) })),
+    ticks: lgAges.map((x, i) => ({ x: xAt(i).toFixed(1), label: String(x) })),
+    cx: xAt(selIdx).toFixed(1), cy: yAt(cum[selIdx]).toFixed(1)
+  };
+
+  const nextSteps = [
+    { n: '1', t: 'Solicitar la ilustración contractual con la edad, la aportación anual y el face amount validados en Projection Data.' },
+    { n: '2', t: 'Revisar con el usuario las condiciones aplicables y las opciones de settlement disponibles.' },
+    { n: '3', t: 'Presentar la propuesta y la documentación oficial del proveedor fuera de Telos.' }
+  ];
+
+  return { m, s1, s2, s3a, s3b, dbCurve, s7, s8, s10, longAgeOptions, longChart, startAge, nextSteps };
+}
+
+// Construye todos los bloques de datos formateados (em, e1..e9, eduProtection)
+// que usan las 9 pantallas del Education Room. Puerto literal de renderVals()
+// en Telos Advisor.dc.html.
+function buildEducationRoom(lead, epr) {
+  const na = NA;
+  const em = epr.ok ? {
+    parentAge: yearsLabel(lead.parent_age), childAge: yearsLabel(lead.child_age),
+    targetAge: '18 años', yearsTo: lead.years_to_education,
+    monthly: money2(lead.monthly_contribution), annual: money(lead.annual_contribution),
+    totalContrib: money(lead.total_nominal_contributions),
+    budget: money(lead.annual_education_budget), objective: money(lead.total_education_objective),
+    benchmark: money(lead.benchmark_future_value),
+    gcv: money(epr.gcv_at_education), projected: money(epr.settlement),
+    gcv15: money(epr.gcv_at_year_15), proj15: money(epr.projected_at_year_15),
+    funding: money(epr.annual_funding), fundingExact: money2(epr.annual_funding),
+    totalFunding: money(epr.total_funding),
+    premium: money(epr.annual_premium), premiumMonthly: money2(epr.monthly_premium),
+    totalPremiums: money(epr.total_premiums),
+    childAtEnd: yearsLabel(epr.child_age_at_end), yearsAfter: epr.years_after_contributions,
+    readYear: 'Año ' + epr.read_year, faceAmount: money(epr.face_amount),
+    diff: (() => { const diff = epr.settlement - lead.benchmark_future_value; return (diff < 0 ? '−' : '+') + money(Math.abs(diff)); })(),
+    diffMonthly: '≈ ' + money(Math.abs(epr.settlement - lead.benchmark_future_value) / (epr.contribution_years * 12)) + ' / mes',
+    gcvRatio: (epr.gcv_at_education / lead.total_nominal_contributions * 100).toFixed(1) + '%',
+    pvRatio: (epr.settlement / lead.total_nominal_contributions * 100).toFixed(1) + '%',
+    sourceIds: (epr.source_projection_ids || []).join(', ')
+  } : {
+    parentAge: yearsLabel(lead.parent_age), childAge: yearsLabel(lead.child_age),
+    targetAge: '18 años', yearsTo: lead.years_to_education,
+    monthly: money2(lead.monthly_contribution), annual: money(lead.annual_contribution),
+    totalContrib: money(lead.total_nominal_contributions),
+    budget: money(lead.annual_education_budget), objective: money(lead.total_education_objective),
+    benchmark: money(lead.benchmark_future_value),
+    gcv: na, projected: na, gcv15: na, proj15: na, funding: na, fundingExact: na,
+    totalFunding: na, premium: na, premiumMonthly: na, totalPremiums: na,
+    childAtEnd: na, yearsAfter: na, readYear: na, faceAmount: na,
+    diff: na, diffMonthly: na, gcvRatio: na, pvRatio: na, sourceIds: '—'
+  };
+
+  const e1 = [
+    { k: 'Edad de tu hijo', v: em.childAge, ref: '' },
+    { k: 'Edad objetivo', v: em.targetAge, ref: 'inicio de sus estudios' },
+    { k: 'Años disponibles', v: yearsLabel(lead.years_to_education), ref: '' },
+    { k: 'Aportación anual', v: em.annual, ref: 'equivale a ' + em.monthly + ' / mes' },
+    { k: 'Objetivo anual educativo', v: em.budget, ref: 'cada año de carrera' },
+    { k: 'Periodo educativo', v: '4 años', ref: '' },
+    { k: 'Objetivo total', v: em.objective, ref: em.budget + ' × 4' },
+    { k: 'Referencia Telos al 3%', v: em.benchmark, ref: 'supuesto hipotético' }
+  ];
+  const e2 = [
+    { n: '01', t: '¿Cuánto puedes construir?',
+      note: 'Ancla la conversación en la aportación que ya decidió en Telos. Confirma que sigue siendo sostenible antes de introducir cualquier estructura.' },
+    { n: '02', t: '¿Qué ocurre si no puedes terminar de construirlo?',
+      note: 'El riesgo que el ahorro puro no cubre. Pregunta y espera: casi nadie ha pensado qué pasa con la universidad de su hijo si el periodo de aportación se interrumpe.' },
+    { n: '03', t: '¿Cómo conviertes ese capital en cuatro años de educación?',
+      note: 'Traslada el foco del monto acumulado al presupuesto anual de carrera. Prepara la pantalla de financiación; no adelantes cifras todavía.' }
+  ];
+  const e3a = [
+    { k: 'Aportación anual', v: em.annual },
+    { k: 'Periodo', v: yearsLabel(lead.years_to_education) },
+    { k: 'Total aportado', v: em.totalContrib },
+    { k: 'Supuesto', v: '3% anual constante' }
+  ];
+  const e3b = [
+    { k: 'Aportación anual aproximada', v: em.premium },
+    { k: 'Periodo de aportación', v: epr.ok ? yearsLabel(epr.contribution_years) : na },
+    { k: 'Total aportado', v: em.totalPremiums }
+  ];
+  const eduProtection = epr.ok ? (() => {
+    const max = Math.max(...epr.protection.map(p => p.value), 1);
+    const savings = y => lead.annual_contribution * ((Math.pow(1.03, y) - 1) / 0.03);
+    return epr.protection.map(p => ({
+      label: 'Año ' + p.year, protectedV: money(p.value), savedV: money(savings(p.year)),
+      wProt: Math.round(p.value / max * 100) + '%', wSaved: Math.round(savings(p.year) / max * 100) + '%'
+    }));
+  })() : [];
+  const e7 = epr.ok ? (() => {
+    const savings = y => lead.annual_contribution * ((Math.pow(1.03, y) - 1) / 0.03);
+    const pts = [{ label: 'Hoy', y: 0 }, { label: 'Año 5', y: 5 }, { label: 'Año 10', y: 10 }, { label: 'Año 15', y: 15 }].map(p => ({
+      label: p.label, built: money(savings(p.y)),
+      protectedV: p.y === 0 ? money(epr.protection[0].value) : money(epr.protection.find(x => x.year === p.y).value),
+      edge: 'var(--color-divider)', bg: '#fff', fg: 'var(--color-neutral-600)'
+    }));
+    pts.push({ label: 'Educación', built: em.projected, protectedV: em.funding + ' / año',
+      edge: 'var(--color-accent-300)', bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)' });
+    return pts;
+  })() : [];
+  const e8 = [
+    { k: 'Objetivo alcanzado', v: em.projected, note: 'El capital educativo proyectado queda disponible al inicio de sus estudios.' },
+    { k: 'Si no se usa por completo', v: em.gcv, note: 'El valor garantizado permanece dentro de la estructura si el capital no se retira en su totalidad.' },
+    { k: 'Continuidad', v: '—', note: 'La acumulación puede continuar o destinarse a un uso futuro alternativo, según las condiciones contractuales aplicables.' }
+  ];
+  const e9 = [
+    { title: 'Objetivo', edge: 'var(--color-divider)', bg: '#fff', fg: 'var(--color-accent-700)', rows: [
+      { k: 'Edad del hijo', v: em.childAge }, { k: 'Edad objetivo', v: em.targetAge },
+      { k: 'Objetivo anual', v: em.budget }, { k: 'Periodo educativo', v: '4 años' }, { k: 'Objetivo total', v: em.objective }
+    ] },
+    { title: 'Esfuerzo', edge: 'var(--color-divider)', bg: '#fff', fg: 'var(--color-accent-700)', rows: [
+      { k: 'Aportación anual', v: em.annual }, { k: 'Referencia mensual', v: em.monthly },
+      { k: 'Periodo de aportación', v: epr.ok ? yearsLabel(epr.contribution_years) : na },
+      { k: 'Total nominal aportado', v: em.totalPremiums }
+    ] },
+    { title: 'Referencia Telos', edge: 'var(--color-divider)', bg: '#fff', fg: 'var(--color-accent-700)', rows: [
+      { k: 'Benchmark educativo 3%', v: em.benchmark }
+    ] },
+    { title: 'Estructura', edge: 'var(--color-divider)', bg: '#fff', fg: 'var(--color-accent-700)', rows: [
+      { k: 'Valor educativo garantizado', v: em.gcv }, { k: 'Valor educativo proyectado', v: em.projected },
+      { k: 'Diferencial económico', v: em.diff },
+      { k: 'Protección del objetivo', v: epr.ok ? money(epr.protection[0].value) : na }
+    ] },
+    { title: 'Durante sus estudios', edge: 'var(--color-accent-300)', bg: 'var(--color-accent-100)', fg: 'var(--color-accent-800)', rows: [
+      { k: 'Financiación anual proyectada', v: em.funding }, { k: 'Periodo', v: '× 4 años' }, { k: 'Total proyectado', v: em.totalFunding }
+    ] }
+  ];
+
+  const nextSteps = [
+    { n: '1', t: 'Solicitar la ilustración contractual con la edad del padre, la edad del hijo, la aportación anual y el face amount interno validados en Projection Data.' },
+    { n: '2', t: 'Confirmar el punto de lectura de la curva (' + (epr.ok ? 'año ' + epr.read_year : 'pendiente') + ') y la financiación anual de los cuatro años de estudios.' },
+    { n: '3', t: 'Presentar la propuesta y la documentación oficial del proveedor fuera de Telos.' }
+  ];
+
+  return { em, e1, e2, e3a, e3b, eduProtection, e7, e8, e9, nextSteps };
+}
 
 const STATES = ['Nueva reunión', 'Preparado', 'Completado'];
 function stateColors(st) {
@@ -153,6 +438,648 @@ function leadDisplay(l) {
   };
 }
 
+const RET_DR_STEPS = ['escenario', 'preguntas', 'comparar', 'aportaciones', 'proteccion', 'perspectiva', 'retiro', 'acumular', 'longevidad', 'resumen'];
+const RET_DR_LABELS = ['Tu escenario', 'Tres preguntas', 'Comparación', 'Aportaciones', 'Protección', 'Perspectiva', 'Retiro', 'De acumular a recibir', 'Longevidad', 'Estrategia'];
+const EDU_DR_STEPS = ['objetivo', 'partes', 'dosformas', 'proteccion', 'contexto', 'financiar', 'camino', 'sobrante', 'estrategia'];
+const EDU_DR_LABELS = ['Tu objetivo', 'Tres preguntas', 'Dos formas', 'Protección', 'Contexto', 'De ahorrar a financiar', 'El camino', 'Optionality', 'Estrategia'];
+
+function RetirementRoomScreen({ step, room, notesOn, longAge, setLongAge, onOpenNext }) {
+  const { m, s1, s2, s3a, s3b, dbCurve, s7, s8, s10, longAgeOptions, longChart } = room;
+
+  if (step === 'escenario') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 10px' }}>Tu escenario</h2>
+      <p style={{ fontSize: 17, color: 'var(--color-neutral-700)', margin: '0 0 32px', maxWidth: '52ch', lineHeight: 1.6 }}>Empecemos exactamente por el escenario que exploraste en Telos.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14 }}>
+        {s1.map((c, i) => (
+          <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20 }}>
+            <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>{c.k}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums', marginTop: 4 }}>{c.v}</div>
+            <div style={{ fontSize: 12, color: 'var(--color-neutral-500)', marginTop: 2 }}>{c.ref}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--color-neutral-500)', marginTop: 22, lineHeight: 1.6, maxWidth: '76ch' }}>Escenario hipotético de ahorro calculado con una rentabilidad constante del 3% anual. No representa una rentabilidad garantizada ni una propuesta de producto.</div>
+    </div>
+  );
+
+  if (step === 'preguntas') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.15, margin: '0 0 36px', maxWidth: '24ch' }}>Construir capital es solo una parte de la decisión.</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 18 }}>
+        {s2.map((q, i) => (
+          <div key={i} style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 30, minHeight: 200, display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', color: 'var(--color-accent)' }}>{q.n}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.25 }}>{q.t}</div>
+          </div>
+        ))}
+      </div>
+      {notesOn && (
+        <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 16, padding: '24px 26px', marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-700)' }}>Cómo usar esta pantalla</span>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-accent-2)', background: '#fdf2f5', border: '1px solid #f6d6df', borderRadius: 99, padding: '3px 9px' }}>Solo asesor</span>
+          </div>
+          <p style={{ fontSize: 14.5, lineHeight: 1.7, color: 'var(--color-neutral-700)', margin: '0 0 16px', maxWidth: '88ch' }}>Estas tres preguntas ordenan la conversación antes de mostrar cualquier cifra de estructura. Hazlas en voz alta, una a una, y deja que responda: su respuesta te dice en qué pantalla conviene detenerse más tiempo. El objetivo no es que acierte, sino que note que en Telos solo respondió a la primera.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16 }}>
+            {s2.map((q, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: 'var(--color-accent-700)' }}>{q.n} · {q.short}</div>
+                <p style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-neutral-700)', margin: '6px 0 0' }}>{q.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (step === 'comparar') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 30px' }}>Comparemos dos escenarios</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18, alignItems: 'start' }}>
+        <div style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600, marginBottom: 16 }}>Ahorro tradicional</div>
+          {s3a.map((r, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14.5, padding: '11px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+              <span style={{ color: 'var(--color-neutral-600)' }}>{r.k}</span><span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{r.v}<div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', fontWeight: 400 }}>{r.ref}</div></span>
+            </div>
+          ))}
+          <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 18, marginTop: 18 }}>
+            <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Referencia de ahorro al 3%</div>
+            <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginTop: 2 }}>{m.benchmark}</div>
+          </div>
+        </div>
+        <div style={{ border: '1px solid var(--color-accent-200)', borderRadius: 16, padding: 26, background: 'var(--color-accent-100)' }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600, marginBottom: 16 }}>Estructura de retiro</div>
+          {s3b.map((r, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14.5, padding: '11px 0', borderTop: '1px solid var(--color-accent-200)' }}>
+              <span style={{ color: 'var(--color-accent-800)' }}>{r.k}</span><span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-accent-900)', textAlign: 'right' }}>{r.v}<div style={{ fontSize: 11.5, color: 'var(--color-accent-700)', fontWeight: 400 }}>{r.ref}</div></span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+            <div style={{ background: '#fff', border: '1px solid var(--color-neutral-300)', borderRadius: 12, padding: 18 }}>
+              <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-neutral-800)', background: 'var(--color-neutral-200)', borderRadius: 5, padding: '3px 8px' }}>Garantizado</span>
+              <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginTop: 8, color: 'var(--color-neutral-900)' }}>{m.gcv}</div>
+            </div>
+            <div style={{ background: '#fff', border: '1.5px dashed var(--color-accent-400)', borderRadius: 12, padding: 18 }}>
+              <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-accent-800)', background: 'var(--color-accent-200)', borderRadius: 5, padding: '3px 8px' }}>Proyectado · no garantizado</span>
+              <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginTop: 8, color: 'var(--color-accent-700)' }}>{m.projected}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style={{ fontSize: 15.5, lineHeight: 1.7, color: 'var(--color-neutral-700)', maxWidth: '80ch', margin: '26px 0 0' }}>Si nuestro único criterio fuera maximizar el capital acumulado bajo un rendimiento hipotético constante del 3%, el ahorro tradicional podría ser superior. Pero la comparación todavía está incompleta.</p>
+    </div>
+  );
+
+  if (step === 'aportaciones') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 32px' }}>¿Qué ocurrió con tus aportaciones?</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 56px minmax(0,1fr)', gap: 18, alignItems: 'center' }}>
+        <div style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-neutral-600)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Total nominal aportado</div>
+          <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums', marginTop: 6 }}>{m.total}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 4 }}>{m.periodLabel}</div>
+        </div>
+        <div style={{ textAlign: 'center', fontSize: 26, color: 'var(--color-neutral-400)' }}>→</div>
+        <div style={{ border: '1px solid var(--color-neutral-300)', borderRadius: 16, padding: 26, background: 'var(--color-neutral-100)' }}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-neutral-800)', background: 'var(--color-neutral-200)', borderRadius: 5, padding: '3px 8px' }}>Garantizado</span>
+          <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums', marginTop: 8 }}>{m.gcv}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 4 }}>Valor garantizado a los {m.settlement}</div>
+        </div>
+      </div>
+      <div style={{ border: '1px solid var(--color-accent-200)', background: 'var(--color-accent-100)', borderRadius: 16, padding: 30, marginTop: 20, display: 'flex', alignItems: 'center', gap: 30, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Capital preservation</div>
+          <div style={{ fontSize: 52, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.05 }}>{m.gcvRatio}</div>
+        </div>
+        <p style={{ fontSize: 15.5, lineHeight: 1.7, color: 'var(--color-accent-800)', maxWidth: '46ch', margin: 0 }}>En este escenario, el valor garantizado al retiro es aproximadamente equivalente al capital nominal aportado durante el periodo.</p>
+      </div>
+    </div>
+  );
+
+  if (step === 'proteccion') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 8px' }}>Pero durante ese camino ocurrió algo más</h2>
+      <p style={{ fontSize: 17, color: 'var(--color-neutral-700)', margin: '0 0 30px' }}>Tu objetivo también estaba protegido.</p>
+      <div style={{ border: '1.5px dashed var(--color-accent-400)', background: 'var(--color-accent-100)', borderRadius: 16, padding: 26, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Protección desde la primera aportación</div>
+          <div style={{ fontSize: 48, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.05, marginTop: 6 }}>{m.faceAmount}</div>
+        </div>
+        <p style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--color-accent-800)', maxWidth: '44ch', margin: 0 }}>Si el fallecimiento ocurre después de la primera aportación, la familia recibe esta protección, no lo acumulado hasta ese momento.</p>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,minmax(0,1fr))', gap: 10 }}>
+        {dbCurve.map((p, i) => (
+          <div key={i} style={{ border: '1px solid var(--color-divider)', borderRadius: 14, padding: '18px 16px' }}>
+            <div style={{ fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-neutral-600)' }}>{p.k}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{p.age}</div>
+            <div style={{ height: 1, background: 'var(--color-divider)', margin: '12px 0' }}></div>
+            <div style={{ fontSize: 19, fontWeight: 700, color: p.fg, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>{p.v}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', marginTop: 2 }}>{p.note}</div>
+          </div>
+        ))}
+      </div>
+      <p style={{ fontSize: 15.5, lineHeight: 1.7, color: 'var(--color-neutral-700)', maxWidth: '78ch', margin: '24px 0 0' }}>Si durante el periodo de construcción ocurre un fallecimiento, la estructura incorpora una protección destinada a evitar que el objetivo económico familiar dependa exclusivamente de haber terminado de acumular el capital.</p>
+      <div style={{ border: '1px solid var(--color-accent-200)', background: 'var(--color-accent-100)', borderRadius: 14, padding: '20px 22px', marginTop: 18 }}>
+        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-accent-800)' }}>Esta protección está incorporada dentro de la misma aportación.</span>
+      </div>
+      {notesOn && (
+        <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '20px 22px', marginTop: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-700)' }}>Referencia técnica</span>
+            <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-accent-2)', background: '#fdf2f5', border: '1px solid #f6d6df', borderRadius: 99, padding: '3px 9px' }}>Solo asesor · nunca en el frontend</span>
+          </div>
+          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', fontSize: 13.5, color: 'var(--color-neutral-700)' }}>
+            <span>internal_face_amount · <strong>{m.faceAmount}</strong></span>
+            <span>initial_death_benefit · <strong>{m.db1}</strong></span>
+            <span>Derivado por interpolación del aporte anual sobre las ilustraciones {m.sourceIds}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (step === 'perspectiva') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 30px' }}>Pongamos todo en perspectiva</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18 }}>
+        <div style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 24 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-neutral-600)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Referencia al 3%</div>
+          <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums', marginTop: 6 }}>{m.benchmark}</div>
+        </div>
+        <div style={{ border: '1.5px dashed var(--color-accent-400)', borderRadius: 16, padding: 24, background: 'var(--color-accent-100)' }}>
+          <div style={{ fontSize: 12, color: 'var(--color-accent-800)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Valor proyectado de la estructura</div>
+          <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-accent-700)', fontVariantNumeric: 'tabular-nums', marginTop: 6 }}>{m.projected}</div>
+        </div>
+      </div>
+      <div style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26, marginTop: 18, display: 'flex', gap: 36, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Diferencial frente al benchmark del 3%</div>
+          <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>{m.diff}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Equivalente económico aproximado</div>
+          <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>{m.diffMonthly}</div>
+          <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 2 }}>{m.diffAnnual}</div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 14, marginTop: 18 }}>
+        <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 15.5, fontWeight: 700 }}>Protección familiar durante el periodo</div>
+          <div style={{ fontSize: 13.5, color: 'var(--color-neutral-700)', marginTop: 4, lineHeight: 1.6 }}>{m.faceAmount} desde la primera aportación, dentro de la misma aportación anual.</div>
+        </div>
+        <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 15.5, fontWeight: 700 }}>Opciones de ingreso al retiro</div>
+          <div style={{ fontSize: 13.5, color: 'var(--color-neutral-700)', marginTop: 4, lineHeight: 1.6 }}>Capital, renta vitalicia o ingreso periódico.</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (step === 'retiro') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 26px' }}>Has llegado al retiro</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18 }}>
+        <div style={{ border: '1px solid var(--color-neutral-300)', background: 'var(--color-neutral-100)', borderRadius: 16, padding: 24 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-neutral-800)', background: 'var(--color-neutral-200)', borderRadius: 5, padding: '3px 8px' }}>Garantizado</span>
+          <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums', marginTop: 8 }}>{m.gcv}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-neutral-600)' }}>Valor garantizado</div>
+        </div>
+        <div style={{ border: '1.5px dashed var(--color-accent-400)', background: 'var(--color-accent-100)', borderRadius: 16, padding: 24 }}>
+          <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-accent-800)', background: 'var(--color-accent-200)', borderRadius: 5, padding: '3px 8px' }}>Proyectado · no garantizado</span>
+          <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-accent-700)', fontVariantNumeric: 'tabular-nums', marginTop: 8 }}>{m.projected}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-accent-800)' }}>Valor proyectado</div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16, marginTop: 20, alignItems: 'start' }}>
+        {s7.map((o, i) => (
+          <div key={i} style={{ border: o.edge, background: o.bg, borderRadius: 16, padding: o.pad }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', color: o.num }}>{o.n}</div>
+            <div style={{ fontSize: o.size, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 8 }}>{o.title}</div>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-neutral-700)', margin: '8px 0 0' }}>{o.text}</p>
+            <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-accent-700)', fontVariantNumeric: 'tabular-nums', marginTop: 10 }}>{o.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (step === 'acumular') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 30px' }}>De acumular a recibir</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', gap: 22, alignItems: 'center' }}>
+        <div style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Durante tu etapa laboral</div>
+          <div style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', fontVariantNumeric: 'tabular-nums', lineHeight: 1.05, marginTop: 8 }}>{m.annual}</div>
+          <div style={{ fontSize: 14, color: 'var(--color-neutral-600)' }}>al año durante {m.years} años</div>
+        </div>
+        <div style={{ fontSize: 30, color: 'var(--color-neutral-400)' }}>→</div>
+        <div style={{ border: '1.5px dashed var(--color-accent-400)', background: 'var(--color-accent-100)', borderRadius: 16, padding: 26 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>A partir del retiro</div>
+          <div style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.05, marginTop: 8 }}>{m.incomeAnnual}</div>
+          <div style={{ fontSize: 14, color: 'var(--color-accent-800)' }}>al año · renta vitalicia proyectada</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 26, flexWrap: 'wrap', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26, marginTop: 18 }}>
+        <div>
+          <div style={{ fontSize: 52, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{m.multiple}</div>
+          <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', maxWidth: '34ch', lineHeight: 1.5, marginTop: 6 }}>Relación entre renta anual proyectada y aportación anual.</div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14, flex: 1, minWidth: 340 }}>
+          {s8.map((r, i) => (
+            <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 16 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)', lineHeight: 1.4 }}>{r.k}</div>
+              <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 4 }}>{r.v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--color-neutral-500)', marginTop: 16 }}>Comparación nominal. No representa una rentabilidad financiera.</div>
+    </div>
+  );
+
+  if (step === 'longevidad') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 26px' }}>¿Y si vivo hasta…?</h2>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {longAgeOptions.map(n => {
+          const on = longAge === n;
+          return <button key={n} style={{ padding: '11px 22px', borderRadius: 99, border: '1px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent-100)' : '#fff', color: on ? 'var(--color-accent-700)' : 'var(--color-neutral-700)', fontSize: 15, fontWeight: 700, fontFamily: 'inherit', cursor: 'pointer', fontVariantNumeric: 'tabular-nums' }} onClick={() => setLongAge(n)}>{n}</button>;
+        })}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,4fr) minmax(0,6fr)', gap: 22, alignItems: 'center', marginTop: 24 }}>
+        <div style={{ border: '1.5px dashed var(--color-accent-400)', background: 'var(--color-accent-100)', borderRadius: 16, padding: 26 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Ingreso acumulado nominal</div>
+          <div style={{ fontSize: 48, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.05, marginTop: 8 }}>{m.cumulative}</div>
+          <div style={{ fontSize: 14, color: 'var(--color-accent-800)', marginTop: 4 }}>{m.cumulativeMeta}</div>
+        </div>
+        <svg viewBox="0 0 620 260" style={{ width: '100%', height: 'auto' }} role="img" aria-label="Ingreso acumulado nominal">
+          {longChart.grid.map((g, i) => <line key={'gl' + i} x1="52" y1={g.y} x2="612" y2={g.y} stroke="var(--color-neutral-200)" strokeWidth="1" />)}
+          {longChart.grid.map((g, i) => <text key={'gt' + i} x="46" y={g.ty} fontSize="11" fill="var(--color-neutral-500)" textAnchor="end">{g.label}</text>)}
+          <path d={longChart.area} fill="var(--color-accent-200)"></path>
+          <path d={longChart.line} fill="none" stroke="var(--color-accent)" strokeWidth="2.5"></path>
+          <circle cx={longChart.cx} cy={longChart.cy} r="6" fill="#fff" stroke="var(--color-accent)" strokeWidth="2.5"></circle>
+          {longChart.ticks.map((t, i) => <text key={'tk' + i} x={t.x} y="254" fontSize="11.5" fill="var(--color-neutral-500)" textAnchor="middle">{t.label}</text>)}
+        </svg>
+      </div>
+      <div style={{ fontSize: 13, color: 'var(--color-neutral-500)', marginTop: 14, lineHeight: 1.6, maxWidth: '80ch' }}>Comparación nominal basada en la renta ilustrada. No representa una rentabilidad financiera ni incorpora valor temporal del dinero.</div>
+    </div>
+  );
+
+  if (step === 'resumen') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 28px' }}>Tu estrategia de retiro</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 16, alignItems: 'start' }}>
+        {s10.map((b, i) => (
+          <div key={i} style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 22 }}>
+            <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600, marginBottom: 6 }}>{b.title}</div>
+            {b.rows.map((r, j) => (
+              <div key={j} style={{ padding: '9px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-neutral-600)', lineHeight: 1.4 }}>{r.k}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 1 }}>{r.v}</div>
+                {r.ref ? <div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)' }}>{r.ref}</div> : null}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginTop: 28 }}>
+        <button className="btn btn-primary" style={{ fontSize: 15, padding: '14px 26px' }} onClick={onOpenNext}>Explorar esta estructura</button>
+        <span style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', maxWidth: '44ch', lineHeight: 1.5 }}>Abre los siguientes pasos: solicitud de la ilustración contractual y entrega de la propuesta oficial fuera de Telos.</span>
+      </div>
+    </div>
+  );
+
+  return null;
+}
+
+function EducationRoomScreen({ step, room, notesOn, onOpenNext }) {
+  const { em, e1, e2, e3a, e3b, eduProtection, e7, e8, e9 } = room;
+
+  if (step === 'objetivo') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 10px' }}>Tu objetivo educativo</h2>
+      <p style={{ fontSize: 16.5, color: 'var(--color-neutral-700)', lineHeight: 1.6, margin: '0 0 30px', maxWidth: '52ch' }}>Empecemos exactamente por el escenario que exploraste en Telos.</p>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 18, flexWrap: 'wrap', background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-200)', borderRadius: 16, padding: '26px 28px', marginBottom: 22, fontVariantNumeric: 'tabular-nums' }}>
+        <div>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-800)', fontWeight: 600 }}>Presupuesto educativo</div>
+          <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--color-accent)', lineHeight: 1.1 }}>{em.budget} <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-accent-800)' }}>/ año</span></div>
+        </div>
+        <div style={{ fontSize: 15, color: 'var(--color-accent-800)' }}>durante 4 años =</div>
+        <div>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-800)', fontWeight: 600 }}>Objetivo total</div>
+          <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--color-accent-800)', lineHeight: 1.1 }}>{em.objective}</div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 14 }}>
+        {e1.map((c, i) => (
+          <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 16 }}>
+            <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)', lineHeight: 1.4 }}>{c.k}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 4, letterSpacing: '-0.02em' }}>{c.v}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', marginTop: 2 }}>{c.ref}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (step === 'partes') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.15, margin: '0 0 36px', maxWidth: '26ch' }}>Construir el capital es solo una parte del objetivo.</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 18 }}>
+        {e2.map((c, i) => (
+          <div key={i} style={{ border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, display: 'flex', flexDirection: 'column', gap: 16, minHeight: 200 }}>
+            <div style={{ fontSize: 30, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>{c.n}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.02em' }}>{c.t}</div>
+          </div>
+        ))}
+      </div>
+      {notesOn && (
+        <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 16, padding: '24px 26px', marginTop: 20 }}>
+          <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600, marginBottom: 12 }}>Guía de conversación · solo asesor</div>
+          {e2.map((c, i) => (
+            <div key={i} style={{ padding: '10px 0', borderTop: '1px solid var(--color-neutral-200)', fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-neutral-700)' }}><strong>{c.n}</strong> · {c.note}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  if (step === 'dosformas') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 30px' }}>Dos formas de construir el mismo objetivo</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18, alignItems: 'start' }}>
+        <div style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600, marginBottom: 14 }}>Ahorro tradicional</div>
+          {e3a.map((r, i) => (
+            <div key={i} style={{ padding: '10px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>{r.k}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{r.v}</div>
+            </div>
+          ))}
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-neutral-200)' }}>
+            <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Capital a la edad educativa</div>
+            <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>{em.benchmark}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', marginTop: 2 }}>supuesto hipotético del 3% anual</div>
+          </div>
+        </div>
+        <div style={{ border: '1px solid var(--color-accent-300)', borderRadius: 16, padding: 26, background: 'var(--color-accent-100)' }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-800)', fontWeight: 600, marginBottom: 14 }}>Estructura educativa</div>
+          {e3b.map((r, i) => (
+            <div key={i} style={{ padding: '10px 0', borderTop: '1px solid var(--color-accent-200)' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-accent-800)' }}>{r.k}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'var(--color-accent-900)' }}>{r.v}</div>
+            </div>
+          ))}
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--color-accent-200)', display: 'flex', gap: 22, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-neutral-700)', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 99, padding: '3px 9px', display: 'inline-block', marginBottom: 5 }}>Garantizado</div>
+              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>{em.gcv}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-accent-800)', background: '#fff', border: '1.5px dashed var(--color-accent-400)', borderRadius: 99, padding: '3px 9px', display: 'inline-block', marginBottom: 5 }}>Proyectado</div>
+              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums' }}>{em.projected}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '20px 22px', marginTop: 20 }}>
+        <span style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-neutral-800)' }}>Si únicamente comparamos capital acumulado bajo un rendimiento hipotético constante del 3%, el ahorro tradicional puede resultar superior. Pero la comparación todavía está incompleta.</span>
+      </div>
+    </div>
+  );
+
+  if (step === 'proteccion') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 8px' }}>El objetivo existe antes de que termines de ahorrar</h2>
+      <p style={{ fontSize: 16, color: 'var(--color-neutral-700)', lineHeight: 1.6, margin: '0 0 28px', maxWidth: '56ch' }}>El ahorro necesita tiempo para construir el objetivo. La estructura incorpora protección mientras ese capital todavía se está construyendo.</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {eduProtection.map((p, i) => (
+          <div key={i}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 14, fontWeight: 700, width: '8ch' }}>{p.label}</span>
+              <span style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Ahorro acumulado</span>
+              <span style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{p.savedV}</span>
+              <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--color-accent-800)' }}>Objetivo protegido</span>
+              <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums' }}>{p.protectedV}</span>
+            </div>
+            <div style={{ height: 10, borderRadius: 99, background: 'var(--color-neutral-200)', overflow: 'hidden', marginBottom: 4 }}>
+              <div style={{ height: '100%', width: p.wSaved, background: 'var(--color-neutral-500)', borderRadius: 99 }}></div>
+            </div>
+            <div style={{ height: 10, borderRadius: 99, background: 'var(--color-neutral-200)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: p.wProt, background: 'var(--color-accent)', borderRadius: 99 }}></div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 12, background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-200)', borderRadius: 14, padding: '18px 20px', marginTop: 24 }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-accent-800)', lineHeight: 1.6 }}>Protección incorporada dentro de la estructura.</span>
+      </div>
+    </div>
+  );
+
+  if (step === 'contexto') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 30px' }}>Pongamos la diferencia en contexto</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18 }}>
+        <div style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Referencia 3%</div>
+          <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginTop: 6 }}>{em.benchmark}</div>
+        </div>
+        <div style={{ border: '1.5px dashed var(--color-accent-400)', borderRadius: 16, padding: 26, background: 'var(--color-accent-100)' }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-800)', fontWeight: 600 }}>Valor proyectado de la estructura</div>
+          <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', marginTop: 6 }}>{em.projected}</div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18, marginTop: 18 }}>
+        <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 24 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Diferencial frente al benchmark del 3%</div>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginTop: 6 }}>{em.diff}</div>
+        </div>
+        <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 24 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Equivalente económico aproximado</div>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginTop: 6 }}>{em.diffMonthly}</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 12, background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-200)', borderRadius: 14, padding: '18px 20px', marginTop: 18 }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-accent-800)', lineHeight: 1.6 }}>+ Protección del objetivo durante el periodo</span>
+      </div>
+    </div>
+  );
+
+  if (step === 'financiar') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 34px' }}>De ahorrar a financiar sus estudios</h2>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: 20, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 240, border: '1px solid var(--color-divider)', borderRadius: 16, padding: 28 }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Durante la etapa de construcción</div>
+          <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums', marginTop: 8 }}>{em.premium} <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--color-neutral-600)' }}>/ año</span></div>
+          <div style={{ fontSize: 13, color: 'var(--color-neutral-500)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>equivale a {em.premiumMonthly} / mes</div>
+          <div style={{ fontSize: 14, color: 'var(--color-neutral-700)', marginTop: 6 }}>durante 15 años</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: 'var(--color-accent)', flex: 'none', padding: '0 4px' }}>→</div>
+        <div style={{ flex: 1.2, minWidth: 260, border: '1.5px dashed var(--color-accent-400)', borderRadius: 16, padding: 28, background: 'var(--color-accent-100)' }}>
+          <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-800)', fontWeight: 600 }}>Durante sus estudios</div>
+          <div style={{ fontSize: 46, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1, marginTop: 8 }}>{em.fundingExact} <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-accent-800)' }}>/ año</span></div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-accent-800)', marginTop: 8, letterSpacing: '-0.02em' }}>× 4 años</div>
+          <div style={{ fontSize: 13, color: 'var(--color-accent-800)', marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>Capital educativo proyectado · {em.projected}</div>
+        </div>
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', marginTop: 22, lineHeight: 1.6 }}>Valores proyectados. La propuesta contractual definitiva se presenta fuera de Telos.</div>
+    </div>
+  );
+
+  if (step === 'camino') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 30px' }}>Tu objetivo, protegido durante el camino</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,minmax(0,1fr))', gap: 12, alignItems: 'start' }}>
+        {e7.map((t, i) => (
+          <div key={i} style={{ border: '1px solid ' + t.edge, background: t.bg, borderRadius: 14, padding: '20px 16px' }}>
+            <div style={{ fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: t.fg, fontWeight: 600 }}>{t.label}</div>
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)' }}>Capital construido</div>
+              <div style={{ fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{t.built}</div>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--color-accent-800)' }}>Objetivo protegido</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums' }}>{t.protectedV}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '20px 22px', marginTop: 22 }}>
+        <span style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-neutral-800)' }}>La distinción relevante no es cuánto capital hay acumulado en cada momento, sino cuánto del objetivo está protegido mientras ese capital se construye.</span>
+      </div>
+    </div>
+  );
+
+  if (step === 'sobrante') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 30px' }}>¿Y si finalmente no necesita todo el capital?</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 18 }}>
+        {e8.map((c, i) => (
+          <div key={i} style={{ border: '1px solid var(--color-divider)', borderRadius: 16, padding: 26, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>{c.k}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>{c.v}</div>
+            <div style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-neutral-700)' }}>{c.note}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', marginTop: 22, lineHeight: 1.6 }}>Las alternativas concretas dependen de las condiciones contractuales aplicables.</div>
+    </div>
+  );
+
+  if (step === 'estrategia') return (
+    <div>
+      <h2 style={{ fontSize: 34, letterSpacing: '-0.03em', lineHeight: 1.1, margin: '0 0 28px' }}>Tu estrategia educativa</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,minmax(0,1fr))', gap: 14, alignItems: 'start' }}>
+        {e9.map((b, i) => (
+          <div key={i} style={{ border: '1px solid ' + b.edge, background: b.bg, borderRadius: 16, padding: 20 }}>
+            <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: b.fg, fontWeight: 600, marginBottom: 6 }}>{b.title}</div>
+            {b.rows.map((r, j) => (
+              <div key={j} style={{ padding: '9px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+                <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)', lineHeight: 1.4 }}>{r.k}</div>
+                <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 1 }}>{r.v}</div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginTop: 28 }}>
+        <button className="btn btn-primary" style={{ fontSize: 15, padding: '14px 26px' }} onClick={onOpenNext}>Explorar esta estructura</button>
+        <span style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', maxWidth: '44ch', lineHeight: 1.5 }}>La propuesta contractual y la documentación oficial se presentan fuera de Telos.</span>
+      </div>
+    </div>
+  );
+
+  return null;
+}
+
+function DecisionRoom({ lead, engine, presenting, setPresenting, onExit, onMarkCompleted }) {
+  const edu = lead.scenario_type === 'education';
+  const steps = edu ? EDU_DR_STEPS : RET_DR_STEPS;
+  const labels = edu ? EDU_DR_LABELS : RET_DR_LABELS;
+  const [drStep, setDrStep] = useState(0);
+  const [longAge, setLongAge] = useState(85);
+  const [nextOpen, setNextOpen] = useState(false);
+  const notesOn = !presenting;
+
+  const pr = engine ? (edu
+    ? engine.projectEducation({ parent_age: lead.parent_age, child_age: lead.child_age, annual_contribution: lead.annual_contribution })
+    : engine.project({ current_age: lead.current_age, annual_contribution: lead.annual_contribution })
+  ) : null;
+
+  if (!pr) return <div style={{ color: 'var(--color-neutral-500)' }}>Cargando motor de proyección…</div>;
+
+  const val = pr.ok
+    ? (pr.is_exact_projection
+      ? { tag: 'Ilustración exacta', bg: 'var(--color-accent-100)', edge: 'var(--color-accent-200)', fg: 'var(--color-accent-800)' }
+      : { tag: 'Interpolado', bg: 'var(--color-neutral-100)', edge: 'var(--color-neutral-300)', fg: 'var(--color-neutral-800)' })
+    : { tag: 'Validation required', bg: '#fdf2f5', edge: '#f6d6df', fg: '#8a2b45' };
+
+  const room = edu ? buildEducationRoom(lead, pr) : buildRetirementRoom(lead, pr, longAge);
+  const step = steps[drStep];
+
+  function next() { setDrStep(s => Math.min(s + 1, steps.length - 1)); }
+  function prev() { setDrStep(s => Math.max(s - 1, 0)); }
+
+  return (
+    <div style={{ maxWidth: presenting ? 1180 : 1080, margin: '0 auto' }}>
+      {!presenting && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 22 }}>
+          <div>
+            <h1 style={{ fontSize: 22, letterSpacing: '-0.03em' }}>{(edu ? 'Education' : 'Decision') + ' Room · ' + (lead.name || lead.scenario_id)}</h1>
+            <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', fontVariantNumeric: 'tabular-nums' }}>{lead.scenario_id} · {labels[drStep]}</div>
+          </div>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: val.fg, background: val.bg, border: '1px solid ' + val.edge, borderRadius: 99, padding: '6px 12px' }}>{val.tag}</span>
+            <button className="btn btn-primary" onClick={() => setPresenting(true)}>Presentation Mode</button>
+            <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={onExit}>← Volver al lead</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: presenting ? 52 : 40, boxShadow: 'var(--shadow-sm)' }}>
+        {edu
+          ? <EducationRoomScreen step={step} room={room} notesOn={notesOn} onOpenNext={() => setNextOpen(true)} />
+          : <RetirementRoomScreen step={step} room={room} notesOn={notesOn} longAge={longAge} setLongAge={setLongAge} onOpenNext={() => setNextOpen(true)} />}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 20 }}>
+        <button className="btn btn-secondary" onClick={prev} disabled={drStep === 0}>Anterior</button>
+        <button className="btn btn-primary" onClick={next} disabled={drStep === steps.length - 1}>Siguiente</button>
+        <span style={{ fontSize: 13, color: 'var(--color-neutral-600)', fontVariantNumeric: 'tabular-nums' }}>{(drStep + 1) + ' / ' + steps.length}</span>
+        {presenting && <button className="btn btn-ghost" style={{ fontSize: 13, marginLeft: 'auto' }} onClick={() => setPresenting(false)}>Salir de la presentación</button>}
+      </div>
+
+      {nextOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,21,43,.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 60 }}>
+          <div style={{ background: '#fff', borderRadius: 18, padding: 36, maxWidth: 560, width: '100%', boxShadow: 'var(--shadow-lg)', maxHeight: '88vh', overflow: 'auto' }}>
+            <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Explorar esta estructura</div>
+            <h3 style={{ fontSize: 24, letterSpacing: '-0.03em', margin: '10px 0 8px' }}>Siguientes pasos, fuera de Telos</h3>
+            <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-neutral-700)', margin: '0 0 20px' }}>Telos cierra aquí su parte analítica. Lo contractual continúa con la documentación oficial del proveedor.</p>
+            {room.nextSteps.map((n, i) => (
+              <div key={i} style={{ display: 'flex', gap: 14, padding: '12px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+                <span style={{ width: 24, height: 24, flex: 'none', borderRadius: '50%', background: 'var(--color-accent-100)', color: 'var(--color-accent-700)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n.n}</span>
+                <span style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--color-neutral-800)' }}>{n.t}</span>
+              </div>
+            ))}
+            {notesOn && (
+              <div style={{ marginTop: 20, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="btn btn-primary" onClick={() => { onMarkCompleted(); setNextOpen(false); }}>Marcar reunión como completada</button>
+                <span style={{ fontSize: 12, color: 'var(--color-neutral-500)' }}>Solo cambia el estado interno del lead.</span>
+              </div>
+            )}
+            <div style={{ textAlign: 'center', marginTop: 16 }}><button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setNextOpen(false)}>Cerrar</button></div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const engine = useTelosEngine();
   const [authState, setAuthState] = useState('loading'); // loading | out | in
@@ -164,6 +1091,7 @@ function App() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
+  const [presenting, setPresenting] = useState(false);
 
   const loadLeads = useCallback(async () => {
     setLeadsLoading(true);
@@ -220,6 +1148,7 @@ function App() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
+      {!presenting && (
       <div style={{ width: 232, flex: 'none', background: '#fff', borderRight: '1px solid var(--color-divider)', padding: '22px 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 8px' }}>
           <div style={{ width: 24, height: 24, borderRadius: 7, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -241,8 +1170,9 @@ function App() {
           <button className="btn btn-ghost" style={{ fontSize: 12.5, padding: '6px 0', marginTop: 6 }} onClick={signOut}>Cerrar sesión</button>
         </div>
       </div>
+      )}
 
-      <div style={{ flex: 1, minWidth: 0, padding: '30px 36px 60px' }}>
+      <div style={{ flex: 1, minWidth: 0, padding: presenting ? '28px 40px 40px' : '30px 36px 60px' }}>
 
         {section === 'overview' && (
           <div style={{ maxWidth: 1100 }}>
@@ -396,7 +1326,7 @@ function App() {
                 </div>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
                   <button className="btn btn-secondary" onClick={() => setSection('data')}>Preparar escenario</button>
-                  <button className="btn btn-primary" disabled title="Disponible en la próxima fase (Decision Room)">Abrir {edu ? 'Education' : 'Decision'} Room</button>
+                  <button className="btn btn-primary" onClick={() => setSection('room')}>Abrir {edu ? 'Education' : 'Decision'} Room</button>
                 </div>
               </div>
 
@@ -600,6 +1530,15 @@ function App() {
             </div>
           );
         })()}
+
+        {section === 'room' && !lead && (
+          <div style={{ maxWidth: 700 }}><p style={{ color: 'var(--color-neutral-600)' }}>Abre primero un lead desde <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => setSection('leads')}>la lista de Leads</button>.</p></div>
+        )}
+        {section === 'room' && lead && (
+          <DecisionRoom lead={lead} engine={engine} presenting={presenting} setPresenting={setPresenting}
+            onExit={() => setSection('lead')}
+            onMarkCompleted={() => setLeadState(lead.scenario_id, 'Completado')} />
+        )}
 
       </div>
     </div>
