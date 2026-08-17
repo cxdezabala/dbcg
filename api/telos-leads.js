@@ -13,6 +13,7 @@
 
 const { getSession } = require('./_lib/session');
 const { listLeads, upsertLead, updateLeadFields } = require('./_lib/telos-leads-kv');
+const { sendMeetingNotification } = require('./_lib/telos-email');
 
 const ALLOWED_TYPES = new Set(['retirement', 'education']);
 const ALLOWED_STATES = new Set(['Nueva reunión', 'Preparado', 'Completado']);
@@ -54,6 +55,19 @@ async function handlePost(req, res) {
     res.status(503).json({ error: 'Almacenamiento no disponible en este momento' });
     return;
   }
+
+  // La confirmación de reunión llega como una segunda llamada POST al mismo
+  // scenario_id, ya con meeting_date/meeting_time. Se notifica por email
+  // antes de responder: en serverless no hay garantía de ejecución tras el
+  // flush de la respuesta HTTP.
+  if (rest.meeting_date && rest.meeting_time) {
+    const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+    const advisorUrl = proto + '://' + req.headers.host + '/telos/advisor';
+    await sendMeetingNotification({ ...saved, advisorUrl }).catch(err => {
+      console.error('[telos] notificación de reunión falló', err);
+    });
+  }
+
   res.status(200).json({ ok: true });
 }
 
