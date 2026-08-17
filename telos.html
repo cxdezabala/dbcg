@@ -299,17 +299,43 @@ function App() {
   function setAgeVal(v) { if (edu) setChildAge(v); else setAgeState(v); }
   function goStep(i) { setStep(Math.max(0, Math.min(i, steps.length - 1))); }
 
+  // La Guía llama a /api/telos-guide (IA real, misma clave que Brandt en
+  // Kairos). Si falla -- sin red, sin clave configurada, límite alcanzado --
+  // cae al banco de respuestas local en vez de dejar el chat roto.
   function send(q) {
     const text = (q || '').trim();
     if (!text) return;
+    const priorMessages = messages;
     setMessages(m => [...m, { who: 'u', text }]);
     setDraft('');
     setTyping(true);
-    clearTimeout(typingTimer.current);
-    typingTimer.current = setTimeout(() => {
-      setMessages(m => [...m, { who: 'g', text: answer(text, horizon, contrib) }]);
-      setTyping(false);
-    }, 620);
+    const context = edu ? {
+      scenario_type: 'education', child_age: childAge, parent_age: parentAge,
+      target_age: 18, years_to_education: horizon, annual_contribution: contrib,
+      total_nominal_contributions: total, benchmark_future_value: Math.round(futureValue),
+      benchmark_rate: RATE
+    } : {
+      scenario_type: 'retirement', current_age: curAge, target_age: 65,
+      years_to_retirement: horizon, annual_contribution: contrib,
+      total_nominal_contributions: total, benchmark_future_value: Math.round(futureValue),
+      benchmark_rate: RATE
+    };
+    const history = priorMessages.map(m => ({ role: m.who === 'u' ? 'user' : 'assistant', content: m.text }));
+    fetch('/api/telos-guide', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: text, history, context })
+    }).then(r => r.ok ? r.json() : Promise.reject(new Error('bad status')))
+      .then(data => {
+        setMessages(m => [...m, { who: 'g', text: data.answer || answer(text, horizon, contrib) }]);
+        setTyping(false);
+      })
+      .catch(() => {
+        clearTimeout(typingTimer.current);
+        typingTimer.current = setTimeout(() => {
+          setMessages(m => [...m, { who: 'g', text: answer(text, horizon, contrib) }]);
+          setTyping(false);
+        }, 400);
+      });
   }
 
   const eduBudget = Math.round(eduGoal / 4);
@@ -1161,7 +1187,7 @@ function App() {
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.7" strokeLinecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><path d="M3.5 10 h17 M8 5 V3 M16 5 V3"></path></svg>
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 22 }}>Una conversación, sin compromiso.</div>
-            <a className="btn btn-primary" href="https://www.linkedin.com" target="_blank" rel="noopener" style={{ gap: 9 }}>
+            <a className="btn btn-primary" href="https://www.linkedin.com/in/cdezabala/" target="_blank" rel="noopener" style={{ gap: 9 }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95C20.2 8.75 21 11 21 14.1V21h-4v-6.1c0-1.45-.5-2.45-1.8-2.45-1.05 0-1.67.7-1.95 1.38-.1.24-.12.58-.12.92V21H9z"></path></svg>
               Contactar en LinkedIn
             </a>
