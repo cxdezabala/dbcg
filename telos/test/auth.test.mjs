@@ -92,4 +92,25 @@ describe('telos-auth: credenciales', () => {
     assert.deepEqual(Object.keys(users).sort(), ['a@dbcg.es', 'b@dbcg.es']);
     delete process.env.TELOS_ADVISOR_USERS;
   });
+
+  test('verifyPassword acepta el formato plain: en texto plano', () => {
+    assert.equal(verifyPassword('MiClave123', 'plain:MiClave123'), true);
+    assert.equal(verifyPassword('otra', 'plain:MiClave123'), false);
+  });
+
+  test('checkCredentials funciona con una entrada plain: pegada directo en Vercel', () => {
+    process.env.TELOS_ADVISOR_USERS = 'constantino.dezabala@gmail.com:plain:MiClave123';
+    assert.equal(checkCredentials('constantino.dezabala@gmail.com', 'MiClave123'), true);
+    assert.equal(checkCredentials('constantino.dezabala@gmail.com', 'incorrecta'), false);
+    assert.equal(checkCredentials('CONSTANTINO.DEZABALA@GMAIL.COM', 'MiClave123'), true);
+    delete process.env.TELOS_ADVISOR_USERS;
+  });
+
+  test('plain: y scrypt$ pueden convivir en la misma variable', () => {
+    process.env.TELOS_ADVISOR_USERS = 'a@dbcg.es:' + hashSpec + ',b@gmail.com:plain:otraClave456';
+    assert.equal(checkCredentials('a@dbcg.es', 'correcta123'), true);
+    assert.equal(checkCredentials('b@gmail.com', 'otraClave456'), true);
+    assert.equal(checkCredentials('b@gmail.com', 'correcta123'), false);
+    delete process.env.TELOS_ADVISOR_USERS;
+  });
 });
