@@ -228,7 +228,7 @@ function persistScenario(payload) {
   try {
     localStorage.setItem('telos_scenario_' + payload.scenario_id, JSON.stringify(payload));
   } catch (e) { /* localStorage no disponible (modo privado, etc.) */ }
-  fetch('/api/telos-scenario', {
+  fetch('/api/telos-leads', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
   }).catch(() => { /* sin red: el escenario queda solo en localStorage de este dispositivo */ });
 }
@@ -355,7 +355,7 @@ function App() {
   // que la reserva de cita no viaja al backend en ese caso.
   function confirmBooking() {
     if (shared === true) {
-      fetch('/api/telos-scenario', {
+      fetch('/api/telos-leads', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           scenario_id: scenarioId, scenario_type: edu ? 'education' : 'retirement',

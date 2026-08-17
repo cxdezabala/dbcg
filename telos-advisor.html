@@ -390,7 +390,7 @@ function LoginScreen({ onSignedIn }) {
   async function submit() {
     if (busy) return;
     setBusy(true); setError('');
-    const { ok, body } = await api('/api/telos-login', {
+    const { ok, body } = await api('/api/telos-session', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
@@ -1116,13 +1116,13 @@ function App() {
   }
 
   async function signOut() {
-    await api('/api/telos-logout', { method: 'POST' });
+    await api('/api/telos-session', { method: 'DELETE' });
     setAuthState('out'); setLeads([]); setLeadId(null); setSection('overview');
   }
 
   async function setLeadState(scenarioId, state) {
     setSavingStatus(true);
-    const { ok, body } = await api('/api/telos-lead-status', {
+    const { ok, body } = await api('/api/telos-leads', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scenario_id: scenarioId, state })
     });
@@ -1131,7 +1131,7 @@ function App() {
   }
 
   async function saveNotes(scenarioId, notes) {
-    const { ok, body } = await api('/api/telos-lead-status', {
+    const { ok, body } = await api('/api/telos-leads', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scenario_id: scenarioId, notes })
     });
