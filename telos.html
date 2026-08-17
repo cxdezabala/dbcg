@@ -131,9 +131,9 @@ function paths(data, w, h, pad, max) {
 }
 
 const RET_STEPS = ['time','compound','capacity','level','discipline','projection','waiting','playground','compare','guide','learned','summary','meeting','deepen','nextsteps'];
-const EDU_STEPS = ['time','timing','goal','capacity','level','discipline','projection','waiting','playground','compare','guide','learned','summary','deepen','nextsteps'];
+const EDU_STEPS = ['time','timing','goal','capacity','level','discipline','projection','waiting','playground','compare','guide','learned','summary','meeting','deepen','nextsteps'];
 const RET_LABELS = ['Tiempo','Interés','Aportación','Nivel','Disciplina','Proyección','Esperar','Explorar','Comparar','Guía','Aprendido','Resumen','Reunión','Profundizar','Pasos'];
-const EDU_LABELS = ['Edades','Momento','Objetivo','Aportación','Nivel','Disciplina','Proyección','Esperar','Explorar','Comparar','Guía','Aprendido','Resumen','Profundizar','Pasos'];
+const EDU_LABELS = ['Edades','Momento','Objetivo','Aportación','Nivel','Disciplina','Proyección','Esperar','Explorar','Comparar','Guía','Aprendido','Resumen','Reunión','Profundizar','Pasos'];
 
 const COPY = {
   edu: {
@@ -1054,7 +1054,7 @@ function App() {
           </div>
         )}
 
-        {!edu && steps[step] === 'meeting' && (
+        {steps[step] === 'meeting' && (
           <div>
             {meetingStage === 'intro' && (
               <div style={{ maxWidth: 680, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 48, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
@@ -1062,7 +1062,10 @@ function App() {
                 <h1 style={{ fontSize: 32, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '12px 0 14px' }}>Una conversación para analizar lo que acabas de explorar.</h1>
                 <p style={{ fontSize: 16, lineHeight: 1.65, color: 'var(--color-neutral-700)', maxWidth: '46ch', margin: '0 auto 30px' }}>Una conversación de 30 minutos para analizar distintas formas de estructurar el objetivo que acabas de explorar.</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12, textAlign: 'left', marginBottom: 28 }}>
-                  {[{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Periodo de aportación', v: yearsLabel(horizon) },{ k: 'Total nominal aportado', v: money(total) },{ k: 'Referencia de ahorro al retiro', v: money(futureValue) }].map((r, i) => (
+                  {(edu
+                    ? [{ k: 'Aportación anual', v: money(contrib) },{ k: 'Periodo de aportación', v: yearsLabel(horizon) },{ k: 'Objetivo educativo total', v: money(eduGoal) },{ k: copy.fvTerm, v: money(futureValue) }]
+                    : [{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Periodo de aportación', v: yearsLabel(horizon) },{ k: 'Total nominal aportado', v: money(total) },{ k: copy.fvTerm, v: money(futureValue) }]
+                  ).map((r, i) => (
                     <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: '14px 16px' }}>
                       <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>{r.k}</div>
                       <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 2 }}>{r.v}</div>
@@ -1131,7 +1134,10 @@ function App() {
                 <div style={{ background: '#fff', borderRadius: 18, padding: 36, maxWidth: 520, width: '100%', boxShadow: 'var(--shadow-lg)', maxHeight: '88vh', overflow: 'auto', animation: 'cnRise .25s ease' }}>
                   <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>¿Quieres compartir tu escenario?</div>
                   <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-neutral-700)', margin: '12px 0 20px' }}>Hasta este momento tu exploración ha sido privada. Si decides compartir tu escenario, podremos utilizarlo como punto de partida de la conversación.</p>
-                  {[{ k: 'Edad actual', v: yearsLabel(curAge) },{ k: 'Edad objetivo de retiro', v: yearsLabel(targetAge) },{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Aportación anual', v: money(contrib) },{ k: 'Total nominal aportado', v: money(total) },{ k: 'Referencia de ahorro al retiro', v: money(futureValue) }].map((r, i) => (
+                  {(edu
+                    ? [{ k: 'Edad de tu hijo', v: yearsLabel(childAge) },{ k: 'Tu edad', v: yearsLabel(parentAge) },{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Aportación anual', v: money(contrib) },{ k: 'Objetivo educativo total', v: money(eduGoal) },{ k: copy.fvTerm, v: money(futureValue) }]
+                    : [{ k: 'Edad actual', v: yearsLabel(curAge) },{ k: 'Edad objetivo de retiro', v: yearsLabel(targetAge) },{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Aportación anual', v: money(contrib) },{ k: 'Total nominal aportado', v: money(total) },{ k: copy.fvTerm, v: money(futureValue) }]
+                  ).map((r, i) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, padding: '10px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
                       <span style={{ color: 'var(--color-neutral-600)' }}>{r.k}</span><span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{r.v}</span>
                     </div>
