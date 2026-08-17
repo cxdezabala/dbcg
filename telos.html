@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telos — Explora tu estrategia financiera · by DBCG</title>
+<meta name="description" content="Telos: explora cómo el tiempo, la disciplina y una estrategia de ahorro programado pueden ayudarte a construir capital para tu retiro o la educación de tus hijos.">
+<link rel="canonical" href="https://www.dbcg.es/telos">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Vendorizado en /vendor (mismas versiones que kairos.html) en vez de unpkg.com:
+     elimina la dependencia de un CDN de terceros en tiempo de carga. Sin build step,
+     son simplemente los mismos archivos que serviría unpkg, copiados al repo. -->
+<script src="/vendor/react-18.3.1.production.min.js"></script>
+<script src="/vendor/react-dom-18.3.1.production.min.js"></script>
+<script src="/vendor/babel-standalone-7.23.5.min.js"></script>
+<style>
+:root{
+  --color-bg:#f5f6fb;--color-surface:#ffffff;--color-text:#14152b;
+  --color-accent:#4b40d8;--color-accent-2:#d1345b;
+  --color-accent-100:#f1efff;--color-accent-200:#e2ddff;--color-accent-300:#c6bdfb;
+  --color-accent-400:#9b8ff4;--color-accent-500:#6f5fe8;--color-accent-600:#4335c6;
+  --color-accent-700:#3a2ea8;--color-accent-800:#2a2278;--color-accent-900:#1b1750;
+  --color-accent-2-100:#fdf2f5;--color-accent-2-200:#f6d6df;--color-accent-2-900:#6b1530;
+  --color-neutral-100:#f7f8fc;--color-neutral-200:#eceef6;--color-neutral-300:#dfe2ee;
+  --color-neutral-400:#c3c7d9;--color-neutral-500:#9aa0b9;--color-neutral-600:#767d99;
+  --color-neutral-700:#5b6178;--color-neutral-800:#3d4257;--color-neutral-900:#22263a;
+  --color-divider:#e7e9f2;
+  --font-heading:"Plus Jakarta Sans",system-ui,sans-serif;
+  --font-body:"Plus Jakarta Sans",system-ui,sans-serif;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;
+  --shadow-sm:0 1px 2px rgba(20,21,43,.05);
+  --shadow-md:0 4px 16px rgba(20,21,43,.07);
+  --shadow-lg:0 18px 48px rgba(20,21,43,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-size:15px;font-family:var(--font-body);background:var(--color-bg);color:var(--color-text)}
+h1,h2,h3{font-family:var(--font-heading);margin:0}
+a{color:var(--color-accent);text-decoration:none}
+a:hover{color:var(--color-accent-600);text-decoration:underline}
+button{font-family:inherit;cursor:pointer}
+.btn{border-radius:10px;padding:11px 20px;font-weight:600;letter-spacing:-0.005em;font-size:14.5px;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:box-shadow .15s ease,border-color .15s ease,background .15s ease}
+.btn-primary{background:var(--color-accent);color:#fff}
+.btn-primary:hover{background:var(--color-accent-600)}
+.btn-secondary{background:#fff;border-color:var(--color-divider);color:var(--color-text)}
+.btn-secondary:hover{border-color:var(--color-accent-300)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--color-accent);padding:8px 4px}
+.btn-ghost:hover{color:var(--color-accent-600)}
+.btn-icon{padding:0;width:38px;height:38px;font-size:18px;font-weight:700}
+.btn-block{width:100%}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;border-radius:99px;padding:3px 9px}
+.tag-neutral{background:var(--color-neutral-200);color:var(--color-neutral-700)}
+.tag-accent{background:var(--color-accent-100);color:var(--color-accent-700)}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--color-neutral-700)}
+.input{background:#fff;border-radius:10px;min-height:44px;font-size:15px;border:1px solid var(--color-divider);padding:0 14px;width:100%;font-family:inherit}
+.input:focus{outline:2px solid var(--color-accent-300);border-color:var(--color-accent)}
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table td,.table th{padding:9px 6px;text-align:left}
+.card-link{transition:box-shadow .15s ease,border-color .15s ease}
+.card-link:hover{box-shadow:0 10px 30px rgba(20,21,43,.10);border-color:var(--color-accent-300)}
+.pick-card{transition:border-color .15s ease}
+.pick-card:hover{border-color:var(--color-accent-400)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:99px;background:var(--color-neutral-300);outline:none;margin:12px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--color-accent);box-shadow:0 1px 4px rgba(20,21,43,.18);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--color-accent);box-shadow:0 1px 4px rgba(20,21,43,.18);cursor:pointer}
+@keyframes cnRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes cnFade{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useEffect, Fragment } = React;
+
+// ── Constantes del recorrido educativo (PROMPT-claude-code.md §3) ──────────
+// Economía real con horizonte natural. NO son los términos del producto (15 años,
+// face amount, tabla de prima) — esos viven en el back del asesor. EFFICIENCY está
+// calibrado sobre las 12 ilustraciones reales (media 0.9017, rango 0.898-0.906):
+// ver PROJECTIONS-model.md. El benchmark del 3% nunca se manipula (regla §0.3).
+const EDU = { GROWTH: 0.0408, ANNUITY_DUE_4: 3.761993, EFFICIENCY: 0.9017 };
+const RATE = 0.03;
+const RATE_LABEL = '3%';
+
+function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function short(n) {
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
+  return '$' + Math.round(n);
+}
+function yearsLabel(n) { return n + (n === 1 ? ' año' : ' años'); }
+function fv(c, n) { return RATE === 0 ? c * n : c * ((Math.pow(1 + RATE, n) - 1) / RATE); }
+function eduAccum(n) { const g = EDU.GROWTH; return n <= 0 ? 0 : (Math.pow(1 + g, n) - 1) / g; }
+
+// El único tope con sentido para el usuario: que aportar hasta los 18 del hijo no se
+// extienda más allá de su propio horizonte de retiro (PROMPT-claude-code.md §3).
+function eduRange(parentAge, childAge) {
+  const n = Math.max(18 - childAge, 0);
+  const endsAt = parentAge + n;
+  if (n < 1) return { ok: false, kind: 'child',
+    reason: 'Tu hijo ya está en edad de iniciar sus estudios, así que no queda tiempo por delante para construir el capital de forma programada.' };
+  if (endsAt > 65) return { ok: false, kind: 'parent-high', endsAt,
+    reason: 'Aportarías hasta tus ' + endsAt + ' años: el esfuerzo educativo se extendería más allá de tu propio horizonte de retiro.' };
+  return { ok: true, years: n, endsAt, confidence: n >= 8 ? 'Alta' : 'Media', tight: n < 8 };
+}
+
+// Aportación anual necesaria para un presupuesto anual de estudios dado.
+function eduSolve(annualBudget, parentAge, childAge) {
+  const n = Math.max(18 - childAge, 0);
+  const valueAt18 = annualBudget * EDU.ANNUITY_DUE_4;
+  const factor = eduAccum(n) * EDU.EFFICIENCY;
+  const contribution = factor > 0 ? valueAt18 / factor : valueAt18;
+  return { range: eduRange(parentAge, childAge), valueAt18, contribution,
+    annualPayout: annualBudget, years: n, totalContributions: contribution * n };
+}
+
+function series(c, n) {
+  const out = [];
+  for (let y = 0; y <= n; y++) out.push({ y, contrib: c * y, value: fv(c, y) });
+  return out;
+}
+function paths(data, w, h, pad, max) {
+  const n = data.length - 1;
+  const x = i => pad + (i / Math.max(n, 1)) * (w - pad);
+  const y = v => h - (v / max) * (h - 8);
+  const line = k => data.map((d, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(d[k]).toFixed(1)).join(' ');
+  const area = k => line(k) + ' L' + x(n).toFixed(1) + ' ' + h + ' L' + pad + ' ' + h + ' Z';
+  return { valueLine: line('value'), valueArea: area('value'), contribLine: line('contrib'), contribArea: area('contrib') };
+}
+
+const RET_STEPS = ['time','compound','capacity','level','discipline','projection','waiting','playground','compare','guide','learned','summary','meeting','deepen','nextsteps'];
+const EDU_STEPS = ['time','timing','goal','capacity','level','discipline','projection','waiting','playground','compare','guide','learned','summary','meeting','deepen','nextsteps'];
+const RET_LABELS = ['Tiempo','Interés','Aportación','Nivel','Disciplina','Proyección','Esperar','Explorar','Comparar','Guía','Aprendido','Resumen','Reunión','Profundizar','Pasos'];
+const EDU_LABELS = ['Edades','Momento','Objetivo','Aportación','Nivel','Disciplina','Proyección','Esperar','Explorar','Comparar','Guía','Aprendido','Resumen','Reunión','Profundizar','Pasos'];
+
+const COPY = {
+  edu: {
+    timeTitle: 'Prepárate hoy para cuando llegue su universidad.',
+    timeText: 'Cuanto antes empieces, más tiempo tendrás para construir el capital necesario para sus estudios.',
+    ageQuestion: '¿Qué edad tiene tu hijo?',
+    horizonTail: 'hasta que empiece sus estudios.',
+    timeFoot: 'Cada año que tienes por delante puede convertirse en una ventaja.',
+    capacityText: 'La educación es un objetivo de largo plazo. La estrategia debe convivir con todos los demás ciclos financieros de una familia.',
+    capacityNote: 'La clave no es escoger la aportación más alta. Es escoger una que puedas mantener.',
+    disciplineTitle: 'Convierte una decisión en un sistema.',
+    disciplineText: 'Una aportación anual repetida durante años puede transformar un objetivo lejano en un plan concreto.',
+    fvTerm: 'Capital estimado',
+    projectionTitle: 'Tu escenario educativo',
+    projectionLabel: 'Capital estimado cuando cumpla 18 años',
+    waitingCta: '¿Qué pasa si empiezo 5 años después?',
+    waitingTitle: 'El valor de empezar antes',
+    waitingQuestion: '¿Qué ocurre si empiezas dentro de 5 años?',
+    laterLabel: 'Empezando en 5 años',
+    waitingFoot: 'Esperar reduce dos cosas al mismo tiempo: el número de aportaciones y el tiempo disponible para acumular rendimientos.',
+    playgroundTitle: 'Explora diferentes caminos',
+    learnedTitle: 'Esto es planificación con tiempo.',
+    learnedText: 'En este recorrido has construido un escenario educativo completo.',
+    learnedFoot: 'Cuando sabes qué quieres conseguir, cuánto tiempo tienes y qué puedes aportar de forma constante, el ahorro empieza a convertirse en una estrategia.',
+    summaryTitle: 'Tu escenario educativo',
+    summarySub: 'Objetivo: sus estudios a los 18 años',
+    deepenTitle: '¿Quieres revisar este objetivo con mayor profundidad?',
+    deepenText: 'Si quieres analizar otros escenarios y entender qué alternativas podrían ayudarte a aproximarte a este objetivo, podemos conversarlo.',
+    otherJourney: 'Explorar el escenario de retiro'
+  },
+  ret: {
+    timeTitle: 'El tiempo puede ser tu mayor ventaja.',
+    timeText: 'Mientras antes empieces, más tiempo tiene tu capital para crecer.',
+    ageQuestion: '¿Qué edad tienes?',
+    horizonTail: 'hasta los 65.',
+    timeFoot: 'En una estrategia de largo plazo, el tiempo puede ser tan importante como la aportación.',
+    capacityText: 'Una estrategia de largo plazo funciona mejor cuando la aportación puede mantenerse con disciplina en el tiempo.',
+    capacityNote: 'La vida cambia: hay periodos de mayores gastos, cambios profesionales, menores ingresos o proyectos familiares. Por eso un buen objetivo debe ser ambicioso, pero también sostenible.',
+    disciplineTitle: 'La disciplina hace la diferencia.',
+    disciplineText: 'No se trata únicamente de cuánto aportas. Se trata de mantener la estrategia en el tiempo.',
+    fvTerm: 'Referencia de ahorro',
+    projectionTitle: 'Tu escenario proyectado',
+    projectionLabel: 'Tu referencia de ahorro a los 65 años',
+    waitingCta: '¿Qué pasa si espero 5 años?',
+    waitingTitle: 'El coste de esperar',
+    waitingQuestion: '¿Qué ocurre si empiezas 5 años después?',
+    waitingFoot: 'Esperar no significa únicamente realizar menos aportaciones. También significa disponer de menos tiempo para acumular rendimientos.',
+    playgroundTitle: 'Explora y ajusta tu escenario',
+    learnedTitle: 'Acabas de construir una estrategia de ahorro programado.',
+    learnedText: 'Esto es lo que has entendido en este recorrido.',
+    learnedFoot: 'Cuando estos elementos se combinan de forma estructurada, el ahorro deja de ser una decisión aislada y se convierte en un sistema.',
+    summaryTitle: 'Tu escenario de retiro',
+    summarySub: 'Objetivo: retiro a los 65 años',
+    deepenTitle: '¿Quieres analizar tu escenario con mayor profundidad?',
+    deepenText: 'Si quieres revisar tus objetivos, explorar otros escenarios o entender alternativas aplicables a tu situación, podemos conversarlo.',
+    otherJourney: 'Explorar el escenario educativo'
+  }
+};
+
+const TAKEAWAYS = {
+  edu: ['El tiempo es el recurso que no se puede recuperar.','El interés compuesto trabaja sobre lo aportado y sobre lo generado.','Un objetivo aproximado ya permite planificar.','La aportación sostenible vale más que la aportación máxima.','Empezar antes reduce el esfuerzo anual necesario.'],
+  ret: ['El tiempo puede ser tan importante como la aportación.','El interés compuesto potencia el capital acumulado.','Construir desde tu capacidad hace sostenible la estrategia.','La disciplina en el tiempo marca la diferencia.','Pequeñas decisiones hoy generan diferencias relevantes mañana.']
+};
+
+const SUGGESTIONS = {
+  edu: ['¿Por qué empezar antes cambia tanto el resultado?','¿Cómo funciona el interés compuesto?','¿Qué pasa si un año reduzco mi aportación?','¿Cómo puedo aproximar el coste futuro de la universidad?','¿Qué pasa si quiero cubrir también gastos de vida?'],
+  ret: ['¿Por qué empezar antes puede marcar tanta diferencia?','¿Qué ocurre si aumento mi aportación?','¿Qué pasa si reduzco mi aportación?','¿Cómo funciona el interés compuesto?','¿Por qué la disciplina es importante?','¿Qué pasa si un año no puedo aportar?']
+};
+
+function answer(q, horizon, contrib) {
+  const h = horizon, c = contrib, f = fv(c, h);
+  const bank = [
+    [/antes|empezar/i, 'Cada año adicional aporta dos cosas: una aportación más y un año más de rendimientos sobre todo lo acumulado. Con ' + h + ' años por delante, tu capital estimado es ' + money(f) + '. Con 5 años menos serían ' + money(fv(c, Math.max(h - 5, 0))) + '.'],
+    [/aument/i, 'Si subieras la aportación un 20% (' + money(c * 1.2) + ' al año), el capital estimado pasaría de ' + money(f) + ' a ' + money(fv(c * 1.2, h)) + '. La relación es proporcional a la aportación; el tiempo es lo que multiplica.'],
+    [/reduzco|reduc|menos/i, 'Bajar la aportación reduce el resultado de forma proporcional: con ' + money(c * 0.8) + ' al año el capital estimado sería ' + money(fv(c * 0.8, h)) + '. Es preferible una cifra menor sostenible que una alta que no puedas mantener.'],
+    [/compuesto|interés|interes/i, 'El interés compuesto es el efecto de generar rendimientos sobre el capital acumulado y también sobre los rendimientos anteriores. En tu escenario, de ' + money(f) + ' estimados, ' + money(f - c * h) + ' vendrían del crecimiento acumulado.'],
+    [/disciplina|constan/i, 'La disciplina convierte una decisión aislada en un sistema. Son ' + h + ' aportaciones de ' + money(c) + '; el resultado depende más de mantenerlas que de acertar con el momento.'],
+    [/no puedo aportar|un año|salto|pausa/i, 'Si un año no aportas, pierdes esa aportación y los rendimientos que habría generado hasta el final del horizonte. En tu escenario, saltar un año equivale aproximadamente a ' + money(fv(c, h) - fv(c, h - 1)) + ' menos de capital estimado.'],
+    [/universidad|coste futuro|matr/i, 'Una forma sencilla de aproximarlo: toma el coste anual actual, multiplícalo por los años de estudios y ajústalo por la subida de precios esperada. No necesitas exactitud: el objetivo es el orden de magnitud.'],
+    [/gastos de vida/i, 'Cubrir matrícula más gastos de vida suele elevar el objetivo de forma notable. La consecuencia práctica es una aportación anual mayor, o bien empezar antes para que el tiempo haga más trabajo.']
+  ];
+  const hit = bank.find(([re]) => re.test(q));
+  return hit ? hit[1] : 'En tu escenario actual: ' + h + ' años de horizonte, ' + money(c) + ' al año, ' + money(c * h) + ' aportados y ' + money(f) + ' de capital estimado al ' + RATE_LABEL + ' ilustrativo. Puedes ajustar cualquier variable en la pantalla de exploración para ver el efecto.';
+}
+
+// Envía el escenario compartido a api/telos-scenario.js (Vercel KV, sin sesión
+// — es la única puerta de entrada de datos desde el público, ver
+// TELOS-DEPLOY.md §4). localStorage queda como respaldo local si la llamada
+// de red falla (móvil sin cobertura, etc.): nunca es la fuente de verdad del
+// asesor, pero evita perder el escenario si el usuario recarga la página.
+function persistScenario(payload) {
+  try {
+    localStorage.setItem('telos_scenario_' + payload.scenario_id, JSON.stringify(payload));
+  } catch (e) { /* localStorage no disponible (modo privado, etc.) */ }
+  fetch('/api/telos-leads', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  }).catch(() => { /* sin red: el escenario queda solo en localStorage de este dispositivo */ });
+}
+
+function Rail({ labels, step, onGo }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 0 30px' }}>
+      {labels.map((label, i) => (
+        <div key={i} style={{ flex: 1, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }} onClick={() => onGo(i)}>
+          <div style={{ height: 3, borderRadius: 99, background: i <= step ? 'var(--color-accent)' : 'var(--color-neutral-300)', transition: 'background .3s ease' }}></div>
+          <span style={{ fontSize: 10.5, letterSpacing: '0.02em', color: i === step ? 'var(--color-accent)' : 'var(--color-neutral-500)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Chart({ chart, w = 900, h = 300 }) {
+  return (
+    <svg viewBox={'0 0 ' + w + ' ' + h} style={{ width: '100%', height: 'auto' }} role="img" aria-label="Proyección de capital">
+      {chart.grid.map((g, i) => <line key={'gl' + i} x1="46" y1={g.y} x2={w} y2={g.y} stroke="var(--color-neutral-200)" strokeWidth="1" />)}
+      {chart.grid.map((g, i) => <text key={'gt' + i} x="40" y={g.ty} fontSize="11" fill="var(--color-neutral-500)" textAnchor="end">{g.label}</text>)}
+      <path d={chart.contribArea} fill="var(--color-neutral-300)" />
+      <path d={chart.valueArea} fill="var(--color-accent-200)" />
+      <path d={chart.valueLine} fill="none" stroke="var(--color-accent)" strokeWidth="2.5" />
+      {chart.ticks && chart.ticks.map((t, i) => <text key={'tk' + i} x={t.x} y={h - 5} fontSize="11.5" fill="var(--color-neutral-500)" textAnchor={t.anchor}>{t.label}</text>)}
+    </svg>
+  );
+}
+
+function App() {
+  const [journey, setJourney] = useState(null); // null | 'edu' | 'retiro'
+  const [step, setStep] = useState(0);
+  const [age, setAgeState] = useState(42);
+  const [childAge, setChildAge] = useState(1);
+  const [parentAge, setParentAge] = useState(35);
+  const [income, setIncome] = useState(80000);
+  const [pct, setPct] = useState(7.5);
+  const [contrib, setContrib] = useState(6000);
+  const [level, setLevel] = useState('cons');
+  const [goalType, setGoalType] = useState(1);
+  const [eduGoal, setEduGoal] = useState(100000);
+  const [messages, setMessages] = useState([{ who: 'g', text: 'Hola. Conozco las variables de tu escenario. ¿En qué puedo ayudarte a entenderlo mejor?' }]);
+  const [draft, setDraft] = useState('');
+  const [typing, setTyping] = useState(false);
+  const [scenarioId] = useState(() => 'TL-R-' + Math.floor(10000 + Math.random() * 89999));
+  const [shareModal, setShareModal] = useState(false);
+  const [shared, setShared] = useState(null);
+  const [meetingStage, setMeetingStage] = useState('intro');
+  const [calOffset, setCalOffset] = useState(0);
+  const [book, setBook] = useState({ name: '', contact: '', country: '', date: '', time: '' });
+  const typingTimer = useRef(null);
+  useEffect(() => () => clearTimeout(typingTimer.current), []);
+
+  const edu = journey === 'edu';
+  const copy = edu ? COPY.edu : COPY.ret;
+  const steps = edu ? EDU_STEPS : RET_STEPS;
+  const labels = edu ? EDU_LABELS : RET_LABELS;
+  const curAge = edu ? childAge : age;
+  const targetAge = edu ? 18 : 65;
+  const horizon = Math.max(targetAge - curAge, 1);
+  const total = contrib * horizon;
+  const futureValue = fv(contrib, horizon);
+  const growth = futureValue - total;
+  const lateHorizon = Math.max(horizon - 5, 0);
+  const futureValueLate = fv(contrib, lateHorizon);
+
+  function setAgeVal(v) { if (edu) setChildAge(v); else setAgeState(v); }
+  function goStep(i) { setStep(Math.max(0, Math.min(i, steps.length - 1))); }
+
+  // La Guía llama a /api/telos-guide (IA real, misma clave que Brandt en
+  // Kairos). Si falla -- sin red, sin clave configurada, límite alcanzado --
+  // cae al banco de respuestas local en vez de dejar el chat roto.
+  function send(q) {
+    const text = (q || '').trim();
+    if (!text) return;
+    const priorMessages = messages;
+    setMessages(m => [...m, { who: 'u', text }]);
+    setDraft('');
+    setTyping(true);
+    const context = edu ? {
+      scenario_type: 'education', child_age: childAge, parent_age: parentAge,
+      target_age: 18, years_to_education: horizon, annual_contribution: contrib,
+      total_nominal_contributions: total, benchmark_future_value: Math.round(futureValue),
+      benchmark_rate: RATE
+    } : {
+      scenario_type: 'retirement', current_age: curAge, target_age: 65,
+      years_to_retirement: horizon, annual_contribution: contrib,
+      total_nominal_contributions: total, benchmark_future_value: Math.round(futureValue),
+      benchmark_rate: RATE
+    };
+    const history = priorMessages.map(m => ({ role: m.who === 'u' ? 'user' : 'assistant', content: m.text }));
+    fetch('/api/telos-guide', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: text, history, context })
+    }).then(r => r.ok ? r.json() : Promise.reject(new Error('bad status')))
+      .then(data => {
+        setMessages(m => [...m, { who: 'g', text: data.answer || answer(text, horizon, contrib) }]);
+        setTyping(false);
+      })
+      .catch(() => {
+        clearTimeout(typingTimer.current);
+        typingTimer.current = setTimeout(() => {
+          setMessages(m => [...m, { who: 'g', text: answer(text, horizon, contrib) }]);
+          setTyping(false);
+        }, 400);
+      });
+  }
+
+  const eduBudget = Math.round(eduGoal / 4);
+  const range = eduRange(parentAge, childAge);
+  const sol = eduSolve(eduBudget, parentAge, childAge);
+
+  function scenarioPayload() {
+    return {
+      scenario_id: scenarioId,
+      scenario_type: edu ? 'education' : 'retirement',
+      current_age: curAge,
+      target_retirement_age: targetAge,
+      years_to_retirement: horizon,
+      annual_net_income: income,
+      selected_contribution_percentage: +(contrib / income * 100).toFixed(1),
+      monthly_contribution: Math.round(contrib / 12),
+      annual_contribution: contrib,
+      total_nominal_contributions: contrib * horizon,
+      parent_age: edu ? parentAge : undefined,
+      child_age: edu ? childAge : undefined,
+      education_years: edu ? 4 : undefined,
+      annual_education_budget: edu ? eduBudget : undefined,
+      total_education_objective: edu ? eduGoal : undefined,
+      education_range: edu ? range : undefined,
+      education_projection: edu ? {
+        required_annual_contribution: Math.round(sol.contribution),
+        projected_value_at_18: Math.round(sol.valueAt18),
+        annual_payout: Math.round(sol.annualPayout),
+        contribution_years: sol.years, growth_rate: EDU.GROWTH, payout_rate: 0.0425,
+        efficiency_factor: EDU.EFFICIENCY
+      } : undefined,
+      benchmark_rate: RATE,
+      benchmark_future_value: Math.round(futureValue),
+      benchmark_growth: Math.round(growth),
+      share_consent: true,
+      scenario_created_at: new Date().toISOString()
+    };
+  }
+
+  // Solo envía los datos de la reunión si el usuario decidió compartir su
+  // escenario (shared === true). Si declinó compartirlo, la promesa en
+  // pantalla es "la conversación empezará desde cero" -- respetarla significa
+  // que la reserva de cita no viaja al backend en ese caso.
+  function confirmBooking() {
+    if (shared === true) {
+      fetch('/api/telos-leads', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario_id: scenarioId, scenario_type: edu ? 'education' : 'retirement',
+          name: book.name, contact: book.contact, country: book.country,
+          meeting_date: book.date, meeting_time: book.time
+        })
+      }).catch(() => { /* sin red: la reunión queda confirmada solo en esta sesión */ });
+    }
+    setMeetingStage('done');
+  }
+
+  function calendar() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const base = new Date(today.getFullYear(), today.getMonth() + calOffset, 1);
+    const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const dows = ['L','M','X','J','V','S','D'];
+    const first = (base.getDay() + 6) % 7;
+    const days = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < first; i++) cells.push({ n: '', off: true, key: 'pad' + i });
+    for (let d = 1; d <= days; d++) {
+      const dt = new Date(base.getFullYear(), base.getMonth(), d);
+      const dow = dt.getDay();
+      const iso = base.getFullYear() + '-' + String(base.getMonth() + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      const off = dt < today || dow === 0 || dow === 6;
+      const on = book.date === iso;
+      cells.push({ n: String(d), off, iso, on, key: iso });
+    }
+    const slots = ['09:00', '11:00', '14:00', '16:00'];
+    let summary = 'Selecciona un día y una hora.';
+    if (book.date) {
+      const [yy, mm, dd] = book.date.split('-').map(Number);
+      const dt = new Date(yy, mm - 1, dd);
+      const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+      summary = dias[dt.getDay()] + ' ' + dt.getDate() + ' de ' + months[dt.getMonth()] + (book.time ? ' a las ' + book.time + ' (hora local)' : ' · elige una hora');
+    }
+    return { monthLabel: months[base.getMonth()] + ' ' + base.getFullYear(), dows, cells, slots, summary };
+  }
+
+  const data = series(contrib, horizon);
+  const max = Math.max(futureValue, 1);
+  const chartMain = paths(data, 900, 300, 46, max);
+  const chartSide = paths(data, 900, 290, 0, max);
+  const mNow = paths(series(contrib, horizon), 300, 84, 0, max);
+  const mLate = paths(series(contrib, lateHorizon || 1), 300, 84, 0, max);
+  const gridSteps = [0, 0.25, 0.5, 0.75, 1].map(f => ({ y: (300 - f * 292).toFixed(1), ty: (300 - f * 292 + 4).toFixed(1), label: short(max * f) }));
+  const chart = {
+    grid: gridSteps,
+    ticks: [{ x: 46, label: String(curAge), anchor: 'start' }, { x: 900, label: String(targetAge), anchor: 'end' }],
+    valueArea: chartMain.valueArea, contribArea: chartMain.contribArea, valueLine: chartMain.valueLine
+  };
+  const chartSideObj = { grid: [], valueArea: chartSide.valueArea, contribArea: chartSide.contribArea, valueLine: chartSide.valueLine };
+
+  const years = data.slice(1).map((d, i) => ({
+    op: 0.35 + 0.65 * (i / Math.max(horizon - 1, 1)),
+    h: (18 + 62 * (d.value / futureValue)).toFixed(1) + 'px',
+    tick: (i === 0 || i === horizon - 1 || (i + 1) % 5 === 0) ? String(curAge + i + 1) : ''
+  }));
+
+  const eduRangeOk = !edu || range.ok;
+  const eduRangeBad = edu && !range.ok;
+  const eduExtrapolated = edu && range.ok && range.tight;
+
+  function resetHome() { setJourney(null); setStep(0); setMeetingStage('intro'); setShared(null); setShareModal(false); }
+  function pick(j) { setJourney(j); setStep(0); setMeetingStage('intro'); setShared(null); }
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'var(--font-body)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '18px 40px', maxWidth: 1440, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 'auto', cursor: 'pointer' }} onClick={resetHome}>
+          <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M4 19 L10 11 L14 15 L20 6"></path></svg>
+          </div>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>Telos</span>
+        </div>
+        <span style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Escenario ilustrativo al {RATE_LABEL} anual</span>
+        {journey && <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={resetHome}>Empezar de nuevo</button>}
+      </div>
+
+      {!journey && (
+      <div style={{ maxWidth: 1040, margin: '0 auto', padding: '40px 40px 100px', animation: 'cnFade .4s ease' }}>
+        <div style={{ textAlign: 'center', marginBottom: 44 }}>
+          <h1 style={{ fontSize: 52, lineHeight: 1.08, letterSpacing: '-0.035em', margin: '0 0 18px' }}>Construye hoy lo que será importante mañana.</h1>
+          <p style={{ fontSize: 19, lineHeight: 1.55, maxWidth: '60ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>Explora cómo el tiempo, la disciplina y una estrategia de ahorro programado pueden ayudarte a construir capital para objetivos importantes de tu vida.</p>
+        </div>
+        <h2 style={{ fontSize: 24, textAlign: 'center', letterSpacing: '-0.02em', margin: '0 0 28px' }}>¿Qué quieres construir?</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 24 }}>
+          <div className="card-link" style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 14 }} onClick={() => pick('edu')}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--color-accent-100)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9 L12 4 L21 9 L12 14 Z"></path><path d="M7 11.5 V17 C7 17 9 19 12 19 C15 19 17 17 17 17 V11.5"></path></svg>
+            </div>
+            <h3 style={{ fontSize: 24, letterSpacing: '-0.025em' }}>Educación de tus hijos</h3>
+            <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, color: 'var(--color-neutral-700)' }}>Prepárate para que, al llegar a los 18 años, dispongan de capital para afrontar sus estudios universitarios.</p>
+            <div style={{ marginTop: 6 }}><span className="btn btn-primary">Explorar educación</span></div>
+          </div>
+          <div className="card-link" style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 14 }} onClick={() => pick('retiro')}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--color-accent-100)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5 V12 L15.5 14"></path></svg>
+            </div>
+            <h3 style={{ fontSize: 24, letterSpacing: '-0.025em' }}>Tu retiro</h3>
+            <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, color: 'var(--color-neutral-700)' }}>Construye capital durante tus años productivos para ampliar tus opciones a partir de los 65.</p>
+            <div style={{ marginTop: 6 }}><span className="btn btn-primary">Explorar retiro</span></div>
+          </div>
+        </div>
+        <div style={{ marginTop: 24, background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 18, padding: '26px 30px', display: 'flex', alignItems: 'center', gap: 22 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: '#fff', border: '1px solid var(--color-divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" strokeWidth="1.8" strokeLinejoin="round"><rect x="4" y="7" width="16" height="13"></rect><path d="M9 7 V4 h6 v3"></path><path d="M9 12 h6"></path></svg>
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><h3 style={{ fontSize: 19, letterSpacing: '-0.02em', color: 'var(--color-neutral-800)' }}>Empresas</h3><span className="tag tag-neutral">Próximamente</span></div>
+            <div style={{ fontSize: 14, color: 'var(--color-neutral-600)', marginTop: 4 }}>Retención de talento · Jubilación de socios</div>
+          </div>
+          <button className="btn btn-secondary" style={{ marginLeft: 'auto' }} disabled>No disponible</button>
+        </div>
+        <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--color-neutral-600)', marginTop: 44, lineHeight: 1.6 }}>Sin registro. Sin compromiso.<br />Primero entiende cómo funciona.</p>
+      </div>
+      )}
+
+      {journey && (
+      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 100px' }}>
+        <Rail labels={labels} step={step} onGo={goStep} />
+        <div style={{ animation: 'cnFade .35s ease' }}>
+
+        {steps[step] === 'time' && (
+          <div style={{ maxWidth: 760, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+            <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>{copy.timeTitle}</h1>
+            <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '48ch', margin: '0 auto 36px', color: 'var(--color-neutral-700)' }}>{copy.timeText}</p>
+            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14 }}>{copy.ageQuestion}</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 16, border: '1px solid var(--color-divider)', borderRadius: 16, padding: '16px 26px', background: 'var(--color-neutral-100)' }}>
+              <button className="btn btn-secondary btn-icon" style={{ borderRadius: 10 }} onClick={() => setAgeVal(Math.max(curAge - 1, edu ? 0 : 20))} aria-label="Reducir">−</button>
+              <div>
+                <div style={{ fontSize: 56, fontWeight: 700, lineHeight: 1, letterSpacing: '-0.035em', fontVariantNumeric: 'tabular-nums' }}>{curAge}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-neutral-600)' }}>{curAge === 1 ? 'año' : 'años'}</div>
+              </div>
+              <button className="btn btn-secondary btn-icon" style={{ borderRadius: 10 }} onClick={() => setAgeVal(Math.min(curAge + 1, edu ? 17 : 64))} aria-label="Aumentar">+</button>
+            </div>
+            <div style={{ maxWidth: 420, margin: '18px auto 0', textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, color: 'var(--color-neutral-700)', marginBottom: 2 }}><span>{curAge}</span><span>{targetAge}</span></div>
+              <input type="range" min={edu ? 0 : 20} max={edu ? 17 : 64} value={curAge} onChange={e => setAgeVal(+e.target.value)} />
+            </div>
+
+            {edu && (
+              <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+                <div style={{ fontSize: 15, fontWeight: 600 }}>¿Y qué edad tienes tú?</div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 16, border: '1px solid var(--color-divider)', borderRadius: 16, padding: '12px 22px', background: 'var(--color-neutral-100)' }}>
+                  <button className="btn btn-secondary btn-icon" style={{ borderRadius: 10 }} onClick={() => setParentAge(Math.max(parentAge - 1, 25))} aria-label="Reducir">−</button>
+                  <div>
+                    <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>{parentAge}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>{parentAge === 1 ? 'año' : 'años'}</div>
+                  </div>
+                  <button className="btn btn-secondary btn-icon" style={{ borderRadius: 10 }} onClick={() => setParentAge(Math.min(parentAge + 1, 60))} aria-label="Aumentar">+</button>
+                </div>
+                <div style={{ width: '100%', maxWidth: 420 }}>
+                  <input type="range" min="25" max="60" value={parentAge} onChange={e => setParentAge(+e.target.value)} />
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', maxWidth: '46ch', lineHeight: 1.6 }}>La usamos para comprobar que aportar hasta que tu hijo empiece sus estudios no se extienda más allá de tu propio retiro.</div>
+              </div>
+            )}
+
+            {eduRangeBad && (
+              <div style={{ marginTop: 32, textAlign: 'left', background: 'var(--color-accent-2-100)', border: '1px solid var(--color-accent-2-200)', borderRadius: 16, padding: 24 }}>
+                <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--color-accent-2-900)', marginBottom: 10 }}>La combinación de edades no deja margen suficiente.</div>
+                <div style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-accent-2-900)', marginBottom: 14 }}>{range.reason}</div>
+                <div style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--color-accent-2-900)' }}>El recorrido de retiro se ajusta mejor a tu situación: construye capital sin una fecha fija de uso, y lo que acumules puede destinarse a lo que tu familia decida, incluidos los estudios de tu hijo.</div>
+                <div style={{ marginTop: 18 }}><button className="btn btn-primary" onClick={() => pick('retiro')}>Explorar el recorrido de retiro</button></div>
+              </div>
+            )}
+
+            {eduRangeOk && (
+              <div style={{ marginTop: 22, textAlign: 'left' }}>
+                <div style={{ textAlign: 'center', marginBottom: 12 }}><span style={{ fontSize: 15, color: 'var(--color-neutral-600)' }}>Tienes </span><span style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: '-0.02em' }}>{yearsLabel(horizon)}</span><span style={{ fontSize: 15, color: 'var(--color-neutral-600)' }}> {copy.horizonTail}</span></div>
+                <div style={{ display: 'flex', gap: 3, marginTop: 10 }}>
+                  {years.map((y, i) => <div key={i} style={{ flex: 1, height: 26, borderRadius: 3, background: 'var(--color-accent)', opacity: y.op }}></div>)}
+                </div>
+                <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-neutral-500)', marginTop: 8 }}>Un bloque por año de aportación</div>
+              </div>
+            )}
+
+            {eduExtrapolated && (
+              <div style={{ marginTop: 24, textAlign: 'left', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '16px 18px' }}>
+                <span style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--color-neutral-700)' }}>Queda {yearsLabel(range.years || 0)} por delante. Con un plazo corto, el esfuerzo anual pesa mucho más que el rendimiento: conviene revisar la cifra con calma antes de comprometerla.</span>
+              </div>
+            )}
+
+            {eduRangeOk && (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', background: 'var(--color-accent-100)', borderRadius: 14, padding: '16px 18px', marginTop: 32 }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.9" style={{ flex: 'none', marginTop: 2 }}><circle cx="12" cy="12" r="9"></circle><path d="M12 8 v0.01 M12 11.5 v4.5" strokeLinecap="round"></path></svg>
+                <span style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-accent-800)' }}>{copy.timeFoot}</span>
+              </div>
+            )}
+
+            {eduRangeOk && <div style={{ marginTop: 28 }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Continuar</button></div>}
+          </div>
+        )}
+
+        {!edu && steps[step] === 'compound' && (
+          <div style={{ maxWidth: 820, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+            <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>¿Por qué importa tanto empezar antes?</h1>
+            <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto 40px', color: 'var(--color-neutral-700)' }}>Porque los rendimientos acumulados pueden incorporarse al capital y generar nuevos rendimientos.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left', maxWidth: 560, margin: '0 auto' }}>
+              {[{ n: '1', label: 'Capital inicial', gainPct: 0 },{ n: '2', label: 'Genera rendimiento', gainPct: 12 },{ n: '3', label: 'El rendimiento se incorpora', gainPct: 26 },{ n: '4', label: 'Genera nuevo rendimiento', gainPct: 44 }].map(c => (
+                <div key={c.n} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <span style={{ width: 26, height: 26, flex: 'none', borderRadius: '50%', background: 'var(--color-accent-100)', color: 'var(--color-accent-700)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c.n}</span>
+                  <span style={{ fontSize: 14.5, width: '22ch', color: 'var(--color-neutral-800)' }}>{c.label}</span>
+                  <div style={{ flex: 1, display: 'flex', height: 30, borderRadius: 6, overflow: 'hidden', background: 'var(--color-neutral-100)' }}>
+                    <div style={{ width: (58 - c.gainPct * 0.2).toFixed(0) + '%', background: 'var(--color-neutral-400)' }}></div>
+                    <div style={{ width: c.gainPct + '%', background: 'var(--color-accent)', transition: 'width .4s ease' }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 22, justifyContent: 'center', marginTop: 22, fontSize: 12.5, color: 'var(--color-neutral-600)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--color-neutral-400)' }}></span>Capital</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--color-accent)' }}></span>Rendimiento incorporado</span>
+            </div>
+            <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, marginTop: 34 }}>
+              <div style={{ fontSize: 14, color: 'var(--color-neutral-700)' }}>Este efecto acumulativo se conoce como</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-accent)', letterSpacing: '-0.02em', marginTop: 4 }}>interés compuesto</div>
+              <div style={{ fontSize: 13.5, color: 'var(--color-neutral-600)', marginTop: 8, lineHeight: 1.6, maxWidth: '56ch', marginLeft: 'auto', marginRight: 'auto' }}>Es el efecto de generar rendimientos sobre el capital acumulado y sobre rendimientos anteriores. Cuanto más tiempo tiene este proceso, mayor puede ser su efecto.</div>
+            </div>
+            <div style={{ marginTop: 26 }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Continuar</button></div>
+          </div>
+        )}
+
+        {edu && steps[step] === 'timing' && (() => {
+          const childBars = [0, 5, 10].map(ca => { const s = eduSolve(eduBudget, parentAge, ca); return { ca, years: s.years, contribution: s.contribution }; });
+          const maxEffort = Math.max(...childBars.map(b => b.contribution)) || 1;
+          const startBars = childBars.map(b => ({
+            label: b.ca === 0 ? 'Empezando al nacer' : 'Empezando a los ' + b.ca,
+            years: b.years, effort: money(b.contribution), w: Math.round(b.contribution / maxEffort * 100) + '%',
+            tone: b.ca === 0 ? 'var(--color-accent)' : b.ca === 5 ? 'var(--color-accent-400)' : 'var(--color-neutral-400)'
+          }));
+          const effortLow = money(Math.min(...childBars.map(b => b.contribution)));
+          const effortHigh = money(Math.max(...childBars.map(b => b.contribution)));
+          return (
+          <div style={{ maxWidth: 860, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 36 }}>
+              <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>Mientras antes, mejor.</h1>
+              <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '54ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>El mismo objetivo exige {effortLow} al año si empiezas al nacer, y {effortHigh} si esperas a sus 10. No es que el objetivo cambie: es que quedan menos años para construirlo.</p>
+            </div>
+            <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '18px 22px', marginBottom: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-neutral-600)' }}>Objetivo</span>
+              <span style={{ fontSize: 20, fontWeight: 700 }}>{money(eduBudget)} / año</span>
+              <span style={{ fontSize: 14, color: 'var(--color-neutral-600)' }}>× 4 años =</span>
+              <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-accent)' }}>{money(eduGoal)}</span>
+              <span style={{ fontSize: 13, color: 'var(--color-neutral-600)' }}>El objetivo no cambia entre escenarios; solo el tiempo disponible para construirlo.</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              {startBars.map((b, i) => (
+                <div key={i}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, width: '19ch' }}>{b.label}</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: b.tone, fontVariantNumeric: 'tabular-nums' }}>{b.effort} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-neutral-600)' }}>al año</span></span>
+                    <span style={{ marginLeft: 'auto', fontSize: 14, color: 'var(--color-neutral-600)' }}>durante {yearsLabel(b.years)}</span>
+                  </div>
+                  <div style={{ height: 16, borderRadius: 99, background: 'var(--color-neutral-200)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: b.w, background: b.tone, borderRadius: 99, transition: 'width .5s ease' }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 12, background: 'var(--color-accent-100)', borderRadius: 14, padding: '16px 18px', marginTop: 32 }}>
+              <span style={{ fontSize: 15, lineHeight: 1.6, color: 'var(--color-accent-800)' }}>El objetivo puede ser el mismo. El esfuerzo anual necesario puede ser muy diferente.</span>
+            </div>
+            <div style={{ marginTop: 26, textAlign: 'center' }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Definir mi objetivo</button></div>
+          </div>
+          );
+        })()}
+
+        {edu && steps[step] === 'goal' && (
+          <div style={{ maxWidth: 900, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>¿Cuánto quieres poder destinar cada año a sus estudios?</h1>
+              <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '50ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>No necesitas tener hoy una cifra perfecta. El objetivo es comprender el orden de magnitud y empezar a planificar.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16 }}>
+              {[{ title: 'Matrícula universitaria', amount: '$12,500 / año', note: '$50,000 en total, durante los 4 años.', v: 50000 },{ title: 'Matrícula + gastos de vida', amount: '$25,000 / año', note: '$100,000 en total, durante los 4 años.', v: 100000 },{ title: 'Capital educativo mayor', amount: '$40,000 / año', note: '$160,000 en total, durante los 4 años.', v: 160000 }].map((g, i) => {
+                const on = goalType === i;
+                return (
+                  <div key={i} className="pick-card" style={{ border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent-100)' : '#fff', borderRadius: 16, padding: 22, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8 }} onClick={() => { setGoalType(i); setEduGoal(g.v); }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.3 }}>{g.title}</div>
+                    <div style={{ fontSize: 26, fontWeight: 700, color: on ? 'var(--color-accent)' : 'var(--color-text)', fontVariantNumeric: 'tabular-nums' }}>{g.amount}</div>
+                    <p style={{ fontSize: 13, lineHeight: 1.55, margin: 0, color: 'var(--color-neutral-600)' }}>{g.note}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 16, maxWidth: 560, margin: '32px auto 0' }}>
+              <div className="field">
+                <label>Presupuesto anual para estudios (USD)</label>
+                <input className="input" type="number" step="1000" value={eduBudget} onChange={e => setEduGoal(Math.round((+e.target.value || 0) * 4))} />
+              </div>
+              <div className="field">
+                <label>Objetivo total (USD)</label>
+                <input className="input" type="number" step="5000" value={eduGoal} onChange={e => setEduGoal(+e.target.value || 0)} />
+              </div>
+            </div>
+            <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 24, margin: '18px auto 0', maxWidth: 560, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 18, flexWrap: 'wrap' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-accent-800)' }}>Cada año de estudios</div>
+                <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums' }}>{money(eduBudget)}</div>
+              </div>
+              <div style={{ fontSize: 15, color: 'var(--color-neutral-600)' }}>× 4 años de carrera =</div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Objetivo total</div>
+                <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>{money(eduGoal)}</div>
+              </div>
+            </div>
+            <div style={{ maxWidth: 560, margin: '16px auto 0', display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 14, color: 'var(--color-neutral-700)' }}>Para lograrlo, tu aportación sería</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums' }}>{money(sol.contribution)} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-neutral-600)' }}>/ año</span></span>
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--color-neutral-600)' }}>Durante {yearsLabel(horizon)} hasta que empiece sus estudios, con un total aportado de {money(sol.totalContributions)}. El capital estimado al llegar es {money(sol.valueAt18)}: hace falta algo menos que el objetivo porque el saldo sigue generando rendimiento mientras se retira, a lo largo de los cuatro años de carrera.</div>
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 12 }}>Las dos cifras están sincronizadas: cambia cualquiera y la otra se ajusta.</div>
+            <div style={{ marginTop: 26, textAlign: 'center' }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Continuar</button></div>
+          </div>
+        )}
+
+        {steps[step] === 'capacity' && (
+          <div style={{ maxWidth: 820, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+            <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>Construye desde lo que puedas sostener.</h1>
+            <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto 34px', color: 'var(--color-neutral-700)' }}>{copy.capacityText}</p>
+            <div style={{ maxWidth: 420, margin: '0 auto' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>Ingreso neto anual aproximado</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--color-divider)', borderRadius: 12, padding: '12px 18px', background: 'var(--color-neutral-100)' }}>
+                <span style={{ fontSize: 20, color: 'var(--color-neutral-500)' }}>$</span>
+                <span style={{ fontSize: 30, fontWeight: 700, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em' }}>{income.toLocaleString('en-US')}</span>
+                <span style={{ marginLeft: 'auto', fontSize: 13, color: 'var(--color-neutral-600)' }}>USD / año</span>
+              </div>
+              <input type="range" min="20000" max="400000" step="5000" value={income} onChange={e => { const v = +e.target.value; setIncome(v); setContrib(Math.round(v * pct / 100)); }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14, marginTop: 34 }}>
+              {[7, 10, 12].map(pc => {
+                const on = Math.abs(pct - pc) < 0.01;
+                return (
+                  <div key={pc} className="pick-card" style={{ border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent-100)' : '#fff', borderRadius: 16, padding: '20px 16px', cursor: 'pointer' }} onClick={() => { setPct(pc); setContrib(Math.round(income * pc / 100)); }}>
+                    <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.025em', color: on ? 'var(--color-accent)' : 'var(--color-text)' }}>{pc}%</div>
+                    <div style={{ fontSize: 13.5, color: 'var(--color-neutral-700)', marginTop: 2 }}>{pc === 7 ? 'Aportación contenida' : pc === 10 ? 'Objetivo base' : 'Aportación más exigente'}</div>
+                    <div style={{ fontSize: 19, fontWeight: 700, marginTop: 10, fontVariantNumeric: 'tabular-nums' }}>{money(income * pc / 100)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-neutral-500)' }}>/ año</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ maxWidth: 420, margin: '32px auto 0' }}>
+              <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>¿Qué aportación anual quieres explorar?</div>
+              <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums' }}>{money(contrib)} <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-neutral-600)' }}>/ año</span></div>
+              <input type="range" min="500" max="60000" step="100" value={contrib} onChange={e => { const v = +e.target.value; setContrib(v); setPct(+((v / income * 100).toFixed(1))); }} />
+              <div style={{ fontSize: 13, color: 'var(--color-neutral-600)' }}>Equivale al {(contrib / income * 100).toFixed(1)}% de tu ingreso neto anual</div>
+            </div>
+            <div style={{ display: 'flex', gap: 12, textAlign: 'left', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 18, marginTop: 30 }}>
+              <span style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-neutral-700)' }}>{copy.capacityNote}</span>
+            </div>
+            <div style={{ marginTop: 26 }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Continuar</button></div>
+          </div>
+        )}
+
+        {steps[step] === 'level' && (
+          <div style={{ maxWidth: 860, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+            <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>¿Cómo quieres construir tu escenario?</h1>
+            <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto 34px', color: 'var(--color-neutral-700)' }}>Puedes ajustar tu nivel de aportación según tu comodidad y tus objetivos.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18 }}>
+              {[{ id: 'cons', title: 'Contenida', note: 'Aportación moderada y sostenible en el tiempo.', range: '7% – 10%', pct: 8.5 },{ id: 'agr', title: 'Más exigente', note: 'Mayor aportación anual para acercarte antes a tu objetivo.', range: '10% – 12%', pct: 11 }].map(l => {
+                const on = level === l.id;
+                return (
+                  <div key={l.id} className="pick-card" style={{ border: '1.5px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent-100)' : '#fff', borderRadius: 16, padding: 26, cursor: 'pointer', textAlign: 'left' }} onClick={() => { setLevel(l.id); setPct(l.pct); setContrib(Math.round(income * l.pct / 100)); }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' }}>{l.title}</div>
+                    <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-neutral-700)', margin: '8px 0 16px' }}>{l.note}</p>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: on ? 'var(--color-accent)' : 'var(--color-neutral-700)' }}>{l.range}</div>
+                    <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)' }}>de tu ingreso · {money(income * l.pct / 100)} / año</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: 14, textAlign: 'left', background: 'var(--color-accent-100)', borderRadius: 14, padding: 18, marginTop: 26 }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-accent-800)', marginBottom: 4 }}>La vida cambia, y está bien.</div>
+                <div style={{ fontSize: 13.5, lineHeight: 1.65, color: 'var(--color-accent-800)' }}>Habrá periodos de mayores gastos, cambios profesionales, menores ingresos, mudanzas o proyectos familiares. Por eso un buen objetivo debe ser ambicioso, pero también sostenible.</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 26 }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Construir mi escenario</button></div>
+          </div>
+        )}
+
+        {steps[step] === 'discipline' && (
+          <div style={{ maxWidth: 1000, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 34 }}>
+              <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>{copy.disciplineTitle}</h1>
+              <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>{copy.disciplineText}</p>
+            </div>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end' }}>
+              {years.map((y, i) => (
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                  <div style={{ width: '100%', height: y.h, borderRadius: '4px 4px 0 0', background: 'var(--color-accent)', opacity: y.op, transition: 'height .4s ease' }}></div>
+                </div>
+              ))}
+            </div>
+            <div style={{ height: 1, background: 'var(--color-divider)' }}></div>
+            <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+              {years.map((y, i) => <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: 10.5, fontVariantNumeric: 'tabular-nums', color: 'var(--color-neutral-500)' }}>{y.tick}</div>)}
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 10 }}>{money(contrib)} cada año · desde los {curAge} hasta los {targetAge} años</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18, marginTop: 32 }}>
+              <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 22, textAlign: 'center' }}>
+                <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em' }}>{yearsLabel(horizon)}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 2 }}>de disciplina</div>
+              </div>
+              <div style={{ background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-200)', borderRadius: 14, padding: 22, textAlign: 'center' }}>
+                <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--color-accent-700)', fontVariantNumeric: 'tabular-nums' }}>{money(total)}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-accent-800)', marginTop: 2 }}>de aportaciones acumuladas</div>
+              </div>
+            </div>
+            <p style={{ fontSize: 15, lineHeight: 1.65, textAlign: 'center', color: 'var(--color-neutral-700)', margin: '26px auto 0', maxWidth: '56ch' }}>{edu ? 'Lo que sostiene el resultado no es un año excepcional, sino la repetición.' : 'Una decisión repetida durante muchos años puede convertirse en un resultado significativo.'}</p>
+            <div style={{ marginTop: 24, textAlign: 'center' }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Ver mi proyección</button></div>
+          </div>
+        )}
+
+        {steps[step] === 'projection' && (
+          <div style={{ maxWidth: 1000, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <h1 style={{ fontSize: 34, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 6px' }}>{copy.projectionTitle}</h1>
+              <div style={{ fontSize: 15, color: 'var(--color-neutral-600)' }}>{copy.projectionLabel}</div>
+              <div style={{ fontSize: 68, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', marginTop: 18, lineHeight: 1 }}>{money(futureValue)}</div>
+              <div style={{ fontSize: 14, color: 'var(--color-neutral-600)', marginTop: 6 }}>{copy.fvTerm}</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14, marginTop: 32 }}>
+              <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{money(total)}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 2 }}>Aportaciones totales</div>
+              </div>
+              <div style={{ background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-200)', borderRadius: 14, padding: 20, textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-accent-700)', fontVariantNumeric: 'tabular-nums' }}>{money(growth)}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-accent-800)', marginTop: 2 }}>Crecimiento estimado</div>
+              </div>
+              <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, textAlign: 'center' }}>
+                <div style={{ fontSize: 24, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{money(futureValue)}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 2 }}>{copy.fvTerm}</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 30 }}>
+              <div style={{ display: 'flex', gap: 20, fontSize: 12.5, color: 'var(--color-neutral-600)', marginBottom: 8 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--color-neutral-400)' }}></span>Aportaciones</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--color-accent)' }}></span>Crecimiento generado</span>
+              </div>
+              <Chart chart={chart} />
+            </div>
+            <p style={{ textAlign: 'center', fontSize: 15, lineHeight: 1.65, color: 'var(--color-neutral-700)', maxWidth: '56ch', margin: '24px auto 0' }}>Tus aportaciones construyen la base. El tiempo permite que el efecto acumulativo se desarrolle.</p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center', marginTop: 22 }}>
+              <button className="btn btn-primary" onClick={() => goStep(step + 1)}>{copy.waitingCta}</button>
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-neutral-500)', marginTop: 18, lineHeight: 1.6 }}>Calculado con un supuesto hipotético de rentabilidad constante del {RATE_LABEL} anual.<br />No representa una rentabilidad garantizada ni una propuesta de producto.</div>
+          </div>
+        )}
+
+        {steps[step] === 'waiting' && (
+          <div style={{ maxWidth: 900, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 12px' }}>{copy.waitingTitle}</h1>
+              <p style={{ fontSize: 17, color: 'var(--color-neutral-700)', margin: 0 }}>{copy.waitingQuestion}</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18 }}>
+              <div style={{ border: '1.5px solid var(--color-accent-300)', background: 'var(--color-accent-100)', borderRadius: 16, padding: 24, textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-accent-800)' }}>Empezando hoy</div>
+                <div style={{ fontSize: 13, color: 'var(--color-accent-800)', opacity: .8, marginTop: 4 }}>{curAge + ' → ' + targetAge + ' · ' + yearsLabel(horizon)}</div>
+                <div style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', marginTop: 14 }}>{money(futureValue)}</div>
+                <svg viewBox="0 0 300 90" style={{ width: '100%', height: 'auto', marginTop: 12 }}><path d={mNow.valueArea} fill="var(--color-accent-300)"></path><path d={mNow.valueLine} fill="none" stroke="var(--color-accent)" strokeWidth="2"></path></svg>
+              </div>
+              <div style={{ border: '1.5px solid var(--color-neutral-300)', background: 'var(--color-neutral-100)', borderRadius: 16, padding: 24, textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-neutral-800)' }}>{edu ? 'Empezando en 5 años' : 'Empezando a los ' + (curAge + 5)}</div>
+                <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 4 }}>{(curAge + 5) + ' → ' + targetAge + ' · ' + yearsLabel(lateHorizon)}</div>
+                <div style={{ fontSize: 38, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-neutral-700)', fontVariantNumeric: 'tabular-nums', marginTop: 14 }}>{money(futureValueLate)}</div>
+                <svg viewBox="0 0 300 90" style={{ width: '100%', height: 'auto', marginTop: 12 }}><path d={mLate.valueArea} fill="var(--color-neutral-300)"></path><path d={mLate.valueLine} fill="none" stroke="var(--color-neutral-500)" strokeWidth="2"></path></svg>
+              </div>
+            </div>
+            <div style={{ border: '1.5px solid #f6d6df', background: '#fdf2f5', borderRadius: 16, padding: 24, marginTop: 18, textAlign: 'center' }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-accent-2)', letterSpacing: '0.02em' }}>Diferencia estimada</div>
+              <div style={{ fontSize: 46, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-accent-2)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>−{money(futureValue - futureValueLate)}</div>
+              <div style={{ fontSize: 14, lineHeight: 1.6, color: '#8a2b45', maxWidth: '52ch', margin: '8px auto 0' }}>{copy.waitingFoot}</div>
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 13.5, color: 'var(--color-neutral-600)', marginTop: 16 }}>El tiempo también forma parte de tu estrategia.</div>
+            <div style={{ marginTop: 26, textAlign: 'center' }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Explorar alternativas</button></div>
+          </div>
+        )}
+
+        {steps[step] === 'playground' && (() => {
+          const sliders = [
+            { label: edu ? 'Edad actual del hijo' : 'Edad actual', min: edu ? 0 : 20, max: edu ? 17 : 64, step: 1, value: curAge, display: yearsLabel(curAge), on: e => setAgeVal(+e.target.value) },
+            { label: 'Ingreso neto anual', min: 20000, max: 400000, step: 5000, value: income, display: money(income), on: e => { const v = +e.target.value; setIncome(v); setContrib(Math.round(v * pct / 100)); } },
+            { label: '% de aportación', min: 3, max: 20, step: 0.5, value: pct, display: pct + '%', on: e => { const v = +e.target.value; setPct(v); setContrib(Math.round(income * v / 100)); } },
+            { label: 'Aportación anual', min: 500, max: 60000, step: 100, value: contrib, display: money(contrib), on: e => { const v = +e.target.value; setContrib(v); setPct(+((v / income * 100).toFixed(1))); } }
+          ];
+          if (edu) sliders.push({ label: 'Objetivo educativo (4 años)', min: 20000, max: 300000, step: 4000, value: eduGoal, display: money(eduGoal) + ' · ' + money(Math.round(eduGoal / 4)) + '/año', on: e => setEduGoal(+e.target.value) });
+          const panelRows = [
+            { k: 'Horizonte', v: yearsLabel(horizon) },
+            { k: 'Aportación anual', v: money(contrib) },
+            { k: 'Total aportado', v: money(total) },
+            { k: 'Crecimiento estimado', v: money(growth) }
+          ];
+          return (
+          <div>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <h1 style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 10px' }}>{copy.playgroundTitle}</h1>
+              <p style={{ fontSize: 16.5, color: 'var(--color-neutral-700)', margin: 0 }}>Modifica las variables y observa cómo cambia el resultado.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,6fr)', gap: 24, alignItems: 'start' }}>
+              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 22 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: '12px 14px' }}>
+                  <span style={{ fontSize: 13.5, color: 'var(--color-neutral-700)' }}>Edad objetivo</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 14, fontWeight: 700, color: 'var(--color-neutral-700)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11 V8 a4 4 0 0 1 8 0 v3"></path></svg>
+                    Fija en {targetAge} años
+                  </span>
+                </div>
+                {sliders.map((s, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      <span style={{ fontSize: 13.5, color: 'var(--color-neutral-700)' }}>{s.label}</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, fontVariantNumeric: 'tabular-nums', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 8, padding: '4px 10px' }}>{s.display}</span>
+                    </div>
+                    <input type="range" min={s.min} max={s.max} step={s.step} value={s.value} onChange={s.on} />
+                  </div>
+                ))}
+                <div style={{ fontSize: 12, color: 'var(--color-neutral-500)' }}>Escenario ilustrativo al {RATE_LABEL} anual compuesto. Los valores se actualizan en tiempo real.</div>
+              </div>
+              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', position: 'sticky', top: 16 }}>
+                <div style={{ fontSize: 13.5, color: 'var(--color-neutral-600)' }}>{copy.projectionLabel}</div>
+                <div style={{ fontSize: 56, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.05 }}>{money(futureValue)}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12, marginTop: 20 }}>
+                  {panelRows.map((r, i) => (
+                    <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 14 }}>
+                      <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>{r.k}</div>
+                      <div style={{ fontSize: 19, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 2 }}>{r.v}</div>
+                    </div>
+                  ))}
+                </div>
+                <svg viewBox="0 0 900 300" style={{ width: '100%', height: 'auto', marginTop: 20 }} role="img" aria-label="Proyección">
+                  <path d={chartSideObj.contribArea} fill="var(--color-neutral-300)"></path>
+                  <path d={chartSideObj.valueArea} fill="var(--color-accent-200)"></path>
+                  <path d={chartSideObj.valueLine} fill="none" stroke="var(--color-accent)" strokeWidth="2.5"></path>
+                </svg>
+                <div style={{ marginTop: 20 }}><button className="btn btn-primary btn-block" onClick={() => goStep(step + 1)}>Comparar escenarios</button></div>
+              </div>
+            </div>
+          </div>
+          );
+        })()}
+
+        {steps[step] === 'compare' && (() => {
+          const nearestPct = [7, 10, 12].reduce((a, b) => Math.abs(b - pct) < Math.abs(a - pct) ? b : a, 7);
+          const scenarios = [7, 10, 12].map((pc, i) => {
+            const cc = Math.round(income * pc / 100), f = fv(cc, horizon), on = pc === nearestPct;
+            const sp = paths(series(cc, horizon), 300, 94, 0, fv(Math.round(income * 0.12), horizon));
+            return { name: ['Escenario A', 'Escenario B', 'Escenario C'][i], badge: on ? 'Tu escenario actual' : pc + '% del ingreso', contrib: money(cc), fv: money(f),
+              edge: on ? 'var(--color-accent)' : 'var(--color-divider)', bg: on ? 'var(--color-accent-100)' : '#fff', tone: on ? 'var(--color-accent)' : 'var(--color-neutral-700)',
+              fill: on ? 'var(--color-accent-300)' : 'var(--color-neutral-300)', area: sp.valueArea, line: sp.valueLine, pc, cc };
+          });
+          const cols = [7, 10, 12].map(pc => ({ c: Math.round(income * pc / 100), pc }));
+          const compareRows = [
+            { k: 'Aportación anual', f: x => money(x.c) },
+            { k: 'Aportaciones totales', f: x => money(x.c * horizon) },
+            { k: 'Crecimiento estimado', f: x => money(fv(x.c, horizon) - x.c * horizon) },
+            { k: 'Años de horizonte', f: () => yearsLabel(horizon) },
+            { k: '% del ingreso', f: x => x.pc + '%' }
+          ].map(r => ({ k: r.k, a: r.f(cols[0]), b: r.f(cols[1]), c: r.f(cols[2]) }));
+          return (
+          <div style={{ maxWidth: 1060, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 40, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 30 }}>
+              <h1 style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Compara escenarios</h1>
+              <p style={{ fontSize: 16.5, color: 'var(--color-neutral-700)', margin: 0 }}>Pequeños cambios hoy pueden generar diferencias relevantes en el largo plazo.</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16 }}>
+              {scenarios.map((s, i) => (
+                <div key={i} className="pick-card" style={{ border: '1.5px solid ' + s.edge, background: s.bg, borderRadius: 16, padding: 22, cursor: 'pointer', textAlign: 'center' }} onClick={() => { setPct(s.pc); setContrib(s.cc); }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: s.tone }}>{s.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-neutral-600)', minHeight: 18 }}>{s.badge}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, marginTop: 12, fontVariantNumeric: 'tabular-nums' }}>{s.contrib} <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-neutral-600)' }}>/ año</span></div>
+                  <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em', color: s.tone, fontVariantNumeric: 'tabular-nums', marginTop: 14 }}>{s.fv}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>{copy.fvTerm}</div>
+                  <svg viewBox="0 0 300 100" style={{ width: '100%', height: 'auto', marginTop: 10 }}><path d={s.area} fill={s.fill}></path><path d={s.line} fill="none" stroke={s.tone} strokeWidth="2"></path></svg>
+                </div>
+              ))}
+            </div>
+            <table className="table" style={{ marginTop: 26 }}>
+              <tbody>
+                {compareRows.map((r, i) => (
+                  <tr key={i}>
+                    <td style={{ color: 'var(--color-neutral-600)' }}>{r.k}</td>
+                    <td style={{ textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.a}</td>
+                    <td style={{ textAlign: 'center', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{r.b}</td>
+                    <td style={{ textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.c}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', marginTop: 26 }}>
+              <button className="btn btn-primary" onClick={() => goStep(step + 1)}>Continuar</button>
+              <span style={{ fontSize: 12, color: 'var(--color-neutral-500)' }}>Selecciona un escenario para adoptarlo.</span>
+            </div>
+          </div>
+          );
+        })()}
+
+        {steps[step] === 'guide' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,4fr) minmax(0,7fr)', gap: 24, alignItems: 'start' }}>
+            <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
+              <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Explora tu escenario con la Guía</h1>
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--color-neutral-700)', margin: '0 0 20px' }}>La Guía conoce las variables que has seleccionado. Respuestas breves, educativas y objetivas.</p>
+              {(edu ? [{ k: 'Edad actual del hijo', v: yearsLabel(curAge) },{ k: 'Edad objetivo', v: '18 años' },{ k: 'Horizonte', v: yearsLabel(horizon) },{ k: 'Objetivo educativo', v: money(eduBudget) + ' / año × 4 años = ' + money(eduGoal) },{ k: 'Tu edad', v: yearsLabel(parentAge) },{ k: 'Aportación requerida', v: money(sol.contribution) + ' / año durante ' + yearsLabel(sol.years) },{ k: 'Ingreso neto', v: money(income) },{ k: 'Aportación anual', v: money(contrib) + ' (' + (contrib / income * 100).toFixed(1) + '%)' },{ k: 'Total aportado', v: money(total) },{ k: 'Capital estimado', v: money(futureValue) }]
+                : [{ k: 'Edad actual', v: yearsLabel(curAge) },{ k: 'Edad objetivo', v: '65 años' },{ k: 'Horizonte', v: yearsLabel(horizon) },{ k: 'Ingreso neto', v: money(income) },{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Aportación anual', v: money(contrib) },{ k: '% del ingreso', v: (contrib / income * 100).toFixed(1) + '%' },{ k: 'Total nominal aportado', v: money(total) },{ k: 'Referencia de ahorro al retiro', v: money(futureValue) }]
+              ).map((r, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, padding: '9px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+                  <span style={{ color: 'var(--color-neutral-600)' }}>{r.k}</span><span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{r.v}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 28, boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 18, borderBottom: '1px solid var(--color-divider)' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--color-accent-100)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.9" strokeLinejoin="round"><path d="M4 5 h16 v11 H9 l-5 4 z"></path></svg>
+                </div>
+                <span style={{ fontWeight: 700, fontSize: 15 }}>Tu Guía</span>
+                <span className="tag tag-accent" style={{ borderRadius: 6 }}>Beta</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '20px 0', minHeight: 260 }}>
+                {messages.map((m, i) => (
+                  <div key={i} style={{ maxWidth: '78%', alignSelf: m.who === 'u' ? 'flex-end' : 'flex-start', background: m.who === 'u' ? 'var(--color-accent)' : 'var(--color-neutral-100)', color: m.who === 'u' ? '#fff' : 'var(--color-neutral-900)', padding: '13px 17px', borderRadius: m.who === 'u' ? '16px 16px 4px 16px' : '16px 16px 16px 4px', fontSize: 14.5, lineHeight: 1.6, animation: 'cnRise .3s ease' }}>{m.text}</div>
+                ))}
+                {typing && <div style={{ alignSelf: 'flex-start', fontSize: 13, color: 'var(--color-neutral-500)', animation: 'cnFade .2s ease' }}>La Guía está escribiendo…</div>}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                {(edu ? SUGGESTIONS.edu : SUGGESTIONS.ret).map((q, i) => (
+                  <button key={i} className="btn btn-secondary" style={{ fontSize: 13, fontWeight: 500, borderRadius: 99, padding: '8px 14px', color: 'var(--color-accent-700)', borderColor: 'var(--color-accent-200)', background: 'var(--color-accent-100)' }} onClick={() => send(q)}>{q}</button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input className="input" placeholder="Escribe tu pregunta…" value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') send(draft); }} />
+                <button className="btn btn-primary" onClick={() => send(draft)}>Enviar</button>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+                <span style={{ fontSize: 12, color: 'var(--color-neutral-500)' }}>Respuestas simples. Conceptos claros. Decisiones informadas.</span>
+                <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => goStep(step + 1)}>Continuar →</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {steps[step] === 'learned' && (
+          <div style={{ maxWidth: 800, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <h1 style={{ fontSize: 34, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px', textAlign: 'center' }}>{copy.learnedTitle}</h1>
+            <p style={{ textAlign: 'center', fontSize: 16, color: 'var(--color-neutral-700)', margin: '0 0 30px' }}>{copy.learnedText}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {(edu ? TAKEAWAYS.edu : TAKEAWAYS.ret).map((t, i) => (
+                <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', marginTop: 1 }}><circle cx="12" cy="12" r="10" fill="var(--color-accent-100)"></circle><path d="M8 12.3 l2.6 2.6 L16 9.5" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                  <span style={{ fontSize: 15.5, lineHeight: 1.6, color: 'var(--color-neutral-800)' }}>{t}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 12, marginTop: 34 }}>
+              {[{ k: 'Objetivo', v: edu ? 'Estudios a los 18' : 'Retiro a los 65' },{ k: 'Tiempo', v: yearsLabel(horizon) },{ k: 'Aportación', v: money(contrib) + '/año' },{ k: 'Disciplina', v: 'Mantenerla' }].map((p, i) => (
+                <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 16, textAlign: 'center' }}>
+                  <div style={{ fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-accent-700)' }}>{p.k}</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em', marginTop: 4 }}>{p.v}</div>
+                </div>
+              ))}
+            </div>
+            <p style={{ textAlign: 'center', fontSize: 15, lineHeight: 1.65, color: 'var(--color-neutral-700)', maxWidth: '58ch', margin: '26px auto 0' }}>{copy.learnedFoot}</p>
+            <div style={{ marginTop: 24, textAlign: 'center' }}><button className="btn btn-primary" onClick={() => goStep(step + 1)}>Ver mi resumen</button></div>
+          </div>
+        )}
+
+        {steps[step] === 'summary' && (
+          <div style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <h1 style={{ fontSize: 34, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 6px' }}>{copy.summaryTitle}</h1>
+              <div style={{ fontSize: 15, color: 'var(--color-neutral-600)' }}>{copy.summarySub}</div>
+            </div>
+            {(edu ? [{ k: 'Edad actual del hijo', v: yearsLabel(curAge) },{ k: 'Edad objetivo', v: '18 años' },{ k: 'Horizonte', v: yearsLabel(horizon) },{ k: 'Objetivo educativo', v: money(eduBudget) + ' / año × 4 años = ' + money(eduGoal) },{ k: 'Tu edad', v: yearsLabel(parentAge) },{ k: 'Aportación requerida', v: money(sol.contribution) + ' / año durante ' + yearsLabel(sol.years) },{ k: 'Ingreso neto', v: money(income) },{ k: 'Aportación anual', v: money(contrib) + ' (' + (contrib / income * 100).toFixed(1) + '%)' }]
+              : [{ k: 'Edad actual', v: yearsLabel(curAge) },{ k: 'Edad objetivo', v: '65 años' },{ k: 'Horizonte', v: yearsLabel(horizon) },{ k: 'Ingreso neto', v: money(income) },{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Aportación anual', v: money(contrib) },{ k: '% del ingreso', v: (contrib / income * 100).toFixed(1) + '%' },{ k: 'Total nominal aportado', v: money(total) }]
+            ).map((r, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, padding: '13px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+                <span style={{ color: 'var(--color-neutral-600)' }}>{r.k}</span><span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{r.v}</span>
+              </div>
+            ))}
+            <div style={{ background: 'var(--color-accent-100)', border: '1px solid var(--color-accent-200)', borderRadius: 16, padding: 26, marginTop: 26, textAlign: 'center' }}>
+              <div style={{ fontSize: 14, color: 'var(--color-accent-800)' }}>{copy.projectionLabel}</div>
+              <div style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.035em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}>{money(futureValue)}</div>
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--color-neutral-500)', marginTop: 16, lineHeight: 1.6 }}>Calculado con un supuesto hipotético de rentabilidad constante del {RATE_LABEL} anual.<br />No representa una rentabilidad garantizada ni una propuesta de producto.</div>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center', marginTop: 24 }}>
+              <button className="btn btn-primary" onClick={() => goStep(steps.indexOf('playground'))}>Seguir explorando</button>
+              <button className="btn btn-ghost" style={{ fontSize: 13.5 }} onClick={() => goStep(step + 1)}>Quiero profundizar</button>
+            </div>
+          </div>
+        )}
+
+        {steps[step] === 'meeting' && (
+          <div>
+            {meetingStage === 'intro' && (
+              <div style={{ maxWidth: 680, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 48, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+                <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Analiza tus opciones</div>
+                <h1 style={{ fontSize: 32, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '12px 0 14px' }}>Una conversación para analizar lo que acabas de explorar.</h1>
+                <p style={{ fontSize: 16, lineHeight: 1.65, color: 'var(--color-neutral-700)', maxWidth: '46ch', margin: '0 auto 30px' }}>Una conversación de 30 minutos para analizar distintas formas de estructurar el objetivo que acabas de explorar.</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12, textAlign: 'left', marginBottom: 28 }}>
+                  {(edu
+                    ? [{ k: 'Aportación anual', v: money(contrib) },{ k: 'Periodo de aportación', v: yearsLabel(horizon) },{ k: 'Objetivo educativo total', v: money(eduGoal) },{ k: copy.fvTerm, v: money(futureValue) }]
+                    : [{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Periodo de aportación', v: yearsLabel(horizon) },{ k: 'Total nominal aportado', v: money(total) },{ k: copy.fvTerm, v: money(futureValue) }]
+                  ).map((r, i) => (
+                    <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: '14px 16px' }}>
+                      <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>{r.k}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 2 }}>{r.v}</div>
+                    </div>
+                  ))}
+                </div>
+                <button className="btn btn-primary" onClick={() => setShareModal(true)}>Agendar reunión</button>
+                <div style={{ fontSize: 12, color: 'var(--color-neutral-500)', marginTop: 20, lineHeight: 1.6, maxWidth: '50ch', marginLeft: 'auto', marginRight: 'auto' }}>Tu exploración ha sido privada. No hemos solicitado ningún dato personal.</div>
+                <div style={{ marginTop: 18 }}><button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => goStep(step + 1)}>Seguir explorando primero</button></div>
+              </div>
+            )}
+            {meetingStage === 'form' && (() => {
+              const cal = calendar();
+              return (
+              <div style={{ maxWidth: 620, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+                <h1 style={{ fontSize: 28, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px', textAlign: 'center' }}>Agenda tu conversación</h1>
+                <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--color-neutral-700)', margin: '0 0 26px' }}>{shared === true ? 'Compartiste tu escenario ' + scenarioId + ' como punto de partida de la conversación.' : shared === false ? 'Tu escenario no se compartió. La conversación empezará desde cero.' : 'Solo necesitamos lo mínimo para coordinar el horario.'}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div className="field"><label>Nombre</label><input className="input" type="text" placeholder="Tu nombre" value={book.name} onChange={e => setBook({ ...book, name: e.target.value })} /></div>
+                  <div className="field"><label>Email o WhatsApp</label><input className="input" type="text" placeholder="nombre@correo.com" value={book.contact} onChange={e => setBook({ ...book, contact: e.target.value })} /></div>
+                  <div className="field"><label>País</label><input className="input" type="text" placeholder="País de residencia" value={book.country} onChange={e => setBook({ ...book, country: e.target.value })} /></div>
+                </div>
+                <div style={{ marginTop: 22 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-neutral-700)' }}>Fecha y hora preferida</span>
+                    <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <button className="btn btn-secondary btn-icon" style={{ borderRadius: 9, minHeight: 32, padding: '4px 10px', width: 'auto' }} onClick={() => setCalOffset(calOffset - 1)} aria-label="Mes anterior">‹</button>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, minWidth: '13ch', textAlign: 'center' }}>{cal.monthLabel}</span>
+                      <button className="btn btn-secondary btn-icon" style={{ borderRadius: 9, minHeight: 32, padding: '4px 10px', width: 'auto' }} onClick={() => setCalOffset(calOffset + 1)} aria-label="Mes siguiente">›</button>
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: 4, marginBottom: 6 }}>
+                    {cal.dows.map((d, i) => <div key={i} style={{ textAlign: 'center', fontSize: 11, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--color-neutral-500)' }}>{d}</div>)}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: 4 }}>
+                    {cal.cells.map(c => (
+                      <button key={c.key} style={{ height: 40, borderRadius: 10, border: '1px solid ' + (c.on ? 'var(--color-accent)' : c.off ? 'transparent' : 'var(--color-divider)'), background: c.on ? 'var(--color-accent)' : c.off ? 'transparent' : '#fff', color: c.on ? '#fff' : c.off ? 'var(--color-neutral-400)' : 'var(--color-text)', fontSize: 14, fontWeight: c.on ? 700 : 500, fontVariantNumeric: 'tabular-nums', cursor: c.off ? 'default' : 'pointer', fontFamily: 'inherit' }} disabled={c.off} onClick={() => !c.off && setBook({ ...book, date: c.iso })}>{c.n}</button>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
+                    {cal.slots.map(t => {
+                      const on = book.time === t;
+                      return <button key={t} style={{ padding: '9px 16px', borderRadius: 99, border: '1px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'var(--color-accent-100)' : '#fff', color: on ? 'var(--color-accent-700)' : 'var(--color-neutral-700)', fontSize: 13.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontVariantNumeric: 'tabular-nums' }} onClick={() => setBook({ ...book, time: t })}>{t}</button>;
+                    })}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 14 }}>{cal.summary}</div>
+                </div>
+                <div style={{ marginTop: 26, display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center' }}>
+                  <button className="btn btn-primary" onClick={confirmBooking}>Confirmar reunión</button>
+                  <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setMeetingStage('intro')}>Volver</button>
+                </div>
+              </div>
+              );
+            })()}
+            {meetingStage === 'done' && (
+              <div style={{ maxWidth: 560, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 48, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" style={{ margin: '0 auto 16px', display: 'block' }}><circle cx="12" cy="12" r="10" fill="var(--color-accent-100)"></circle><path d="M8 12.3 l2.6 2.6 L16 9.5" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path></svg>
+                <h1 style={{ fontSize: 28, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Solicitud registrada</h1>
+                <p style={{ fontSize: 15.5, lineHeight: 1.65, color: 'var(--color-neutral-700)', maxWidth: '42ch', margin: '0 auto 22px' }}>Te contactaremos para confirmar el horario de la conversación.</p>
+                <div style={{ fontSize: 13, color: 'var(--color-neutral-600)' }}>{shared === true ? 'Compartiste tu escenario ' + scenarioId + ' como punto de partida de la conversación.' : shared === false ? 'Tu escenario no se compartió. La conversación empezará desde cero.' : ''}</div>
+                <div style={{ marginTop: 26, display: 'flex', gap: 12, justifyContent: 'center' }}><button className="btn btn-secondary" onClick={() => goStep(steps.indexOf('playground'))}>Seguir explorando</button><button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => goStep(step + 1)}>Continuar</button></div>
+              </div>
+            )}
+            {shareModal && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,21,43,.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 50, animation: 'cnFade .2s ease' }}>
+                <div style={{ background: '#fff', borderRadius: 18, padding: 36, maxWidth: 520, width: '100%', boxShadow: 'var(--shadow-lg)', maxHeight: '88vh', overflow: 'auto', animation: 'cnRise .25s ease' }}>
+                  <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>¿Quieres compartir tu escenario?</div>
+                  <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-neutral-700)', margin: '12px 0 20px' }}>Hasta este momento tu exploración ha sido privada. Si decides compartir tu escenario, podremos utilizarlo como punto de partida de la conversación.</p>
+                  {(edu
+                    ? [{ k: 'Edad de tu hijo', v: yearsLabel(childAge) },{ k: 'Tu edad', v: yearsLabel(parentAge) },{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Aportación anual', v: money(contrib) },{ k: 'Objetivo educativo total', v: money(eduGoal) },{ k: copy.fvTerm, v: money(futureValue) }]
+                    : [{ k: 'Edad actual', v: yearsLabel(curAge) },{ k: 'Edad objetivo de retiro', v: yearsLabel(targetAge) },{ k: 'Aportación mensual', v: money(Math.round(contrib / 12)) },{ k: 'Aportación anual', v: money(contrib) },{ k: 'Total nominal aportado', v: money(total) },{ k: copy.fvTerm, v: money(futureValue) }]
+                  ).map((r, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, padding: '10px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+                      <span style={{ color: 'var(--color-neutral-600)' }}>{r.k}</span><span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{r.v}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
+                    <button className="btn btn-primary btn-block" onClick={() => { persistScenario(scenarioPayload()); setShareModal(false); setShared(true); setMeetingStage('form'); }}>Compartir mi escenario y continuar</button>
+                    <button className="btn btn-secondary btn-block" onClick={() => { setShareModal(false); setShared(false); setMeetingStage('form'); }}>Agendar sin compartirlo</button>
+                  </div>
+                  <div style={{ textAlign: 'center', marginTop: 14 }}><button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setShareModal(false)}>Cancelar</button></div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {steps[step] === 'deepen' && (
+          <div style={{ maxWidth: 600, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 48, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+            <h1 style={{ fontSize: 32, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 14px' }}>{copy.deepenTitle}</h1>
+            <p style={{ fontSize: 16, lineHeight: 1.65, color: 'var(--color-neutral-700)', maxWidth: '44ch', margin: '0 auto 32px' }}>{copy.deepenText}</p>
+            <div style={{ width: 76, height: 76, borderRadius: 22, background: 'var(--color-accent-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' }}>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.7" strokeLinecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><path d="M3.5 10 h17 M8 5 V3 M16 5 V3"></path></svg>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 22 }}>Una conversación, sin compromiso.</div>
+            <a className="btn btn-primary" href="https://www.linkedin.com/in/cdezabala/" target="_blank" rel="noopener" style={{ gap: 9 }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95C20.2 8.75 21 11 21 14.1V21h-4v-6.1c0-1.45-.5-2.45-1.8-2.45-1.05 0-1.67.7-1.95 1.38-.1.24-.12.58-.12.92V21H9z"></path></svg>
+              Contactar en LinkedIn
+            </a>
+            <div style={{ marginTop: 26 }}><button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => goStep(step + 1)}>Ver próximos pasos</button></div>
+          </div>
+        )}
+
+        {steps[step] === 'nextsteps' && (
+          <div style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 30 }}>
+              <h1 style={{ fontSize: 34, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px' }}>Próximos pasos</h1>
+              <p style={{ fontSize: 16, color: 'var(--color-neutral-700)', margin: 0 }}>Lo que puedes hacer ahora.</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="card-link" style={{ display: 'flex', gap: 16, alignItems: 'center', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, cursor: 'pointer' }} onClick={() => goStep(steps.indexOf('playground'))}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.7" strokeLinecap="round" style={{ flex: 'none' }}><path d="M4 8 h16 M4 14 h16"></path><circle cx="9" cy="8" r="2.4" fill="#fff"></circle><circle cx="15" cy="14" r="2.4" fill="#fff"></circle></svg>
+                <div><div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-accent-700)' }}>Seguir explorando</div><div style={{ fontSize: 13.5, color: 'var(--color-neutral-600)' }}>Ajusta las variables y descubre más.</div></div>
+              </div>
+              <div className="card-link" style={{ display: 'flex', gap: 16, alignItems: 'center', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, cursor: 'pointer' }} onClick={() => goStep(steps.indexOf('guide'))}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.7" strokeLinejoin="round" style={{ flex: 'none' }}><path d="M4 5 h16 v11 H9 l-5 4 z"></path></svg>
+                <div><div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-accent-700)' }}>Preguntar a la Guía</div><div style={{ fontSize: 13.5, color: 'var(--color-neutral-600)' }}>Resuelve dudas sobre tu escenario.</div></div>
+              </div>
+              <div className="card-link" style={{ display: 'flex', gap: 16, alignItems: 'center', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, cursor: 'pointer' }} onClick={() => pick(edu ? 'retiro' : 'edu')}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.7" strokeLinecap="round" style={{ flex: 'none' }}><path d="M12 4 v16 M4 12 h16"></path></svg>
+                <div><div style={{ fontSize: 16, fontWeight: 700, color: 'var(--color-accent-700)' }}>{copy.otherJourney}</div><div style={{ fontSize: 13.5, color: 'var(--color-neutral-600)' }}>Construye el otro escenario desde cero.</div></div>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--color-neutral-600)', marginTop: 30 }}>Tú tienes el control. Tu futuro, tu decisión.</div>
+          </div>
+        )}
+
+        </div>
+      </div>
+      )}
+      <div style={{ textAlign: 'center', padding: '20px 40px 40px', fontSize: 12, color: 'var(--color-neutral-500)' }}>
+        <a href="/telos/advisor">Acceso de asesores</a>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

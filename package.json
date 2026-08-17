@@ -2,7 +2,10 @@
   "name": "dbcg-kairos",
   "private": true,
   "version": "1.0.0",
-  "description": "Sitio estatico DBCG/Kairos + funciones serverless de Vercel para el pipeline de datos de drivers.",
+  "description": "Sitio estatico DBCG/Kairos/Telos + funciones serverless de Vercel para el pipeline de datos de drivers.",
+  "scripts": {
+    "test:telos": "node --test telos/test/*.test.mjs"
+  },
   "dependencies": {
     "@vercel/kv": "^2.0.0"
   }
