@@ -219,17 +219,18 @@ function answer(q, horizon, contrib) {
   return hit ? hit[1] : 'En tu escenario actual: ' + h + ' años de horizonte, ' + money(c) + ' al año, ' + money(c * h) + ' aportados y ' + money(f) + ' de capital estimado al ' + RATE_LABEL + ' ilustrativo. Puedes ajustar cualquier variable en la pantalla de exploración para ver el efecto.';
 }
 
-// Persistencia mínima del escenario compartido (localStorage). TELOS-DEPLOY.md §1:
-// en la versión estática sirve como puente hasta que exista api/ con @vercel/kv.
+// Envía el escenario compartido a api/telos-scenario.js (Vercel KV, sin sesión
+// — es la única puerta de entrada de datos desde el público, ver
+// TELOS-DEPLOY.md §4). localStorage queda como respaldo local si la llamada
+// de red falla (móvil sin cobertura, etc.): nunca es la fuente de verdad del
+// asesor, pero evita perder el escenario si el usuario recarga la página.
 function persistScenario(payload) {
   try {
     localStorage.setItem('telos_scenario_' + payload.scenario_id, JSON.stringify(payload));
-    const ids = JSON.parse(localStorage.getItem('telos_scenario_ids') || '[]');
-    if (!ids.includes(payload.scenario_id)) {
-      ids.push(payload.scenario_id);
-      localStorage.setItem('telos_scenario_ids', JSON.stringify(ids));
-    }
-  } catch (e) { /* localStorage no disponible (modo privado, etc.) — no bloquea el flujo */ }
+  } catch (e) { /* localStorage no disponible (modo privado, etc.) */ }
+  fetch('/api/telos-scenario', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  }).catch(() => { /* sin red: el escenario queda solo en localStorage de este dispositivo */ });
 }
 
 function Rail({ labels, step, onGo }) {
@@ -346,6 +347,24 @@ function App() {
       share_consent: true,
       scenario_created_at: new Date().toISOString()
     };
+  }
+
+  // Solo envía los datos de la reunión si el usuario decidió compartir su
+  // escenario (shared === true). Si declinó compartirlo, la promesa en
+  // pantalla es "la conversación empezará desde cero" -- respetarla significa
+  // que la reserva de cita no viaja al backend en ese caso.
+  function confirmBooking() {
+    if (shared === true) {
+      fetch('/api/telos-scenario', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario_id: scenarioId, scenario_type: edu ? 'education' : 'retirement',
+          name: book.name, contact: book.contact, country: book.country,
+          meeting_date: book.date, meeting_time: book.time
+        })
+      }).catch(() => { /* sin red: la reunión queda confirmada solo en esta sesión */ });
+    }
+    setMeetingStage('done');
   }
 
   function calendar() {
@@ -1092,7 +1111,7 @@ function App() {
                   <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 14 }}>{cal.summary}</div>
                 </div>
                 <div style={{ marginTop: 26, display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center' }}>
-                  <button className="btn btn-primary" onClick={() => setMeetingStage('done')}>Confirmar reunión</button>
+                  <button className="btn btn-primary" onClick={confirmBooking}>Confirmar reunión</button>
                   <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setMeetingStage('intro')}>Volver</button>
                 </div>
               </div>

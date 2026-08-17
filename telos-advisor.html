@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telos Advisor · by DBCG</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="/vendor/react-18.3.1.production.min.js"></script>
+<script src="/vendor/react-dom-18.3.1.production.min.js"></script>
+<script src="/vendor/babel-standalone-7.23.5.min.js"></script>
+<style>
+:root{
+  --color-bg:#f5f6fb;--color-surface:#ffffff;--color-text:#14152b;
+  --color-accent:#4b40d8;--color-accent-2:#d1345b;
+  --color-accent-100:#f1efff;--color-accent-200:#e2ddff;--color-accent-300:#c6bdfb;
+  --color-accent-400:#9b8ff4;--color-accent-500:#6f5fe8;--color-accent-600:#4335c6;
+  --color-accent-700:#3a2ea8;--color-accent-800:#2a2278;--color-accent-900:#1b1750;
+  --color-neutral-100:#f7f8fc;--color-neutral-200:#eceef6;--color-neutral-300:#dfe2ee;
+  --color-neutral-400:#c3c7d9;--color-neutral-500:#9aa0b9;--color-neutral-600:#767d99;
+  --color-neutral-700:#5b6178;--color-neutral-800:#3d4257;--color-neutral-900:#22263a;
+  --color-divider:#e7e9f2;
+  --font-heading:"Plus Jakarta Sans",system-ui,sans-serif;
+  --font-body:"Plus Jakarta Sans",system-ui,sans-serif;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;
+  --shadow-sm:0 1px 2px rgba(20,21,43,.05);
+  --shadow-md:0 4px 16px rgba(20,21,43,.07);
+  --shadow-lg:0 18px 48px rgba(20,21,43,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-size:15px;font-family:var(--font-body);background:var(--color-bg);color:var(--color-text)}
+h1,h2,h3{font-family:var(--font-heading);margin:0}
+a{color:var(--color-accent);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.btn{border-radius:10px;padding:11px 20px;font-weight:600;letter-spacing:-0.005em;font-size:14.5px;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--color-accent);color:#fff}
+.btn-primary:hover{background:var(--color-accent-600)}
+.btn-primary:disabled{background:var(--color-neutral-300);cursor:not-allowed}
+.btn-secondary{background:#fff;border-color:var(--color-divider);color:var(--color-text)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--color-accent);padding:8px 4px}
+.btn-block{width:100%}
+.input{background:#fff;border-radius:10px;min-height:44px;font-size:15px;border:1px solid var(--color-divider);padding:0 14px;width:100%;font-family:inherit}
+.input:focus{outline:2px solid var(--color-accent-300);border-color:var(--color-accent)}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--color-neutral-700)}
+.table{width:100%;border-collapse:collapse;font-size:14px}
+.table th{text-align:left;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-neutral-600);padding:8px 6px;border-bottom:1px solid var(--color-divider)}
+.table td{padding:10px 6px;border-top:1px solid var(--color-neutral-200)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="module">
+// Los motores de proyección viven en el cliente (no son secretos, ver
+// TELOS-DEPLOY.md §4) -- se cargan como módulo ES aparte y se exponen en
+// window para que el bloque React/Babel (que no es un módulo) los use.
+import { project } from '/telos/engine/projection-retirement.mjs';
+import { projectEducation } from '/telos/engine/projection-education.mjs';
+window.TelosEngine = { project, projectEducation };
+window.dispatchEvent(new Event('telos-engine-ready'));
+</script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback } = React;
+
+function useTelosEngine() {
+  const [engine, setEngine] = useState(window.TelosEngine || null);
+  useEffect(() => {
+    if (engine) return;
+    const onReady = () => setEngine(window.TelosEngine);
+    window.addEventListener('telos-engine-ready', onReady);
+    return () => window.removeEventListener('telos-engine-ready', onReady);
+  }, [engine]);
+  return engine;
+}
+
+function money(n) { return n == null || Number.isNaN(n) ? '—' : '$' + Math.round(n).toLocaleString('en-US'); }
+function money2(n) { return n == null || Number.isNaN(n) ? '—' : '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function yearsLabel(n) { return n + (n === 1 ? ' año' : ' años'); }
+const NA = 'Pendiente de validación';
+
+const STATES = ['Nueva reunión', 'Preparado', 'Completado'];
+function stateColors(st) {
+  if (st === 'Preparado') return ['var(--color-accent-100)', 'var(--color-accent-800)', 'var(--color-accent-300)'];
+  if (st === 'Completado') return ['var(--color-neutral-200)', 'var(--color-neutral-700)', 'var(--color-neutral-400)'];
+  return ['#fdf2f5', '#8a2b45', '#f6d6df'];
+}
+
+async function api(path, opts) {
+  const res = await fetch(path, { credentials: 'same-origin', ...opts });
+  let body = null;
+  try { body = await res.json(); } catch (e) { /* sin cuerpo JSON */ }
+  return { ok: res.ok, status: res.status, body };
+}
+
+function LoginScreen({ onSignedIn }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (busy) return;
+    setBusy(true); setError('');
+    const { ok, body } = await api('/api/telos-login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    setBusy(false);
+    if (!ok) { setError((body && body.error) || 'Credenciales no válidas'); return; }
+    onSignedIn();
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, background: 'var(--color-bg)' }}>
+      <div style={{ width: '100%', maxWidth: 420, background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 40, boxShadow: 'var(--shadow-md)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 26 }}>
+          <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M4 19 L10 11 L14 15 L20 6"></path></svg>
+          </div>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>Telos</span>
+          <span style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600, marginLeft: 2 }}>Advisor</span>
+        </div>
+        <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px' }}>Telos Advisor</h1>
+        <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--color-neutral-700)', margin: '0 0 26px' }}>Acceso exclusivo para asesores autorizados.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="field"><label>Email</label><input className="input" type="email" placeholder="asesor@dbcg.es" value={email} onChange={e => setEmail(e.target.value)} /></div>
+          <div className="field"><label>Contraseña</label><input className="input" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') submit(); }} /></div>
+        </div>
+        {error && <div style={{ fontSize: 13.5, color: 'var(--color-accent-2)', marginTop: 14 }}>{error}</div>}
+        <div style={{ marginTop: 22 }}><button className="btn btn-primary btn-block" disabled={busy} onClick={submit}>{busy ? 'Accediendo…' : 'Acceder'}</button></div>
+        <div style={{ fontSize: 12, color: 'var(--color-neutral-500)', marginTop: 26, lineHeight: 1.6 }}>Entorno privado. La información de escenarios se utiliza únicamente para preparar la conversación solicitada por el usuario.</div>
+      </div>
+    </div>
+  );
+}
+
+function leadDisplay(l) {
+  const edu = l.scenario_type === 'education';
+  return {
+    name: l.name || 'Sin nombre', scenarioId: l.scenario_id,
+    age: edu ? yearsLabel(l.parent_age) : yearsLabel(l.current_age),
+    type: edu ? 'Educación' : 'Retiro',
+    typeBg: edu ? '#fdf2f5' : 'var(--color-accent-100)', typeFg: edu ? '#8a2b45' : 'var(--color-accent-800)',
+    annual: money(l.annual_contribution), monthlyRef: money2(l.monthly_contribution) + ' / mes',
+    target: edu ? 'Hijo · ' + yearsLabel(l.child_age) : yearsLabel(l.target_retirement_age),
+    benchmark: money(l.benchmark_future_value),
+    meeting: l.meeting_date ? l.meeting_date + (l.meeting_time ? ' · ' + l.meeting_time : '') : 'Sin confirmar',
+    state: l.state || 'Nueva reunión'
+  };
+}
+
+function App() {
+  const engine = useTelosEngine();
+  const [authState, setAuthState] = useState('loading'); // loading | out | in
+  const [email, setEmail] = useState('');
+  const [section, setSection] = useState('overview');
+  const [leads, setLeads] = useState([]);
+  const [leadsLoading, setLeadsLoading] = useState(false);
+  const [leadId, setLeadId] = useState(null);
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [savingStatus, setSavingStatus] = useState(false);
+
+  const loadLeads = useCallback(async () => {
+    setLeadsLoading(true);
+    const { ok, body } = await api('/api/telos-leads');
+    setLeadsLoading(false);
+    if (ok) setLeads((body && body.leads) || []);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { ok, body } = await api('/api/telos-session');
+      if (ok) { setAuthState('in'); setEmail(body.email); loadLeads(); }
+      else setAuthState('out');
+    })();
+  }, [loadLeads]);
+
+  if (authState === 'loading') {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-neutral-500)' }}>Cargando…</div>;
+  }
+  if (authState === 'out') {
+    return <LoginScreen onSignedIn={() => { setAuthState('in'); loadLeads(); }} />;
+  }
+
+  async function signOut() {
+    await api('/api/telos-logout', { method: 'POST' });
+    setAuthState('out'); setLeads([]); setLeadId(null); setSection('overview');
+  }
+
+  async function setLeadState(scenarioId, state) {
+    setSavingStatus(true);
+    const { ok, body } = await api('/api/telos-lead-status', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario_id: scenarioId, state })
+    });
+    setSavingStatus(false);
+    if (ok && body && body.lead) setLeads(ls => ls.map(l => l.scenario_id === scenarioId ? body.lead : l));
+  }
+
+  async function saveNotes(scenarioId, notes) {
+    const { ok, body } = await api('/api/telos-lead-status', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario_id: scenarioId, notes })
+    });
+    if (ok && body && body.lead) setLeads(ls => ls.map(l => l.scenario_id === scenarioId ? body.lead : l));
+  }
+
+  const lead = leads.find(l => l.scenario_id === leadId) || null;
+  const filteredLeads = leads.filter(l => typeFilter === 'all' || (l.scenario_type || 'retirement') === typeFilter);
+  const notCompleted = leads.filter(l => (l.state || 'Nueva reunión') !== 'Completado');
+
+  const navItems = [
+    ['overview', 'Overview'], ['leads', 'Leads'], ['data', 'Projection Data']
+  ];
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <div style={{ width: 232, flex: 'none', background: '#fff', borderRight: '1px solid var(--color-divider)', padding: '22px 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 8px' }}>
+          <div style={{ width: 24, height: 24, borderRadius: 7, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M4 19 L10 11 L14 15 L20 6"></path></svg>
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14.5, letterSpacing: '-0.02em', lineHeight: 1.1 }}>Telos</div>
+            <div style={{ fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Advisor</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {navItems.map(([k, label]) => (
+            <button key={k} style={{ textAlign: 'left', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase', padding: '11px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: section === k ? 'var(--color-accent-100)' : 'transparent', color: section === k ? 'var(--color-accent-700)' : 'var(--color-neutral-700)' }} onClick={() => setSection(k)}>{label}</button>
+          ))}
+        </div>
+        <div style={{ marginTop: 'auto', padding: '14px 12px', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12 }}>
+          <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Sesión</div>
+          <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 2 }}>{email}</div>
+          <button className="btn btn-ghost" style={{ fontSize: 12.5, padding: '6px 0', marginTop: 6 }} onClick={signOut}>Cerrar sesión</button>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0, padding: '30px 36px 60px' }}>
+
+        {section === 'overview' && (
+          <div style={{ maxWidth: 1100 }}>
+            <h1 style={{ fontSize: 30, letterSpacing: '-0.03em', margin: '0 0 4px' }}>Overview</h1>
+            <p style={{ fontSize: 15, color: 'var(--color-neutral-700)', margin: '0 0 28px' }}>Estado operativo de las conversaciones solicitadas.</p>
+            {leadsLoading && <p style={{ color: 'var(--color-neutral-500)' }}>Cargando leads…</p>}
+            {!leadsLoading && leads.length === 0 && (
+              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 24, color: 'var(--color-neutral-600)', fontSize: 14.5, lineHeight: 1.6 }}>
+                Todavía no hay ningún escenario compartido. En cuanto alguien complete un recorrido en Telos y elija compartirlo, aparecerá aquí.
+              </div>
+            )}
+            {!leadsLoading && leads.length > 0 && (
+              <React.Fragment>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 14 }}>
+                  {[
+                    { k: 'Próximas reuniones', v: String(notCompleted.length) },
+                    { k: 'Escenarios compartidos', v: String(leads.filter(l => l.share_consent).length) },
+                    { k: 'Pendientes de preparar', v: String(leads.filter(l => (l.state || 'Nueva reunión') === 'Nueva reunión').length) },
+                    { k: 'Reuniones completadas', v: String(leads.filter(l => l.state === 'Completado').length) }
+                  ].map((k, i) => (
+                    <div key={i} style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, boxShadow: 'var(--shadow-sm)' }}>
+                      <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-neutral-600)' }}>{k.k}</div>
+                      <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.03em', marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>{k.v}</div>
+                    </div>
+                  ))}
+                </div>
+                <h2 style={{ fontSize: 15, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-neutral-700)', margin: '36px 0 12px' }}>Próximas reuniones</h2>
+                <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '8px 20px 20px', boxShadow: 'var(--shadow-sm)' }}>
+                  <table className="table">
+                    <thead><tr><th>Lead</th><th>Edad</th><th>Aporte anual</th><th>Objetivo</th><th>Reunión</th><th>Estado</th><th></th></tr></thead>
+                    <tbody>
+                      {notCompleted.slice(0, 6).map(l => {
+                        const d = leadDisplay(l);
+                        const [bg, fg] = stateColors(d.state);
+                        return (
+                          <tr key={l.scenario_id}>
+                            <td style={{ fontWeight: 600 }}>{d.name}</td>
+                            <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.age}</td>
+                            <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.annual}<div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', fontWeight: 400 }}>{d.monthlyRef}</div></td>
+                            <td>{d.target}</td>
+                            <td>{d.meeting}</td>
+                            <td><span style={{ fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 99, background: bg, color: fg }}>{d.state}</span></td>
+                            <td style={{ textAlign: 'right' }}><button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>Abrir escenario</button></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </React.Fragment>
+            )}
+          </div>
+        )}
+
+        {section === 'leads' && (
+          <div style={{ maxWidth: 1160 }}>
+            <h1 style={{ fontSize: 30, letterSpacing: '-0.03em', margin: '0 0 4px' }}>Leads</h1>
+            <p style={{ fontSize: 15, color: 'var(--color-neutral-700)', margin: '0 0 20px' }}>Escenarios compartidos voluntariamente por usuarios de Telos.</p>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
+              {[['all', 'Todos'], ['retirement', 'Retiro'], ['education', 'Educación']].map(([k, label]) => {
+                const on = typeFilter === k;
+                return <button key={k} style={{ fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit', padding: '7px 14px', borderRadius: 99, cursor: 'pointer', border: '1px solid ' + (on ? 'var(--color-accent-300)' : 'var(--color-divider)'), background: on ? 'var(--color-accent-100)' : '#fff', color: on ? 'var(--color-accent-700)' : 'var(--color-neutral-600)' }} onClick={() => setTypeFilter(k)}>{label}</button>;
+              })}
+            </div>
+            <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '8px 20px 20px', boxShadow: 'var(--shadow-sm)' }}>
+              {leadsLoading && <p style={{ color: 'var(--color-neutral-500)' }}>Cargando…</p>}
+              {!leadsLoading && filteredLeads.length === 0 && <p style={{ color: 'var(--color-neutral-500)', padding: '16px 0' }}>No hay leads en este filtro todavía.</p>}
+              {!leadsLoading && filteredLeads.length > 0 && (
+                <table className="table">
+                  <thead><tr><th>Lead</th><th>Tipo</th><th>Edad</th><th>Aporte anual</th><th>Objetivo</th><th>Referencia 3%</th><th>Reunión</th><th>Estado</th><th></th></tr></thead>
+                  <tbody>
+                    {filteredLeads.map(l => {
+                      const d = leadDisplay(l);
+                      const [bg, fg, edge] = stateColors(d.state);
+                      return (
+                        <tr key={l.scenario_id}>
+                          <td style={{ fontWeight: 600 }}>{d.name}<div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', fontWeight: 400 }}>{d.scenarioId}</div></td>
+                          <td><span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: d.typeBg, color: d.typeFg, borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap' }}>{d.type}</span></td>
+                          <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.age}</td>
+                          <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.annual}<div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', fontWeight: 400 }}>{d.monthlyRef}</div></td>
+                          <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.target}</td>
+                          <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.benchmark}</td>
+                          <td>{d.meeting}</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                              {STATES.map(st => {
+                                const on = d.state === st;
+                                const [obg, ofg, oedge] = stateColors(st);
+                                return <button key={st} style={{ fontSize: 11.5, fontWeight: 600, fontFamily: 'inherit', padding: '5px 9px', borderRadius: 99, cursor: 'pointer', border: '1px solid ' + (on ? oedge : 'var(--color-divider)'), background: on ? obg : '#fff', color: on ? ofg : 'var(--color-neutral-600)' }} onClick={() => setLeadState(l.scenario_id, st)}>{st}</button>;
+                              })}
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'right' }}><button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>Abrir escenario</button></td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <p style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', lineHeight: 1.6, maxWidth: '70ch', marginTop: 16 }}>El estado lo define el asesor: <strong>Nueva reunión</strong> al llegar el escenario compartido, <strong>Preparado</strong> cuando la proyección ya se validó en Projection Data, y <strong>Completado</strong> tras la conversación. Solo se muestra información compartida voluntariamente por el usuario.</p>
+          </div>
+        )}
+
+        {section === 'lead' && lead && (() => {
+          const edu = lead.scenario_type === 'education';
+          const pr = engine ? (edu
+            ? engine.projectEducation({ parent_age: lead.parent_age, child_age: lead.child_age, annual_contribution: lead.annual_contribution })
+            : engine.project({ current_age: lead.current_age, annual_contribution: lead.annual_contribution })
+          ) : null;
+          const d = leadDisplay(lead);
+          const val = !pr ? { tag: 'Cargando…', text: '', meta: '', bg: 'var(--color-neutral-100)', edge: 'var(--color-divider)', fg: 'var(--color-neutral-600)' }
+            : pr.ok
+              ? (pr.is_exact_projection
+                ? { tag: 'Ilustración exacta', text: 'Los valores corresponden a una ilustración de referencia directa para esta edad y esta aportación anual.', meta: 'Fuente ' + pr.source_projection_ids.join(', ') + ' · confianza ' + pr.confidence_level, bg: 'var(--color-accent-100)', edge: 'var(--color-accent-200)', fg: 'var(--color-accent-800)' }
+                : { tag: 'Interpolado', text: 'Estimación basada en interpolación. Validar con ilustración contractual antes de presentar propuesta.', meta: pr.interpolation_method + ' · confianza ' + pr.confidence_level, bg: 'var(--color-neutral-100)', edge: 'var(--color-neutral-300)', fg: 'var(--color-neutral-800)' })
+              : { tag: 'Validation required', text: 'Este escenario requiere validación mediante una ilustración contractual antes de utilizar valores específicos en la reunión.', meta: pr.reason, bg: '#fdf2f5', edge: '#f6d6df', fg: '#8a2b45' };
+
+          const sharedCells = edu ? [
+            { k: 'Edad del hijo', v: yearsLabel(lead.child_age), ref: 'objetivo a los 18' },
+            { k: 'Tu edad', v: yearsLabel(lead.parent_age), ref: '' },
+            { k: 'Años disponibles', v: yearsLabel(lead.years_to_education || Math.max(18 - lead.child_age, 0)), ref: 'hasta sus estudios' },
+            { k: 'Aportación anual', v: money(lead.annual_contribution), ref: 'equivale a ' + money2(lead.monthly_contribution) + ' / mes' },
+            { k: 'Objetivo anual educativo', v: money(lead.annual_education_budget), ref: 'cada año de carrera' },
+            { k: 'Periodo educativo', v: '4 años', ref: '' },
+            { k: 'Objetivo total', v: money(lead.total_education_objective), ref: money(lead.annual_education_budget) + ' × 4' },
+            { k: 'Referencia Telos al 3%', v: money(lead.benchmark_future_value), ref: 'lo que vio el usuario' }
+          ] : [
+            { k: 'Edad actual', v: yearsLabel(lead.current_age), ref: '' },
+            { k: 'Edad objetivo de retiro', v: yearsLabel(lead.target_retirement_age), ref: '' },
+            { k: 'Horizonte', v: yearsLabel(lead.years_to_retirement), ref: '' },
+            { k: 'Aportación anual', v: money(lead.annual_contribution), ref: money2(lead.monthly_contribution) + ' / mes' },
+            { k: '% del ingreso neto', v: (lead.selected_contribution_percentage != null ? lead.selected_contribution_percentage + '%' : '—'), ref: money(lead.annual_net_income) + ' / año' },
+            { k: 'Total nominal aportado', v: money(lead.total_nominal_contributions), ref: yearsLabel(lead.years_to_retirement) + ' de aportaciones' },
+            { k: 'Referencia al 3%', v: money(lead.benchmark_future_value), ref: 'lo que vio el usuario' },
+            { k: 'Consentimiento', v: lead.share_consent ? 'Compartido' : 'No compartido', ref: lead.scenario_created_at ? lead.scenario_created_at.slice(0, 10) : '' }
+          ];
+
+          return (
+            <div style={{ maxWidth: 1000 }}>
+              <button className="btn btn-ghost" style={{ fontSize: 13, padding: '6px 0', marginBottom: 12 }} onClick={() => setSection('leads')}>← Leads</button>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, flexWrap: 'wrap' }}>
+                <div>
+                  <h1 style={{ fontSize: 30, letterSpacing: '-0.03em', margin: '0 0 8px' }}>{d.name}</h1>
+                  <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', fontSize: 14, color: 'var(--color-neutral-700)' }}>
+                    {lead.country && <span>{lead.country}</span>}
+                    <span>Reunión · {d.meeting}</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>Scenario ID · {d.scenarioId}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'var(--color-neutral-200)', borderRadius: 99, padding: '3px 10px' }}>{d.type}</span>
+                  </div>
+                </div>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+                  <button className="btn btn-secondary" onClick={() => setSection('data')}>Preparar escenario</button>
+                  <button className="btn btn-primary" disabled title="Disponible en la próxima fase (Decision Room)">Abrir {edu ? 'Education' : 'Decision'} Room</button>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 22, background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '16px 20px' }}>
+                <span style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Estado de la reunión</span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {STATES.map(st => {
+                    const on = d.state === st;
+                    const [bg, fg, edge] = stateColors(st);
+                    return <button key={st} style={{ fontSize: 12.5, fontWeight: 600, fontFamily: 'inherit', padding: '7px 14px', borderRadius: 99, cursor: 'pointer', border: '1px solid ' + (on ? edge : 'var(--color-divider)'), background: on ? bg : '#fff', color: on ? fg : 'var(--color-neutral-600)' }} onClick={() => setLeadState(lead.scenario_id, st)} disabled={savingStatus}>{st}</button>;
+                  })}
+                </div>
+                <span style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', marginLeft: 'auto', maxWidth: '40ch', lineHeight: 1.5 }}>Lo define el asesor. No se comparte con el usuario ni cambia el escenario.</span>
+              </div>
+
+              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 30, boxShadow: 'var(--shadow-sm)', marginTop: 16 }}>
+                <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Escenario compartido</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 14, marginTop: 18 }}>
+                  {sharedCells.map((c, i) => (
+                    <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 16 }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)', lineHeight: 1.4 }}>{c.k}</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 4, letterSpacing: '-0.02em' }}>{c.v}</div>
+                      <div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', marginTop: 2 }}>{c.ref}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', marginTop: 18, lineHeight: 1.6 }}>Aportación anual: es la unidad con la que el usuario construyó su escenario en Telos. Calculado con un supuesto hipotético de rentabilidad constante del 3% anual; no representa una rentabilidad garantizada ni una propuesta de producto.</div>
+              </div>
+
+              <div style={{ background: val.bg, border: '1px solid ' + val.edge, borderRadius: 14, padding: '20px 22px', marginTop: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: val.fg, background: '#fff', border: '1px solid ' + val.edge, borderRadius: 99, padding: '5px 11px', flex: 'none' }}>{val.tag}</span>
+                <div>
+                  <div style={{ fontSize: 14.5, lineHeight: 1.6, color: val.fg }}>{val.text}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>{val.meta}</div>
+                </div>
+              </div>
+
+              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 22, marginTop: 16 }}>
+                <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Notas de preparación · solo asesor</div>
+                <textarea className="input" style={{ width: '100%', minHeight: 88, marginTop: 10, padding: 12, lineHeight: 1.6, fontFamily: 'inherit', border: '1px solid var(--color-divider)', resize: 'vertical' }}
+                  placeholder="Puntos a validar antes de la conversación…" defaultValue={lead.notes || ''}
+                  onBlur={e => saveNotes(lead.scenario_id, e.target.value)} />
+              </div>
+            </div>
+          );
+        })()}
+
+        {section === 'lead' && !lead && (
+          <div style={{ maxWidth: 700 }}>
+            <p style={{ color: 'var(--color-neutral-600)' }}>Selecciona un lead desde <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => setSection('leads')}>la lista de Leads</button>.</p>
+          </div>
+        )}
+
+        {section === 'data' && (() => {
+          if (!lead) {
+            return <div style={{ maxWidth: 700 }}><p style={{ color: 'var(--color-neutral-600)' }}>Abre primero un lead desde <button className="btn btn-ghost" style={{ fontSize: 14 }} onClick={() => setSection('leads')}>la lista de Leads</button> para ver su Projection Data.</p></div>;
+          }
+          const edu = lead.scenario_type === 'education';
+          const pr = engine ? (edu
+            ? engine.projectEducation({ parent_age: lead.parent_age, child_age: lead.child_age, annual_contribution: lead.annual_contribution })
+            : engine.project({ current_age: lead.current_age, annual_contribution: lead.annual_contribution })
+          ) : null;
+          if (!pr) return <div style={{ maxWidth: 700 }}><p style={{ color: 'var(--color-neutral-600)' }}>Cargando motor de proyección…</p></div>;
+
+          const na = NA;
+          let dataBlocks;
+          if (edu) {
+            dataBlocks = [
+              { title: 'Escenario educativo compartido', rows: [
+                { k: 'scenario_id', v: lead.scenario_id }, { k: 'scenario_type', v: 'education' },
+                { k: 'parent_age', v: String(lead.parent_age) }, { k: 'child_age', v: String(lead.child_age) },
+                { k: 'target_education_age', v: '18' }, { k: 'years_to_education', v: String(lead.years_to_education) },
+                { k: 'education_years', v: '4' }, { k: 'annual_education_budget', v: money(lead.annual_education_budget) },
+                { k: 'total_education_objective', v: money(lead.total_education_objective) },
+                { k: 'monthly_contribution (referencia)', v: money2(lead.monthly_contribution) },
+                { k: 'annual_contribution', v: money(lead.annual_contribution) },
+                { k: 'total_nominal_contributions', v: money(lead.total_nominal_contributions) },
+                { k: 'benchmark_rate', v: '0.03' }, { k: 'benchmark_future_value', v: money(lead.benchmark_future_value) },
+                { k: 'share_consent', v: lead.share_consent ? 'true' : 'false' }
+              ] },
+              { title: 'Validación de la proyección', rows: [
+                { k: 'is_exact_projection', v: pr.is_exact_projection ? 'true' : 'false' },
+                { k: 'confidence_level', v: pr.confidence_level },
+                { k: 'interpolation_method', v: pr.interpolation_method },
+                { k: 'source_projection_ids', v: (pr.source_projection_ids || []).join(', ') || '—' },
+                { k: 'projection_version', v: pr.projection_version || '—' },
+                { k: 'calculation_timestamp', v: pr.calculation_timestamp || '—' },
+                { k: 'estado', v: pr.ok ? (pr.is_exact_projection ? 'Exacta' : 'Interpolada') : 'Validation required' }
+              ] },
+              { title: 'Estructura estimada', rows: pr.ok ? [
+                { k: 'internal_face_amount', v: money(pr.face_amount) },
+                { k: 'annual_structure_premium', v: money(pr.annual_premium) },
+                { k: 'monthly_premium_equivalent', v: money2(pr.monthly_premium) },
+                { k: 'contribution_years', v: String(pr.contribution_years) },
+                { k: 'total_15_year_premiums', v: money(pr.total_premiums) },
+                { k: 'child_age_at_end_of_contributions', v: yearsLabel(pr.child_age_at_end) },
+                { k: 'years_after_contributions_until_education', v: String(pr.years_after_contributions) },
+                { k: 'curve_read_point', v: 'Año ' + pr.read_year },
+                { k: 'gcv_at_year_15', v: money(pr.gcv_at_year_15) },
+                { k: 'projected_at_year_15', v: money(pr.projected_at_year_15) },
+                { k: 'gcv_at_education_age', v: money(pr.gcv_at_education) },
+                { k: 'projected_education_settlement', v: money(pr.settlement) },
+                { k: 'illustration_interest_rate', v: (pr.rate * 100).toFixed(2) + '%' },
+                { k: 'settlement_projection_rate', v: (pr.settleRate * 100).toFixed(2) + '%' }
+              ] : [{ k: 'estado', v: na }] },
+              { title: 'Curva de protección', rows: pr.ok
+                ? pr.protection.map(p => ({ k: 'projected_death_benefit_year_' + p.year, v: money(p.value) }))
+                : [1, 5, 10, 15].map(y => ({ k: 'projected_death_benefit_year_' + y, v: na })) },
+              { title: 'Financiación educativa', rows: pr.ok ? [
+                { k: 'education_settlement_value', v: money(pr.settlement) },
+                { k: 'annual_college_funding', v: money2(pr.annual_funding) },
+                { k: 'education_funding_years', v: '4' },
+                { k: 'total_projected_college_funding', v: money(pr.total_funding) }
+              ] : [{ k: 'estado', v: na }] },
+              { title: 'Comparación económica', rows: pr.ok ? [
+                { k: 'benchmark_3_value_at_education_age', v: money(lead.benchmark_future_value) },
+                { k: 'structure_gcv_at_education_age', v: money(pr.gcv_at_education) },
+                { k: 'structure_projected_value_at_education_age', v: money(pr.settlement) },
+                { k: 'difference_projected_vs_3', v: (() => { const diff = pr.settlement - lead.benchmark_future_value; return (diff < 0 ? '−' : '+') + money(Math.abs(diff)); })() },
+                { k: 'gcv_to_contributions_ratio', v: pr.total_premiums ? (pr.gcv_at_education / pr.total_premiums * 100).toFixed(1) + '%' : na },
+                { k: 'projected_value_to_contributions_ratio', v: pr.total_premiums ? (pr.settlement / pr.total_premiums * 100).toFixed(1) + '%' : na }
+              ] : [{ k: 'estado', v: na }] }
+            ];
+          } else {
+            dataBlocks = [
+              { title: 'Escenario compartido', rows: [
+                { k: 'scenario_id', v: lead.scenario_id }, { k: 'current_age', v: String(lead.current_age) },
+                { k: 'annual_contribution', v: money(lead.annual_contribution) },
+                { k: 'monthly_contribution (referencia)', v: money2(lead.monthly_contribution) },
+                { k: 'user_target_retirement_age', v: String(lead.target_retirement_age) },
+                { k: 'total_nominal_contributions', v: money(lead.total_nominal_contributions) },
+                { k: 'benchmark_rate', v: '0.03' }, { k: 'benchmark_future_value', v: money(lead.benchmark_future_value) },
+                { k: 'share_consent', v: lead.share_consent ? 'true' : 'false' },
+                { k: 'scenario_created_at', v: lead.scenario_created_at || '—' }
+              ] },
+              { title: 'Validación de la proyección', rows: [
+                { k: 'is_exact_projection', v: pr.is_exact_projection ? 'true' : 'false' },
+                { k: 'confidence_level', v: pr.confidence_level },
+                { k: 'interpolation_method', v: pr.interpolation_method },
+                { k: 'source_projection_ids', v: (pr.source_projection_ids || []).join(', ') || '—' },
+                { k: 'projection_version', v: pr.projection_version || '—' },
+                { k: 'calculation_timestamp', v: pr.calculation_timestamp || '—' },
+                { k: 'estado', v: pr.ok ? (pr.is_exact_projection ? 'Exacta' : 'Interpolada') : 'Validation required' }
+              ] },
+              { title: 'Estructura estimada', rows: pr.ok ? [
+                { k: 'internal_face_amount', v: money(pr.face) },
+                { k: 'product_settlement_age', v: String(pr.settlement) },
+                { k: 'premium_payment_years', v: String(pr.years) },
+                { k: 'premium_end_age', v: String(pr.premium_end_age) },
+                { k: 'total_nominal_premiums', v: money(pr.total) },
+                { k: 'guaranteed_cash_value', v: money(pr.gcv) },
+                { k: 'projected_value', v: money(pr.projected) },
+                { k: 'initial_death_benefit', v: money(pr.db[0]) },
+                { k: 'death_benefit_year_5 / 10 / 15', v: money(pr.db[1]) + ' / ' + money(pr.db[2]) + ' / ' + money(pr.db[3]) },
+                { k: 'lifetime_income_monthly (opción #2)', v: money(pr.income) },
+                { k: 'alternative_income_option_monthly (#3)', v: money(pr.income3) },
+                { k: 'illustration_interest_rate', v: (pr.rate * 100).toFixed(2) + '%' },
+                { k: 'settlement_projection_rate', v: (pr.settleRate * 100).toFixed(2) + '%' }
+              ] : [{ k: 'estado', v: na }] },
+              { title: 'Comparación económica', rows: pr.ok ? [
+                { k: 'benchmark_3_value', v: money(lead.benchmark_future_value) },
+                { k: 'difference_projected_vs_3', v: (() => { const diff = pr.projected - lead.benchmark_future_value; return (diff < 0 ? '−' : '+') + money(Math.abs(diff)); })() },
+                { k: 'gcv_to_contributions_ratio', v: pr.total ? (pr.gcv / pr.total * 100).toFixed(1) + '%' : na },
+                { k: 'projected_value_to_contributions_ratio', v: pr.total ? (pr.projected / pr.total * 100).toFixed(1) + '%' : na },
+                { k: 'lifetime_income_multiple', v: pr.income ? ((pr.income * 12) / lead.annual_contribution).toFixed(2) + '×' : na },
+                { k: 'nominal_break_even_years', v: pr.income ? (pr.total / (pr.income * 12)).toFixed(1) + ' años' : na }
+              ] : [{ k: 'estado', v: na }] }
+            ];
+          }
+
+          return (
+            <div style={{ maxWidth: 1040 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <h1 style={{ fontSize: 30, letterSpacing: '-0.03em' }}>Projection Data</h1>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-2)', background: '#fdf2f5', border: '1px solid #f6d6df', borderRadius: 99, padding: '5px 11px' }}>Internal only</span>
+              </div>
+              <p style={{ fontSize: 15, color: 'var(--color-neutral-700)', margin: '8px 0 20px' }}>Capa de validación técnica. No forma parte de Presentation Mode. Lead: {lead.name || lead.scenario_id} · {lead.scenario_id}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 16, alignItems: 'start' }}>
+                {dataBlocks.map((b, i) => (
+                  <div key={i} style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 22, boxShadow: 'var(--shadow-sm)' }}>
+                    <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600, marginBottom: 6 }}>{b.title}</div>
+                    {b.rows.map((r, j) => (
+                      <div key={j} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, fontSize: 13.5, padding: '9px 0', borderTop: '1px solid var(--color-neutral-200)' }}>
+                        <span style={{ color: 'var(--color-neutral-600)' }}>{r.k}</span><span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{r.v}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 12, marginTop: 22 }}>
+                <button className="btn btn-secondary" onClick={() => setSourcesOpen(o => !o)}>{sourcesOpen ? 'Ocultar fuentes' : 'Ver fuentes'}</button>
+              </div>
+              {sourcesOpen && (
+                <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 22, marginTop: 16 }}>
+                  <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600, marginBottom: 10 }}>{edu ? 'Ilustraciones de referencia · educación' : 'Ilustraciones de referencia · Abundance'}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', lineHeight: 1.6, marginBottom: 14 }}>Fuente citada para este escenario: {(pr.source_projection_ids || []).join(', ') || '—'}. {edu
+                    ? '12 ilustraciones educativas reales (edades del padre 30–45 × edades del hijo 0/2/3 × face amounts internos 70,000/100,000/200,000).'
+                    : '21 ilustraciones reales (edades 30–55 × face amounts 75,000/147,000/200,000/322,500). Prima pagada hasta los 65 años en todos los casos; la edad de settlement varía.'} Toda estimación no exacta debe validarse mediante ilustración contractual antes de presentarse.</div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
