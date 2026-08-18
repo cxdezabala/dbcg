@@ -5,7 +5,7 @@
 // resto del back office.
 
 const { getSession } = require('./_lib/session');
-const { incrementFunnel, getFunnelStats } = require('./_lib/telos-funnel-kv');
+const { incrementFunnel, getFunnelStats, resetFunnel } = require('./_lib/telos-funnel-kv');
 
 async function handlePost(req, res) {
   try {
@@ -28,8 +28,22 @@ async function handleGet(req, res) {
   res.status(200).json(stats);
 }
 
+async function handleDelete(req, res) {
+  if (!getSession(req)) {
+    res.status(401).json({ error: 'No autenticado' });
+    return;
+  }
+  const ok = await resetFunnel();
+  if (!ok) {
+    res.status(503).json({ error: 'Almacenamiento no disponible en este momento' });
+    return;
+  }
+  res.status(200).json({ ok: true });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === 'POST') return handlePost(req, res);
   if (req.method === 'GET') return handleGet(req, res);
+  if (req.method === 'DELETE') return handleDelete(req, res);
   res.status(405).json({ error: 'Método no permitido' });
 };

@@ -1114,6 +1114,7 @@ function App() {
   const [savingStatus, setSavingStatus] = useState(false);
   const [presenting, setPresenting] = useState(false);
   const [funnel, setFunnel] = useState(null);
+  const [funnelResetting, setFunnelResetting] = useState(false);
 
   const loadLeads = useCallback(async () => {
     setLeadsLoading(true);
@@ -1126,6 +1127,14 @@ function App() {
     const { ok, body } = await api('/api/telos-funnel');
     if (ok) setFunnel(body);
   }, []);
+
+  async function resetFunnelCounters() {
+    if (!window.confirm('¿Reiniciar el contador de exploración anónima a cero? Esta acción no se puede deshacer.')) return;
+    setFunnelResetting(true);
+    const { ok } = await api('/api/telos-funnel', { method: 'DELETE' });
+    setFunnelResetting(false);
+    if (ok) loadFunnel();
+  }
 
   useEffect(() => {
     (async () => {
@@ -1218,7 +1227,12 @@ function App() {
             <h1 style={{ fontSize: 30, letterSpacing: '-0.03em', margin: '0 0 4px' }}>Overview</h1>
             <p style={{ fontSize: 15, color: 'var(--color-neutral-700)', margin: '0 0 28px' }}>Estado operativo de las conversaciones solicitadas.</p>
 
-            <h2 style={{ fontSize: 15, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-neutral-700)', margin: '0 0 12px' }}>Exploración anónima</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', margin: '0 0 12px' }}>
+              <h2 style={{ fontSize: 15, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-neutral-700)', margin: 0 }}>Exploración anónima</h2>
+              {funnel && funnel.since && (
+                <button className="btn btn-ghost" style={{ fontSize: 12.5, padding: '2px 0' }} onClick={resetFunnelCounters} disabled={funnelResetting}>{funnelResetting ? 'Reiniciando…' : 'Reiniciar contador'}</button>
+              )}
+            </div>
             {!funnel && <p style={{ color: 'var(--color-neutral-500)', fontSize: 14 }}>Cargando…</p>}
             {funnel && !funnel.since && (
               <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 24, color: 'var(--color-neutral-600)', fontSize: 14.5, lineHeight: 1.6, marginBottom: 28 }}>

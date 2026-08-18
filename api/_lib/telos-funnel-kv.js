@@ -60,4 +60,22 @@ async function getFunnelStats() {
   }
 }
 
-module.exports = { incrementFunnel, getFunnelStats, JOURNEYS, EVENTS };
+// Vuelve todos los contadores a cero y reinicia 'since' a ahora -- para
+// limpiar navegaciones de prueba del propio asesor sin que queden mezcladas
+// con exploraciones reales.
+async function resetFunnel() {
+  const kv = getClient();
+  if (!kv) return false;
+  try {
+    const keys = [];
+    for (const j of JOURNEYS) for (const e of EVENTS) keys.push(counterKey(j, e));
+    await Promise.all(keys.map(k => kv.del(k)));
+    await kv.set(SINCE_KEY, new Date().toISOString());
+    return true;
+  } catch (err) {
+    console.error('[telos] KV resetFunnel falló', err);
+    return false;
+  }
+}
+
+module.exports = { incrementFunnel, getFunnelStats, resetFunnel, JOURNEYS, EVENTS };
