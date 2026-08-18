@@ -68,6 +68,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;heigh
 input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--color-accent);box-shadow:0 1px 4px rgba(20,21,43,.18);cursor:pointer}
 @keyframes cnRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @keyframes cnFade{from{opacity:0}to{opacity:1}}
+
+/* Responsive: el diseño original (Telos.dc.html) no traía breakpoints propios.
+   Estas reglas usan !important a propósito -- es la única forma de recortar los
+   estilos inline (style={{}}) que arma cada pantalla sin reescribir cada una. */
+html,body{overflow-x:hidden}
+@media (max-width:760px){
+  .page-wrap{padding:28px 20px 72px !important}
+  .page-wrap-journey{padding:0 16px 72px !important}
+  .hero-h1{font-size:34px !important}
+  .choice-grid{grid-template-columns:1fr !important}
+  .promo-row{flex-wrap:wrap}
+  .promo-row-btn{margin-left:0 !important;width:100%}
+  .step-card{padding:24px !important}
+  .two-panel{grid-template-columns:1fr !important}
+  .sticky-panel{position:static !important}
+  .grid-3{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .modal-card{padding:24px !important}
+  .rail{overflow-x:auto;justify-content:flex-start !important}
+  .rail-item{flex:0 0 auto !important;min-width:64px}
+}
+@media (max-width:420px){
+  .hero-h1{font-size:28px !important}
+  .step-card{padding:18px !important}
+}
 </style>
 </head>
 <body>
@@ -233,11 +258,29 @@ function persistScenario(payload) {
   }).catch(() => { /* sin red: el escenario queda solo en localStorage de este dispositivo */ });
 }
 
+// Beacon anónimo (sin PII, sin scenario_id) para que el asesor pueda ver
+// cuánta gente explora sin llegar a compartir -- no solo los que sí lo hacen
+// (esos ya se ven en /telos/advisor vía api/telos-leads). Un solo envío por
+// pestaña y paso, para no inflar los contadores al ir y volver con el Rail.
+function funnelPing(journeyType, eventName) {
+  try {
+    const sentKey = 'telos_funnel_sent';
+    const sent = JSON.parse(sessionStorage.getItem(sentKey) || '[]');
+    const key = journeyType + ':' + eventName;
+    if (sent.includes(key)) return;
+    sent.push(key);
+    sessionStorage.setItem(sentKey, JSON.stringify(sent));
+  } catch (e) { /* sessionStorage no disponible: en el peor caso se cuenta de más */ }
+  const body = JSON.stringify({ journey: journeyType, event: eventName });
+  if (navigator.sendBeacon) navigator.sendBeacon('/api/telos-funnel', new Blob([body], { type: 'application/json' }));
+  else fetch('/api/telos-funnel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+}
+
 function Rail({ labels, step, onGo }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 0 30px' }}>
+    <div className="rail" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 0 30px' }}>
       {labels.map((label, i) => (
-        <div key={i} style={{ flex: 1, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }} onClick={() => onGo(i)}>
+        <div key={i} className="rail-item" style={{ flex: 1, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 6 }} onClick={() => onGo(i)}>
           <div style={{ height: 3, borderRadius: 99, background: i <= step ? 'var(--color-accent)' : 'var(--color-neutral-300)', transition: 'background .3s ease' }}></div>
           <span style={{ fontSize: 10.5, letterSpacing: '0.02em', color: i === step ? 'var(--color-accent)' : 'var(--color-neutral-500)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
         </div>
@@ -298,6 +341,16 @@ function App() {
 
   function setAgeVal(v) { if (edu) setChildAge(v); else setAgeState(v); }
   function goStep(i) { setStep(Math.max(0, Math.min(i, steps.length - 1))); }
+
+  // Registra el paso más profundo alcanzado (ver funnelPing arriba). 'time'
+  // es el primer paso de ambos journeys -> equivale a "empezó a explorar".
+  useEffect(() => {
+    if (!journey) return;
+    const stepName = steps[step];
+    if (['time', 'projection', 'playground', 'summary', 'meeting'].includes(stepName)) {
+      funnelPing(edu ? 'education' : 'retirement', stepName);
+    }
+  }, [journey, step]);
 
   // La Guía llama a /api/telos-guide (IA real, misma clave que Brandt en
   // Kairos). Si falla -- sin red, sin clave configurada, límite alcanzado --
@@ -462,13 +515,13 @@ function App() {
       </div>
 
       {!journey && (
-      <div style={{ maxWidth: 1040, margin: '0 auto', padding: '40px 40px 100px', animation: 'cnFade .4s ease' }}>
+      <div className="page-wrap" style={{ maxWidth: 1040, margin: '0 auto', padding: '40px 40px 100px', animation: 'cnFade .4s ease' }}>
         <div style={{ textAlign: 'center', marginBottom: 44 }}>
-          <h1 style={{ fontSize: 52, lineHeight: 1.08, letterSpacing: '-0.035em', margin: '0 0 18px' }}>Construye hoy lo que será importante mañana.</h1>
+          <h1 className="hero-h1" style={{ fontSize: 52, lineHeight: 1.08, letterSpacing: '-0.035em', margin: '0 0 18px' }}>Construye hoy lo que será importante mañana.</h1>
           <p style={{ fontSize: 19, lineHeight: 1.55, maxWidth: '60ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>Explora cómo el tiempo, la disciplina y una estrategia de ahorro programado pueden ayudarte a construir capital para objetivos importantes de tu vida.</p>
         </div>
         <h2 style={{ fontSize: 24, textAlign: 'center', letterSpacing: '-0.02em', margin: '0 0 28px' }}>¿Qué quieres construir?</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 24 }}>
+        <div className="choice-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 24 }}>
           <div className="card-link" style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 14 }} onClick={() => pick('edu')}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--color-accent-100)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9 L12 4 L21 9 L12 14 Z"></path><path d="M7 11.5 V17 C7 17 9 19 12 19 C15 19 17 17 17 17 V11.5"></path></svg>
@@ -486,27 +539,27 @@ function App() {
             <div style={{ marginTop: 6 }}><span className="btn btn-primary">Explorar retiro</span></div>
           </div>
         </div>
-        <div style={{ marginTop: 24, background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 18, padding: '26px 30px', display: 'flex', alignItems: 'center', gap: 22 }}>
+        <div className="promo-row" style={{ marginTop: 24, background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 18, padding: '26px 30px', display: 'flex', alignItems: 'center', gap: 22 }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: '#fff', border: '1px solid var(--color-divider)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" strokeWidth="1.8" strokeLinejoin="round"><rect x="4" y="7" width="16" height="13"></rect><path d="M9 7 V4 h6 v3"></path><path d="M9 12 h6"></path></svg>
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><h3 style={{ fontSize: 19, letterSpacing: '-0.02em', color: 'var(--color-neutral-800)' }}>Empresas</h3><span className="tag tag-neutral">Próximamente</span></div>
+          <div style={{ flex: '1 1 200px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}><h3 style={{ fontSize: 19, letterSpacing: '-0.02em', color: 'var(--color-neutral-800)' }}>Empresas</h3><span className="tag tag-neutral">Próximamente</span></div>
             <div style={{ fontSize: 14, color: 'var(--color-neutral-600)', marginTop: 4 }}>Retención de talento · Jubilación de socios</div>
           </div>
-          <button className="btn btn-secondary" style={{ marginLeft: 'auto' }} disabled>No disponible</button>
+          <button className="btn btn-secondary promo-row-btn" style={{ marginLeft: 'auto' }} disabled>No disponible</button>
         </div>
         <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--color-neutral-600)', marginTop: 44, lineHeight: 1.6 }}>Sin registro. Sin compromiso.<br />Primero entiende cómo funciona.</p>
       </div>
       )}
 
       {journey && (
-      <div style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 100px' }}>
+      <div className="page-wrap-journey" style={{ maxWidth: 1160, margin: '0 auto', padding: '0 40px 100px' }}>
         <Rail labels={labels} step={step} onGo={goStep} />
         <div style={{ animation: 'cnFade .35s ease' }}>
 
         {steps[step] === 'time' && (
-          <div style={{ maxWidth: 760, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+          <div className="step-card" style={{ maxWidth: 760, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
             <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>{copy.timeTitle}</h1>
             <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '48ch', margin: '0 auto 36px', color: 'var(--color-neutral-700)' }}>{copy.timeText}</p>
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14 }}>{copy.ageQuestion}</div>
@@ -578,7 +631,7 @@ function App() {
         )}
 
         {!edu && steps[step] === 'compound' && (
-          <div style={{ maxWidth: 820, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+          <div className="step-card" style={{ maxWidth: 820, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
             <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>¿Por qué importa tanto empezar antes?</h1>
             <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto 40px', color: 'var(--color-neutral-700)' }}>Porque los rendimientos acumulados pueden incorporarse al capital y generar nuevos rendimientos.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left', maxWidth: 560, margin: '0 auto' }}>
@@ -617,7 +670,7 @@ function App() {
           const effortLow = money(Math.min(...childBars.map(b => b.contribution)));
           const effortHigh = money(Math.max(...childBars.map(b => b.contribution)));
           return (
-          <div style={{ maxWidth: 860, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 860, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ textAlign: 'center', marginBottom: 36 }}>
               <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>Mientras antes, mejor.</h1>
               <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '54ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>El mismo objetivo exige {effortLow} al año si empiezas al nacer, y {effortHigh} si esperas a sus 10. No es que el objetivo cambie: es que quedan menos años para construirlo.</p>
@@ -652,12 +705,12 @@ function App() {
         })()}
 
         {edu && steps[step] === 'goal' && (
-          <div style={{ maxWidth: 900, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 900, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>¿Cuánto quieres poder destinar cada año a sus estudios?</h1>
               <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '50ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>No necesitas tener hoy una cifra perfecta. El objetivo es comprender el orden de magnitud y empezar a planificar.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16 }}>
+            <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16 }}>
               {[{ title: 'Matrícula universitaria', amount: '$12,500 / año', note: '$50,000 en total, durante los 4 años.', v: 50000 },{ title: 'Matrícula + gastos de vida', amount: '$25,000 / año', note: '$100,000 en total, durante los 4 años.', v: 100000 },{ title: 'Capital educativo mayor', amount: '$40,000 / año', note: '$160,000 en total, durante los 4 años.', v: 160000 }].map((g, i) => {
                 const on = goalType === i;
                 return (
@@ -703,7 +756,7 @@ function App() {
         )}
 
         {steps[step] === 'capacity' && (
-          <div style={{ maxWidth: 820, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+          <div className="step-card" style={{ maxWidth: 820, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
             <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>Construye desde lo que puedas sostener.</h1>
             <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto 34px', color: 'var(--color-neutral-700)' }}>{copy.capacityText}</p>
             <div style={{ maxWidth: 420, margin: '0 auto' }}>
@@ -715,7 +768,7 @@ function App() {
               </div>
               <input type="range" min="20000" max="400000" step="5000" value={income} onChange={e => { const v = +e.target.value; setIncome(v); setContrib(Math.round(v * pct / 100)); }} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14, marginTop: 34 }}>
+            <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14, marginTop: 34 }}>
               {[7, 10, 12].map(pc => {
                 const on = Math.abs(pct - pc) < 0.01;
                 return (
@@ -742,7 +795,7 @@ function App() {
         )}
 
         {steps[step] === 'level' && (
-          <div style={{ maxWidth: 860, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
+          <div className="step-card" style={{ maxWidth: 860, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)', textAlign: 'center' }}>
             <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>¿Cómo quieres construir tu escenario?</h1>
             <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto 34px', color: 'var(--color-neutral-700)' }}>Puedes ajustar tu nivel de aportación según tu comodidad y tus objetivos.</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 18 }}>
@@ -769,7 +822,7 @@ function App() {
         )}
 
         {steps[step] === 'discipline' && (
-          <div style={{ maxWidth: 1000, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 1000, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ textAlign: 'center', marginBottom: 34 }}>
               <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 14px' }}>{copy.disciplineTitle}</h1>
               <p style={{ fontSize: 17, lineHeight: 1.6, maxWidth: '52ch', margin: '0 auto', color: 'var(--color-neutral-700)' }}>{copy.disciplineText}</p>
@@ -802,14 +855,14 @@ function App() {
         )}
 
         {steps[step] === 'projection' && (
-          <div style={{ maxWidth: 1000, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 1000, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ textAlign: 'center' }}>
               <h1 style={{ fontSize: 34, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 6px' }}>{copy.projectionTitle}</h1>
               <div style={{ fontSize: 15, color: 'var(--color-neutral-600)' }}>{copy.projectionLabel}</div>
               <div style={{ fontSize: 68, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', marginTop: 18, lineHeight: 1 }}>{money(futureValue)}</div>
               <div style={{ fontSize: 14, color: 'var(--color-neutral-600)', marginTop: 6 }}>{copy.fvTerm}</div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14, marginTop: 32 }}>
+            <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 14, marginTop: 32 }}>
               <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 20, textAlign: 'center' }}>
                 <div style={{ fontSize: 24, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{money(total)}</div>
                 <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 2 }}>Aportaciones totales</div>
@@ -839,7 +892,7 @@ function App() {
         )}
 
         {steps[step] === 'waiting' && (
-          <div style={{ maxWidth: 900, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 900, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <h1 style={{ fontSize: 38, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 12px' }}>{copy.waitingTitle}</h1>
               <p style={{ fontSize: 17, color: 'var(--color-neutral-700)', margin: 0 }}>{copy.waitingQuestion}</p>
@@ -888,7 +941,7 @@ function App() {
               <h1 style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 10px' }}>{copy.playgroundTitle}</h1>
               <p style={{ fontSize: 16.5, color: 'var(--color-neutral-700)', margin: 0 }}>Modifica las variables y observa cómo cambia el resultado.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,6fr)', gap: 24, alignItems: 'start' }}>
+            <div className="two-panel" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,6fr)', gap: 24, alignItems: 'start' }}>
               <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 22 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: '12px 14px' }}>
                   <span style={{ fontSize: 13.5, color: 'var(--color-neutral-700)' }}>Edad objetivo</span>
@@ -908,7 +961,7 @@ function App() {
                 ))}
                 <div style={{ fontSize: 12, color: 'var(--color-neutral-500)' }}>Escenario ilustrativo al {RATE_LABEL} anual compuesto. Los valores se actualizan en tiempo real.</div>
               </div>
-              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', position: 'sticky', top: 16 }}>
+              <div className="sticky-panel" style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 30, boxShadow: 'var(--shadow-sm)', position: 'sticky', top: 16 }}>
                 <div style={{ fontSize: 13.5, color: 'var(--color-neutral-600)' }}>{copy.projectionLabel}</div>
                 <div style={{ fontSize: 56, fontWeight: 700, letterSpacing: '-0.04em', color: 'var(--color-accent)', fontVariantNumeric: 'tabular-nums', lineHeight: 1.05 }}>{money(futureValue)}</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 12, marginTop: 20 }}>
@@ -954,7 +1007,7 @@ function App() {
               <h1 style={{ fontSize: 36, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Compara escenarios</h1>
               <p style={{ fontSize: 16.5, color: 'var(--color-neutral-700)', margin: 0 }}>Pequeños cambios hoy pueden generar diferencias relevantes en el largo plazo.</p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16 }}>
+            <div className="grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 16 }}>
               {scenarios.map((s, i) => (
                 <div key={i} className="pick-card" style={{ border: '1.5px solid ' + s.edge, background: s.bg, borderRadius: 16, padding: 22, cursor: 'pointer', textAlign: 'center' }} onClick={() => { setPct(s.pc); setContrib(s.cc); }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: s.tone }}>{s.name}</div>
@@ -987,7 +1040,7 @@ function App() {
         })()}
 
         {steps[step] === 'guide' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,4fr) minmax(0,7fr)', gap: 24, alignItems: 'start' }}>
+          <div className="two-panel" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,4fr) minmax(0,7fr)', gap: 24, alignItems: 'start' }}>
             <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 28, boxShadow: 'var(--shadow-sm)' }}>
               <h1 style={{ fontSize: 26, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 10px' }}>Explora tu escenario con la Guía</h1>
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--color-neutral-700)', margin: '0 0 20px' }}>La Guía conoce las variables que has seleccionado. Respuestas breves, educativas y objetivas.</p>
@@ -1031,7 +1084,7 @@ function App() {
         )}
 
         {steps[step] === 'learned' && (
-          <div style={{ maxWidth: 800, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 800, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <h1 style={{ fontSize: 34, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px', textAlign: 'center' }}>{copy.learnedTitle}</h1>
             <p style={{ textAlign: 'center', fontSize: 16, color: 'var(--color-neutral-700)', margin: '0 0 30px' }}>{copy.learnedText}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1042,7 +1095,7 @@ function App() {
                 </div>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 12, marginTop: 34 }}>
+            <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 12, marginTop: 34 }}>
               {[{ k: 'Objetivo', v: edu ? 'Estudios a los 18' : 'Retiro a los 65' },{ k: 'Tiempo', v: yearsLabel(horizon) },{ k: 'Aportación', v: money(contrib) + '/año' },{ k: 'Disciplina', v: 'Mantenerla' }].map((p, i) => (
                 <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 16, textAlign: 'center' }}>
                   <div style={{ fontSize: 11.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-accent-700)' }}>{p.k}</div>
@@ -1056,7 +1109,7 @@ function App() {
         )}
 
         {steps[step] === 'summary' && (
-          <div style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
               <h1 style={{ fontSize: 34, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 6px' }}>{copy.summaryTitle}</h1>
               <div style={{ fontSize: 15, color: 'var(--color-neutral-600)' }}>{copy.summarySub}</div>
@@ -1106,7 +1159,7 @@ function App() {
             {meetingStage === 'form' && (() => {
               const cal = calendar();
               return (
-              <div style={{ maxWidth: 620, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+              <div className="step-card" style={{ maxWidth: 620, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
                 <h1 style={{ fontSize: 28, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px', textAlign: 'center' }}>Agenda tu conversación</h1>
                 <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--color-neutral-700)', margin: '0 0 26px' }}>{shared === true ? 'Compartiste tu escenario ' + scenarioId + ' como punto de partida de la conversación.' : shared === false ? 'Tu escenario no se compartió. La conversación empezará desde cero.' : 'Solo necesitamos lo mínimo para coordinar el horario.'}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1157,7 +1210,7 @@ function App() {
             )}
             {shareModal && (
               <div style={{ position: 'fixed', inset: 0, background: 'rgba(20,21,43,.42)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 50, animation: 'cnFade .2s ease' }}>
-                <div style={{ background: '#fff', borderRadius: 18, padding: 36, maxWidth: 520, width: '100%', boxShadow: 'var(--shadow-lg)', maxHeight: '88vh', overflow: 'auto', animation: 'cnRise .25s ease' }}>
+                <div className="modal-card" style={{ background: '#fff', borderRadius: 18, padding: 36, maxWidth: 520, width: '100%', boxShadow: 'var(--shadow-lg)', maxHeight: '88vh', overflow: 'auto', animation: 'cnRise .25s ease' }}>
                   <div style={{ fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>¿Quieres compartir tu escenario?</div>
                   <p style={{ fontSize: 14.5, lineHeight: 1.65, color: 'var(--color-neutral-700)', margin: '12px 0 20px' }}>Hasta este momento tu exploración ha sido privada. Si decides compartir tu escenario, podremos utilizarlo como punto de partida de la conversación.</p>
                   {(edu
@@ -1196,7 +1249,7 @@ function App() {
         )}
 
         {steps[step] === 'nextsteps' && (
-          <div style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
+          <div className="step-card" style={{ maxWidth: 720, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
             <div style={{ textAlign: 'center', marginBottom: 30 }}>
               <h1 style={{ fontSize: 34, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px' }}>Próximos pasos</h1>
               <p style={{ fontSize: 16, color: 'var(--color-neutral-700)', margin: 0 }}>Lo que puedes hacer ahora.</p>

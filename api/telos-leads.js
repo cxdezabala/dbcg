@@ -12,7 +12,7 @@
 // no devuelven ni tocan nada (TELOS-DEPLOY.md §4).
 
 const { getSession } = require('./_lib/session');
-const { listLeads, upsertLead, updateLeadFields } = require('./_lib/telos-leads-kv');
+const { listLeads, upsertLead, updateLeadFields, deleteLead } = require('./_lib/telos-leads-kv');
 const { sendMeetingNotification } = require('./_lib/telos-email');
 
 const ALLOWED_TYPES = new Set(['retirement', 'education']);
@@ -100,9 +100,28 @@ async function handlePatch(req, res) {
   res.status(200).json({ ok: true, lead: saved });
 }
 
+async function handleDelete(req, res) {
+  if (!getSession(req)) {
+    res.status(401).json({ error: 'No autenticado' });
+    return;
+  }
+  const scenario_id = (req.body && req.body.scenario_id) || (req.query && req.query.scenario_id);
+  if (typeof scenario_id !== 'string' || !scenario_id) {
+    res.status(400).json({ error: 'scenario_id requerido' });
+    return;
+  }
+  const ok = await deleteLead(scenario_id);
+  if (!ok) {
+    res.status(404).json({ error: 'Lead no encontrado o almacenamiento no disponible' });
+    return;
+  }
+  res.status(200).json({ ok: true });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === 'GET') return handleGet(req, res);
   if (req.method === 'POST') return handlePost(req, res);
   if (req.method === 'PATCH') return handlePatch(req, res);
+  if (req.method === 'DELETE') return handleDelete(req, res);
   res.status(405).json({ error: 'Método no permitido' });
 };
