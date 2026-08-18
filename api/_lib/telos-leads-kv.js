@@ -95,4 +95,24 @@ async function updateLeadFields(scenarioId, patch) {
   }
 }
 
-module.exports = { upsertLead, listLeads, updateLeadFields };
+// Borra un lead (p.ej. escenarios de prueba). Quita tanto el registro como su
+// entrada en el índice -- sin esto último quedaría un id "fantasma" que
+// listLeads() intentaría leer en cada carga.
+async function deleteLead(scenarioId) {
+  const kv = getClient();
+  if (!kv) return false;
+  try {
+    const existing = await kv.get(leadKey(scenarioId));
+    if (!existing) return false;
+    await kv.del(leadKey(scenarioId));
+    const index = await getIndex();
+    const next = index.filter(id => id !== scenarioId);
+    if (next.length !== index.length) await saveIndex(next);
+    return true;
+  } catch (err) {
+    console.error('[telos] KV deleteLead falló', err);
+    return false;
+  }
+}
+
+module.exports = { upsertLead, listLeads, updateLeadFields, deleteLead };

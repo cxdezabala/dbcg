@@ -48,6 +48,27 @@ button{font-family:inherit;cursor:pointer}
 .table{width:100%;border-collapse:collapse;font-size:14px}
 .table th{text-align:left;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--color-neutral-600);padding:8px 6px;border-bottom:1px solid var(--color-divider)}
 .table td{padding:10px 6px;border-top:1px solid var(--color-neutral-200)}
+
+/* Responsive: el back-office está pensado para pantalla de trabajo (asesor
+   presentando desde laptop/tablet), pero el shell y las pantallas de overview
+   /leads deben funcionar igual desde un móvil. Las pantallas de Decision Room
+   / Education Room / Presentation Mode mantienen su densidad de datos -- sus
+   columnas usan minmax(0,1fr) así que se aprietan pero no se rompen ni generan
+   scroll horizontal; rehacerlas a medida por pantalla no compensa el esfuerzo
+   para una herramienta que se usa en reunión, no desde el bolsillo. */
+html,body{overflow-x:hidden}
+@media (max-width:760px){
+  .advisor-shell{flex-direction:column}
+  .advisor-sidebar{width:100% !important;flex-direction:row !important;flex-wrap:wrap;align-items:center;padding:12px 14px !important;gap:12px !important}
+  .sidebar-nav{flex-direction:row !important;gap:6px !important;overflow-x:auto}
+  .sidebar-session{margin-top:0 !important;margin-left:auto !important;padding:8px 12px !important}
+  .advisor-content{padding:20px 16px 48px !important}
+  .login-card{padding:26px !important}
+  .room-card{padding:22px !important}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .table-scroll{overflow-x:auto}
+  .table-scroll table{min-width:640px}
+}
 </style>
 </head>
 <body>
@@ -401,7 +422,7 @@ function LoginScreen({ onSignedIn }) {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, background: 'var(--color-bg)' }}>
-      <div style={{ width: '100%', maxWidth: 420, background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 40, boxShadow: 'var(--shadow-md)' }}>
+      <div className="login-card" style={{ width: '100%', maxWidth: 420, background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 40, boxShadow: 'var(--shadow-md)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 26 }}>
           <div style={{ width: 26, height: 26, borderRadius: 8, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M4 19 L10 11 L14 15 L20 6"></path></svg>
@@ -1026,7 +1047,7 @@ function DecisionRoom({ lead, engine, presenting, setPresenting, onExit, onMarkC
   function prev() { setDrStep(s => Math.max(s - 1, 0)); }
 
   return (
-    <div style={{ maxWidth: presenting ? 1180 : 1080, margin: '0 auto' }}>
+    <div className="room-wrap" style={{ maxWidth: presenting ? 1180 : 1080, margin: '0 auto' }}>
       {!presenting && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 22 }}>
           <div>
@@ -1041,7 +1062,7 @@ function DecisionRoom({ lead, engine, presenting, setPresenting, onExit, onMarkC
         </div>
       )}
 
-      <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: presenting ? 52 : 40, boxShadow: 'var(--shadow-sm)' }}>
+      <div className="room-card" style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: presenting ? 52 : 40, boxShadow: 'var(--shadow-sm)' }}>
         {edu
           ? <EducationRoomScreen step={step} room={room} notesOn={notesOn} onOpenNext={() => setNextOpen(true)} />
           : <RetirementRoomScreen step={step} room={room} notesOn={notesOn} longAge={longAge} setLongAge={setLongAge} onOpenNext={() => setNextOpen(true)} />}
@@ -1092,6 +1113,7 @@ function App() {
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [savingStatus, setSavingStatus] = useState(false);
   const [presenting, setPresenting] = useState(false);
+  const [funnel, setFunnel] = useState(null);
 
   const loadLeads = useCallback(async () => {
     setLeadsLoading(true);
@@ -1100,19 +1122,24 @@ function App() {
     if (ok) setLeads((body && body.leads) || []);
   }, []);
 
+  const loadFunnel = useCallback(async () => {
+    const { ok, body } = await api('/api/telos-funnel');
+    if (ok) setFunnel(body);
+  }, []);
+
   useEffect(() => {
     (async () => {
       const { ok, body } = await api('/api/telos-session');
-      if (ok) { setAuthState('in'); setEmail(body.email); loadLeads(); }
+      if (ok) { setAuthState('in'); setEmail(body.email); loadLeads(); loadFunnel(); }
       else setAuthState('out');
     })();
-  }, [loadLeads]);
+  }, [loadLeads, loadFunnel]);
 
   if (authState === 'loading') {
     return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-neutral-500)' }}>Cargando…</div>;
   }
   if (authState === 'out') {
-    return <LoginScreen onSignedIn={() => { setAuthState('in'); loadLeads(); }} />;
+    return <LoginScreen onSignedIn={() => { setAuthState('in'); loadLeads(); loadFunnel(); }} />;
   }
 
   async function signOut() {
@@ -1138,6 +1165,18 @@ function App() {
     if (ok && body && body.lead) setLeads(ls => ls.map(l => l.scenario_id === scenarioId ? body.lead : l));
   }
 
+  async function deleteLead(scenarioId, name) {
+    if (!window.confirm('¿Eliminar el lead' + (name ? ' de ' + name : '') + ' (' + scenarioId + ')? Esta acción no se puede deshacer.')) return;
+    const { ok } = await api('/api/telos-leads', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario_id: scenarioId })
+    });
+    if (ok) {
+      setLeads(ls => ls.filter(l => l.scenario_id !== scenarioId));
+      if (leadId === scenarioId) { setLeadId(null); setSection('leads'); }
+    }
+  }
+
   const lead = leads.find(l => l.scenario_id === leadId) || null;
   const filteredLeads = leads.filter(l => typeFilter === 'all' || (l.scenario_type || 'retirement') === typeFilter);
   const notCompleted = leads.filter(l => (l.state || 'Nueva reunión') !== 'Completado');
@@ -1147,10 +1186,10 @@ function App() {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="advisor-shell" style={{ display: 'flex', minHeight: '100vh' }}>
       {!presenting && (
-      <div style={{ width: 232, flex: 'none', background: '#fff', borderRight: '1px solid var(--color-divider)', padding: '22px 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 8px' }}>
+      <div className="advisor-sidebar" style={{ width: 232, flex: 'none', background: '#fff', borderRight: '1px solid var(--color-divider)', padding: '22px 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '0 8px' }}>
           <div style={{ width: 24, height: 24, borderRadius: 7, background: 'var(--color-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M4 19 L10 11 L14 15 L20 6"></path></svg>
           </div>
@@ -1159,12 +1198,12 @@ function App() {
             <div style={{ fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Advisor</div>
           </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <div className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {navItems.map(([k, label]) => (
             <button key={k} style={{ textAlign: 'left', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, letterSpacing: '0.02em', textTransform: 'uppercase', padding: '11px 12px', borderRadius: 10, border: 'none', cursor: 'pointer', background: section === k ? 'var(--color-accent-100)' : 'transparent', color: section === k ? 'var(--color-accent-700)' : 'var(--color-neutral-700)' }} onClick={() => setSection(k)}>{label}</button>
           ))}
         </div>
-        <div style={{ marginTop: 'auto', padding: '14px 12px', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12 }}>
+        <div className="sidebar-session" style={{ marginTop: 'auto', padding: '14px 12px', background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12 }}>
           <div style={{ fontSize: 12, color: 'var(--color-neutral-600)' }}>Sesión</div>
           <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 2 }}>{email}</div>
           <button className="btn btn-ghost" style={{ fontSize: 12.5, padding: '6px 0', marginTop: 6 }} onClick={signOut}>Cerrar sesión</button>
@@ -1172,12 +1211,51 @@ function App() {
       </div>
       )}
 
-      <div style={{ flex: 1, minWidth: 0, padding: presenting ? '28px 40px 40px' : '30px 36px 60px' }}>
+      <div className="advisor-content" style={{ flex: 1, minWidth: 0, padding: presenting ? '28px 40px 40px' : '30px 36px 60px' }}>
 
         {section === 'overview' && (
           <div style={{ maxWidth: 1100 }}>
             <h1 style={{ fontSize: 30, letterSpacing: '-0.03em', margin: '0 0 4px' }}>Overview</h1>
             <p style={{ fontSize: 15, color: 'var(--color-neutral-700)', margin: '0 0 28px' }}>Estado operativo de las conversaciones solicitadas.</p>
+
+            <h2 style={{ fontSize: 15, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-neutral-700)', margin: '0 0 12px' }}>Exploración anónima</h2>
+            {!funnel && <p style={{ color: 'var(--color-neutral-500)', fontSize: 14 }}>Cargando…</p>}
+            {funnel && !funnel.since && (
+              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 24, color: 'var(--color-neutral-600)', fontSize: 14.5, lineHeight: 1.6, marginBottom: 28 }}>
+                Todavía no se ha registrado ninguna exploración.
+              </div>
+            )}
+            {funnel && funnel.since && (() => {
+              const cols = [
+                ['time', 'Empezaron'], ['projection', 'Vieron su proyección'], ['playground', 'Exploraron variables'],
+                ['summary', 'Llegaron al resumen'], ['meeting', 'Vieron la invitación a reunión']
+              ];
+              const rows = [
+                ['retirement', 'Retiro', leads.filter(l => (l.scenario_type || 'retirement') === 'retirement' && l.share_consent).length],
+                ['education', 'Educación', leads.filter(l => l.scenario_type === 'education' && l.share_consent).length]
+              ];
+              return (
+                <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '8px 20px 20px', boxShadow: 'var(--shadow-sm)', marginBottom: 10 }}>
+                  <div className="table-scroll">
+                  <table className="table">
+                    <thead><tr><th>Recorrido</th>{cols.map(([k, label]) => <th key={k}>{label}</th>)}<th>Compartieron</th></tr></thead>
+                    <tbody>
+                      {rows.map(([journeyKey, label, shared]) => (
+                        <tr key={journeyKey}>
+                          <td style={{ fontWeight: 600 }}>{label}</td>
+                          {cols.map(([k]) => <td key={k} style={{ fontVariantNumeric: 'tabular-nums' }}>{(funnel.journeys[journeyKey] && funnel.journeys[journeyKey][k]) || 0}</td>)}
+                          <td style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{shared}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  </div>
+                </div>
+              );
+            })()}
+            {funnel && funnel.since && <p style={{ fontSize: 12, color: 'var(--color-neutral-500)', margin: '0 0 28px' }}>Desde {funnel.since.slice(0, 10)}. Cuenta sesiones anónimas, sin ningún dato personal -- "Compartieron" son los que sí eligieron dejar su escenario (los que ya ves abajo).</p>}
+
+            <h2 style={{ fontSize: 15, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-neutral-700)', margin: '0 0 12px' }}>Reuniones y leads</h2>
             {leadsLoading && <p style={{ color: 'var(--color-neutral-500)' }}>Cargando leads…</p>}
             {!leadsLoading && leads.length === 0 && (
               <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 24, color: 'var(--color-neutral-600)', fontSize: 14.5, lineHeight: 1.6 }}>
@@ -1186,7 +1264,7 @@ function App() {
             )}
             {!leadsLoading && leads.length > 0 && (
               <React.Fragment>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 14 }}>
+                <div className="kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 14 }}>
                   {[
                     { k: 'Próximas reuniones', v: String(notCompleted.length) },
                     { k: 'Escenarios compartidos', v: String(leads.filter(l => l.share_consent).length) },
@@ -1201,6 +1279,7 @@ function App() {
                 </div>
                 <h2 style={{ fontSize: 15, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-neutral-700)', margin: '36px 0 12px' }}>Próximas reuniones</h2>
                 <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: '8px 20px 20px', boxShadow: 'var(--shadow-sm)' }}>
+                  <div className="table-scroll">
                   <table className="table">
                     <thead><tr><th>Lead</th><th>Edad</th><th>Aporte anual</th><th>Objetivo</th><th>Reunión</th><th>Estado</th><th></th></tr></thead>
                     <tbody>
@@ -1221,6 +1300,7 @@ function App() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </React.Fragment>
             )}
@@ -1241,6 +1321,7 @@ function App() {
               {leadsLoading && <p style={{ color: 'var(--color-neutral-500)' }}>Cargando…</p>}
               {!leadsLoading && filteredLeads.length === 0 && <p style={{ color: 'var(--color-neutral-500)', padding: '16px 0' }}>No hay leads en este filtro todavía.</p>}
               {!leadsLoading && filteredLeads.length > 0 && (
+                <div className="table-scroll">
                 <table className="table">
                   <thead><tr><th>Lead</th><th>Tipo</th><th>Edad</th><th>Aporte anual</th><th>Objetivo</th><th>Referencia 3%</th><th>Reunión</th><th>Estado</th><th></th></tr></thead>
                   <tbody>
@@ -1265,12 +1346,16 @@ function App() {
                               })}
                             </div>
                           </td>
-                          <td style={{ textAlign: 'right' }}><button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>Abrir escenario</button></td>
+                          <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                            <button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>Abrir escenario</button>
+                            <button className="btn btn-ghost" style={{ fontSize: 12.5, color: 'var(--color-accent-2)', marginLeft: 6 }} onClick={() => deleteLead(l.scenario_id, d.name)}>Eliminar</button>
+                          </td>
                         </tr>
                       );
                     })}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
             <p style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', lineHeight: 1.6, maxWidth: '70ch', marginTop: 16 }}>El estado lo define el asesor: <strong>Nueva reunión</strong> al llegar el escenario compartido, <strong>Preparado</strong> cuando la proyección ya se validó en Projection Data, y <strong>Completado</strong> tras la conversación. Solo se muestra información compartida voluntariamente por el usuario.</p>
@@ -1327,6 +1412,7 @@ function App() {
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
                   <button className="btn btn-secondary" onClick={() => setSection('data')}>Preparar escenario</button>
                   <button className="btn btn-primary" onClick={() => setSection('room')}>Abrir {edu ? 'Education' : 'Decision'} Room</button>
+                  <button className="btn btn-ghost" style={{ color: 'var(--color-accent-2)' }} onClick={() => deleteLead(lead.scenario_id, d.name)}>Eliminar</button>
                 </div>
               </div>
 
