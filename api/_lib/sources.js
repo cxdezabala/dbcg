@@ -29,6 +29,14 @@ const INE_SERIES = {
   // Verificado contra el HTML de https://ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736147699&menu=ultiDatos&idp=1254735576715
   // (dato de junio 2026, publicado 24/07/2026: código embebido junto al valor 7,0%).
   ipri_general: 'IPR34953',
+  // IPC subclase "Mantenimiento y reparación de vehículos personales" — tasa de
+  // variación interanual en % (mensual). Verificado contra JSON real de
+  // DATOS_TABLA/76128 pegado por el usuario (jul 2026: +4,0%).
+  mantenimiento_flota: 'IPC291542',
+  // IPC subclase "Restaurantes, cafés y establecimientos similares" — tasa de
+  // variación interanual en % (mensual). Mismo JSON que mantenimiento_flota
+  // (jul 2026: +4,4%) — sustituye al proxy anterior menos específico.
+  restauracion_ipc: 'IPC292142',
 };
 
 function round1(n) { return Math.round(n * 10) / 10; }
@@ -166,6 +174,46 @@ async function fetchIpriGeneral() {
     verified: true,
     fuente: 'INE',
     desc: `El IPRI (Índice de Precios Industriales) general varía un ${current >= 0 ? '+' : ''}${current}% interanual (${asOf}), INE — usado como proxy del coste de reposición de mercancía.`,
+  };
+}
+
+// --- mantenimiento y flota (IPC, Mantenimiento y reparación de vehículos, INE) ---
+// Serie ya publicada como tasa interanual en % (mensual), mismo patrón que
+// fetchIpriGeneral/fetchInflacion.
+async function fetchMantenimientoFlota() {
+  const puntos = await fetchIneSerie(INE_SERIES.mantenimiento_flota, 2);
+  const actual = puntos[puntos.length - 1];
+  const anterior = puntos.length > 1 ? puntos[puntos.length - 2] : actual;
+  const current = actual.Valor;
+  const asOf = ineAsOf(actual);
+  return {
+    id: 'mantenimiento_flota',
+    current,
+    yoy: round1(current - anterior.Valor),
+    asOf,
+    verified: true,
+    fuente: 'INE',
+    desc: `El IPC de mantenimiento y reparación de vehículos personales varía un ${current >= 0 ? '+' : ''}${current}% interanual (${asOf}), INE.`,
+  };
+}
+
+// --- restauración (IPC, Restaurantes, cafés y establecimientos similares, INE) ---
+// Serie ya publicada como tasa interanual en % (mensual), mismo patrón que
+// fetchIpriGeneral/fetchInflacion.
+async function fetchRestauracionIpc() {
+  const puntos = await fetchIneSerie(INE_SERIES.restauracion_ipc, 2);
+  const actual = puntos[puntos.length - 1];
+  const anterior = puntos.length > 1 ? puntos[puntos.length - 2] : actual;
+  const current = actual.Valor;
+  const asOf = ineAsOf(actual);
+  return {
+    id: 'restauracion_ipc',
+    current,
+    yoy: round1(current - anterior.Valor),
+    asOf,
+    verified: true,
+    fuente: 'INE',
+    desc: `Los precios de restaurantes, cafés y establecimientos similares suben un ${current >= 0 ? '+' : ''}${current}% interanual (${asOf}), INE — muy por encima del IPC general en la mayoría de meses recientes.`,
   };
 }
 
@@ -310,9 +358,11 @@ const SOURCES = [
   { id: 'ipri_general', run: fetchIpriGeneral },
   { id: 'electricidad', run: fetchElectricidad },
   { id: 'gas_natural', run: fetchGasNatural },
+  { id: 'mantenimiento_flota', run: fetchMantenimientoFlota },
+  { id: 'restauracion_ipc', run: fetchRestauracionIpc },
 ];
 
-module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes, fetchIpriGeneral, fetchElectricidad, fetchGasNatural };
+module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes, fetchIpriGeneral, fetchElectricidad, fetchGasNatural, fetchMantenimientoFlota, fetchRestauracionIpc };
 
 // ---------------------------------------------------------------------------
 // Fase 2 (sin implementar todavía) — resto de drivers de la tabla de fuentes.

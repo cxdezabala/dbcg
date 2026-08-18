@@ -105,10 +105,10 @@ function Muted({ children, style }) { return <span className="text-muted" style=
 function Hr() { return <hr className="hr" />; }
 
 // Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
-// o todavía no tiene snapshot en KV. Los 7 drivers con API oficial (inflación, tipos,
-// laboral, colorantes, ipri_general, electricidad, gas_natural) se refrescan a diario
-// vía /api/refresh-drivers; el resto queda en estos valores hasta la fase 2
-// (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
+// o todavía no tiene snapshot en KV. Los 9 drivers con API oficial (inflación, tipos,
+// laboral, colorantes, ipri_general, electricidad, gas_natural, mantenimiento_flota,
+// restauracion_ipc) se refrescan a diario vía /api/refresh-drivers; el resto queda en
+// estos valores hasta la fase 2 (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
 const DRIVERS_RAW_FALLBACK = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
     desc:'El Gasóleo A promedia 1,76 €/l a nivel nacional en la primera semana de agosto de 2026 (con máximos regionales cercanos a 2,00 €/l), tras cinco subidas semanales consecutivas ligadas al conflicto en Oriente Medio y la retirada parcial de la bonificación fiscal (Boletín Petrolero UE / Ministerio de Transportes). Mueve directamente el coste de transporte y logística.', sectors:['manufactura','alimentacion'] },
@@ -142,8 +142,10 @@ const DRIVERS_RAW_FALLBACK = [
     desc:'El IPRI de bienes intermedios químicos (donde se incluyen colorantes y acabados) subió un 6,1% interanual en mayo de 2026, dentro de un IPRI general del +10,5% — el más alto desde diciembre de 2022 (INE). El valor 112 es el nivel del índice (base 2021=100), no un porcentaje: por encima de 100 indica precios más altos que la media de 2021. Cobertura de datos limitada para el insumo específico — variación estimada a partir del índice agregado.', sectors:['textil'] },
   { id:'smi', name:'Salario Mínimo Interprofesional (SMI)', unit:'€/mes', current:1221, yoy:3.1, spark:'0,22 15,20 30,19 45,17 60,15 75,13 90,11 100,9', fuente:'Gobierno de España (BOE)', confidence:'Alta', verified:true, asOf:'18 feb 2026',
     desc:'El Real Decreto 126/2026 fija el SMI en 1.221 €/mes en 14 pagas (17.094 €/año), un +3,1% respecto a 2025 — sube el salario base de cerca de 2,5 millones de trabajadores, concentrados en comercio, hostelería y limpieza. Cualquier convenio por debajo se eleva automáticamente a este mínimo.', sectors:['comercio','hosteleria'] },
-  { id:'restauracion_ipc', name:'IPC Restauración', unit:'% interanual', current:4.5, yoy:0.1, spark:'0,20 15,19 30,19 45,18 60,18 75,17 90,17 100,16', fuente:'INE', confidence:'Alta', verified:true, asOf:'jun 2026',
-    desc:'Los precios de restauración subieron un 4,5% interanual en junio de 2026, una décima por encima de mayo (INE) — muy por encima del IPC general (3,2% en el mismo mes). Es lo que el hostelero puede cobrar, no lo que paga: su coste real de materia prima sube todavía más porque históricamente absorbe parte de la subida sin repercutirla al cliente.', sectors:['hosteleria'] },
+  { id:'restauracion_ipc', name:'IPC Restauración', unit:'% interanual', current:4.4, yoy:0, spark:'0,20 15,19 30,19 45,18 60,18 75,17 90,17 100,16', fuente:'INE', confidence:'Alta', verified:true, asOf:'jul 2026',
+    desc:'Los precios de restaurantes, cafés y establecimientos similares suben un 4,4% interanual en julio de 2026 (INE) — muy por encima del IPC general. Es lo que el hostelero puede cobrar, no lo que paga: su coste real de materia prima sube todavía más porque históricamente absorbe parte de la subida sin repercutirla al cliente.', sectors:['hosteleria'] },
+  { id:'mantenimiento_flota', name:'Mantenimiento y reparación de vehículos', unit:'% interanual', current:4.0, yoy:0, spark:'0,15 15,16 30,15 45,17 60,16 75,18 90,17 100,18', fuente:'INE', confidence:'Alta', verified:true, asOf:'jul 2026',
+    desc:'El IPC de mantenimiento y reparación de vehículos personales sube un 4,0% interanual en julio de 2026 (INE) — se usa como proxy del coste de mantenimiento de flota para transporte y logística.', sectors:['transporte'] },
   { id:'alojamiento_iph', name:'Índice de Precios Hoteleros (IPH)', unit:'% interanual', current:5.6, yoy:0.6, spark:'0,18 15,16 30,17 45,15 60,14 75,12 90,10 100,8', fuente:'INE', confidence:'Alta', verified:true, asOf:'jun 2026',
     desc:'El Índice de Precios Hoteleros subió un 5,6% interanual en junio de 2026 (INE), acelerando frente al +5,0% de mayo y el +4,0% de abril — la mayor subida del año. Refleja lo que cobra el hotel, útil como referencia de precio propio, no de coste.', sectors:['hosteleria'] },
   { id:'peajes', name:'Peajes de autopistas estatales', unit:'% subida anual', current:4.2, yoy:0, spark:'0,12 15,12 30,12 45,12 60,12 75,12 90,12 100,12', fuente:'Min. Transportes', confidence:'Alta', verified:true, asOf:'1 ene 2026',
@@ -319,9 +321,9 @@ const SECTORS_RAW = {
     oportunidades:['El Índice de Precios Hoteleros sube un 5,6% interanual (jun. 2026, INE) — el pricing power del sector está mejorando más rápido que tu coste de materia prima.', 'Las pernoctaciones crecen (+2,6% acumulado a mayo, INE) — la demanda sostiene margen para trasladar parte de la subida de coste sin perder volumen.'] },
   transporte: { id:'transporte', name:'Transporte y logística', margenBase:7,
     estructura:[['Combustible',35,N300],['Personal (conductores)',30,ACCENT],['Mantenimiento y flota',12,N400],['Peajes',8,N600],['Otros',15,N800]],
-    estructuraDriverMap:{0:['fuel'],1:['laboral'],3:['peajes']},
-    pesoPorDriver:{fuel:35, laboral:30, peajes:8, tipos:5, inflacion:7},
-    driversIds:['fuel','laboral','peajes','tipos','inflacion'],
+    estructuraDriverMap:{0:['fuel'],1:['laboral'],2:['mantenimiento_flota'],3:['peajes']},
+    pesoPorDriver:{fuel:35, laboral:30, mantenimiento_flota:12, peajes:8, tipos:5, inflacion:7},
+    driversIds:['fuel','laboral','mantenimiento_flota','peajes','tipos','inflacion'],
     riesgos:['El combustible pesa un 35% de tu coste y sube un 18,9% interanual (CORES) — la partida más expuesta de tu estructura, sin cobertura si no tienes contrato a plazo.', 'Los peajes subieron entre 3,64% y 4,68% desde enero 2026 (Min. Transportes) — ajuste ya aplicado, sin margen de negociación al ser tarifa regulada.', 'El coste laboral estructural (+5,4%, INE) se suma a un sector con escasez de conductores profesionales, lo que limita tu capacidad de contener esta partida.'],
     oportunidades:['El gasto en peajes es solo un 8% de tu coste — la exposición real está en combustible; negociar un contrato de gasóleo a precio fijo con tu proveedor amortigua más margen que optimizar rutas de peaje.', 'Los tipos del BCE en pausa (2,25%) abren ventana para renovar flota con financiación más predecible antes de la próxima revisión de tipos en septiembre.'] },
 };
