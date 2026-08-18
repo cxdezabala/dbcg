@@ -252,6 +252,56 @@ async function fetchElectricidad() {
   };
 }
 
+// --- gas natural (MIBGAS, PVB Day-Ahead) ---
+// MIBGAS publica un único CSV por año (se le van añadiendo filas cada día,
+// no un fichero por día como OMIE) con varios productos; usamos GDAES_D+1
+// ("Day-Ahead", el mismo que citaba la descripción de fallback original).
+// IMPORTANT: la URL incluye el año (AGNO_2026) — a partir de enero de 2027
+// MIBGAS publicará un fichero nuevo (AGNO_2027) y esta URL dejará de
+// funcionar; el fetcher fallará con claridad (nunca rompe la UI) hasta que
+// se actualice el año aquí.
+const MIBGAS_URL = 'https://www.mibgas.es/es/file-access/MIBGAS_Data_2026.csv?path=AGNO_2026/XLS';
+
+function parseEsDateSlash(str) {
+  const [d, m, y] = str.split('/').map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
+
+async function fetchGasNatural() {
+  const texto = await fetchText(MIBGAS_URL);
+  const lineas = texto.split('\n').slice(2); // salta las 2 líneas de cabecera
+  const puntos = [];
+  lineas.forEach(linea => {
+    const campos = linea.trim().replace(/;$/, '').split(';');
+    if (campos.length < 7) return;
+    if (campos[1] !== 'GDAES_D+1') return;
+    if (!campos[6] || !campos[6].trim()) return; // sesión del día en curso, aún sin liquidar
+    const precio = Number(campos[6]);
+    if (!Number.isFinite(precio)) return;
+    puntos.push({ fecha: parseEsDateSlash(campos[0]), precio });
+  });
+  if (puntos.length === 0) throw new Error('MIBGAS: sin precios GDAES_D+1 parseables');
+  puntos.sort((a, b) => b.fecha - a.fecha);
+  const actual = puntos[0];
+  const objetivoAnyoAnterior = actual.fecha.getTime() - 365 * 86400000;
+  const anterior = puntos.reduce((mejor, p) => {
+    const dist = Math.abs(p.fecha.getTime() - objetivoAnyoAnterior);
+    return dist < mejor.dist ? { p, dist } : mejor;
+  }, { p: actual, dist: Infinity }).p;
+  const current = round1(actual.precio);
+  const yoy = round1(((actual.precio - anterior.precio) / anterior.precio) * 100);
+  const asOf = formatEsDate(actual.fecha);
+  return {
+    id: 'gas_natural',
+    current,
+    yoy,
+    asOf,
+    verified: true,
+    fuente: 'MIBGAS',
+    desc: `El precio del gas natural (PVB Day-Ahead) se sitúa en ${current} €/MWh el ${asOf}, un ${yoy >= 0 ? '+' : ''}${yoy}% interanual (MIBGAS).`,
+  };
+}
+
 const SOURCES = [
   { id: 'inflacion', run: fetchInflacion },
   { id: 'tipos', run: fetchTipos },
@@ -259,9 +309,10 @@ const SOURCES = [
   { id: 'colorantes', run: fetchColorantes },
   { id: 'ipri_general', run: fetchIpriGeneral },
   { id: 'electricidad', run: fetchElectricidad },
+  { id: 'gas_natural', run: fetchGasNatural },
 ];
 
-module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes, fetchIpriGeneral, fetchElectricidad };
+module.exports = { SOURCES, fetchInflacion, fetchTipos, fetchLaboral, fetchColorantes, fetchIpriGeneral, fetchElectricidad, fetchGasNatural };
 
 // ---------------------------------------------------------------------------
 // Fase 2 (sin implementar todavía) — resto de drivers de la tabla de fuentes.
