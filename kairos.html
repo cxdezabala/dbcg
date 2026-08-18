@@ -105,9 +105,9 @@ function Muted({ children, style }) { return <span className="text-muted" style=
 function Hr() { return <hr className="hr" />; }
 
 // Valores de referencia (7 ago 2026) usados como fallback si /api/drivers no responde
-// o todavía no tiene snapshot en KV. Los 6 drivers con API oficial (inflación, tipos,
-// laboral, colorantes, ipri_general, electricidad) se refrescan a diario vía
-// /api/refresh-drivers; el resto queda en estos valores hasta la fase 2
+// o todavía no tiene snapshot en KV. Los 7 drivers con API oficial (inflación, tipos,
+// laboral, colorantes, ipri_general, electricidad, gas_natural) se refrescan a diario
+// vía /api/refresh-drivers; el resto queda en estos valores hasta la fase 2
 // (scraping/proveedor de datos) — ver KAIROS-DATA-PIPELINE.md.
 const DRIVERS_RAW_FALLBACK = [
   { id:'fuel', name:'Combustible (Diésel)', unit:'€/litro', current:1.76, yoy:18.9, spark:'0,24 15,22 30,18 45,15 60,11 75,8 90,4 100,2', fuente:'CORES', confidence:'Alta', verified:true, asOf:'7 ago 2026',
