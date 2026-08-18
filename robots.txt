@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /telos/advisor
 
 Sitemap: https://www.dbcg.es/sitemap.xml
