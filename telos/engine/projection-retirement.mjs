@@ -5,8 +5,10 @@
 // README del handoff). No se recalculan ni reinterpretan valores aquí: esto es una
 // extracción literal a un módulo ES probable en Node y en el navegador.
 //
-// Fuente de los datos: 21 ilustraciones reales, `uploads/abundance *.pdf`.
-// Rejilla: edad de entrada 30/35/40/45/50/55 × face amount 75,000/147,000/200,000/322,500.
+// Fuente de los datos: 27 ilustraciones reales, `uploads/abundance *.pdf`.
+// Rejilla: edad de entrada 30/35/40/45/50/55 × face amount 75,000/147,000/200,000/322,500,
+// más 25,000/40,000 en 35/40/50 (agregadas 2026-08-20 para cubrir aportaciones anuales
+// más bajas -- antes la ilustración mínima en 50 años empezaba en $8,042.25/año).
 //
 // Regla que no se negocia (PROMPT-claude-code.md §0.2): si la combinación no está
 // respaldada por una ilustración real o por una interpolación válida entre anclas
@@ -20,12 +22,16 @@ export const REF = {
     { fa: 322500, p: 9986.25, gcv: 464077.5, pv: 704875, o2: 4286, o3: 2446, db: [322960, 325118, 330582, 345465] }
   ] },
   35: { set: 65, pts: [
+    { fa: 25000, p: 1119, gcv: 35975, pv: 51347, o2: 312, o3: 178, db: [25041, 25254, 25844, 27372] },
+    { fa: 40000, p: 1700.4, gcv: 57560, pv: 82156, o2: 500, o3: 285, db: [40066, 40406, 41351, 43795] },
     { fa: 75000, p: 3057, gcv: 107925, pv: 154042, o2: 937, o3: 535, db: [75123, 75762, 77532, 82116] },
     { fa: 147000, p: 5847.72, gcv: 211533, pv: 301922, o2: 1836, o3: 1048, db: [147242, 148494, 151963, 160948] },
     { fa: 200000, p: 7902, gcv: 287800, pv: 410778, o2: 2498, o3: 1425, db: [200329, 202032, 206753, 218977] },
     { fa: 322500, p: 12650.1, gcv: 464077.5, pv: 662379, o2: 4027, o3: 2298, db: [323030, 325777, 333389, 353100] }
   ] },
   40: { set: 65, pts: [
+    { fa: 25000, p: 1422, gcv: 35975, pv: 48261, o2: 293, o3: 167, db: [25057, 25377, 26218, 28236] },
+    { fa: 40000, p: 2185.2, gcv: 57560, pv: 77218, o2: 469, o3: 268, db: [40092, 40604, 41948, 45178] },
     { fa: 75000, p: 3966, gcv: 107925, pv: 144783, o2: 880, o3: 502, db: [75172, 76132, 78653, 84709] },
     { fa: 147000, p: 7629.36, gcv: 211533, pv: 283776, o2: 1725, o3: 985, db: [147337, 149218, 154159, 166030] },
     { fa: 200000, p: 10326, gcv: 287800, pv: 386089, o2: 2347, o3: 1340, db: [200458, 203018, 209741, 225891] },
@@ -38,6 +44,8 @@ export const REF = {
     { fa: 322500, p: 22918.5, gcv: 464077.5, pv: 585101, o2: 3557, o3: 2030, db: [323567, 329931, 345276, 380753] }
   ] },
   50: { set: 70, pts: [
+    { fa: 25000, p: 2780.75, gcv: 43937.69, pv: 52097, o2: 362, o3: 181, db: [25123, 25859, 27695, 42656] },
+    { fa: 40000, p: 4359.2, gcv: 70300.3, pv: 83356, o2: 579, o3: 289, db: [40197, 41374, 44311, 68249] },
     { fa: 75000, p: 8042.25, gcv: 131813.07, pv: 156292, o2: 1086, o3: 542, db: [75370, 77576, 83084, 127968] },
     { fa: 147000, p: 15618.81, gcv: 258353.62, pv: 306332, o2: 2129, o3: 1063, db: [147725, 152049, 162844, 250816] },
     { fa: 200000, p: 21196, gcv: 351501.52, pv: 416778, o2: 2897, o3: 1446, db: [200987, 206870, 221556, 341247] }
@@ -79,7 +87,10 @@ export function fitFace(age, annual) {
     o2: exact ? exact.o2 : L(lo.o2, hi.o2),
     o3: exact ? exact.o3 : L(lo.o3, hi.o3),
     db: [0, 1, 2, 3].map(i => exact ? exact.db[i] : L(lo.db[i], hi.db[i])),
-    exactFa: !!exact, faLabel: exact ? 'FA' + exact.fa : null
+    // faLabel siempre describe los puntos reales usados -- antes, al no interpolar
+    // exacto, project() etiquetaba la fuente con un rango fijo ("FA75000 … FA322500")
+    // sin importar qué dos ilustraciones se usaron de verdad para interpolar.
+    exactFa: !!exact, faLabel: exact ? 'FA' + exact.fa : 'FA' + lo.fa + ' … FA' + hi.fa
   };
 }
 
@@ -109,7 +120,7 @@ export function project(lead) {
   if (REF[age]) {
     const f = fitFace(age, annual);
     if (!f) return fail('La aportación anual (' + money(annual) + ') queda fuera del rango de primas ilustradas para la edad ' + age + '.');
-    const ids = f.exactFa ? ['ILL-' + age + 'A-' + f.faLabel] : ['ILL-' + age + 'A-FA75000 … FA322500'];
+    const ids = ['ILL-' + age + 'A-' + f.faLabel];
     return {
       ok: true, is_exact_projection: f.exactFa, confidence_level: f.exactFa ? 'Alta' : 'Media',
       interpolation_method: f.exactFa ? 'Ninguna · ilustración directa' : 'Lineal sobre face amount dentro de la edad ' + age,

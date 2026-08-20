@@ -169,6 +169,65 @@ describe('Retiro — rechazo de interpolación entre anclas con settlement disti
   });
 });
 
+describe('Retiro (Abundance) — anchors de las 6 ilustraciones FA 25,000/40,000 (35/40/50, agregadas 2026-08-20)', () => {
+  test('edad 35, FA 25,000: reproduce gcv y valor proyectado', () => {
+    const r = project({ current_age: 35, annual_contribution: 1119 });
+    assert.equal(r.ok, true, r.reason);
+    assert.equal(r.is_exact_projection, true);
+    assertClose(r.gcv, 35975, 1);
+    assertClose(r.projected, 51347, 1);
+    assert.equal(r.settlement, 65);
+  });
+
+  test('edad 35, FA 40,000: reproduce gcv y valor proyectado', () => {
+    const r = project({ current_age: 35, annual_contribution: 1700.4 });
+    assert.equal(r.ok, true, r.reason);
+    assert.equal(r.is_exact_projection, true);
+    assertClose(r.gcv, 57560, 1);
+    assertClose(r.projected, 82156, 1);
+  });
+
+  test('edad 40, FA 25,000: reproduce gcv y valor proyectado', () => {
+    const r = project({ current_age: 40, annual_contribution: 1422 });
+    assert.equal(r.ok, true, r.reason);
+    assert.equal(r.is_exact_projection, true);
+    assertClose(r.gcv, 35975, 1);
+    assertClose(r.projected, 48261, 1);
+  });
+
+  test('edad 40, FA 40,000: reproduce gcv y valor proyectado', () => {
+    const r = project({ current_age: 40, annual_contribution: 2185.2 });
+    assert.equal(r.ok, true, r.reason);
+    assert.equal(r.is_exact_projection, true);
+    assertClose(r.gcv, 57560, 1);
+    assertClose(r.projected, 77218, 1);
+  });
+
+  test('edad 50, FA 25,000: reproduce gcv y valor proyectado al settlement (70)', () => {
+    const r = project({ current_age: 50, annual_contribution: 2780.75 });
+    assert.equal(r.ok, true, r.reason);
+    assert.equal(r.is_exact_projection, true);
+    assertClose(r.gcv, 43937.69, 1);
+    assertClose(r.projected, 52097, 1);
+    assert.equal(r.settlement, 70);
+  });
+
+  test('edad 50, FA 40,000: reproduce gcv y valor proyectado al settlement (70)', () => {
+    const r = project({ current_age: 50, annual_contribution: 4359.2 });
+    assert.equal(r.ok, true, r.reason);
+    assert.equal(r.is_exact_projection, true);
+    assertClose(r.gcv, 70300.3, 1);
+    assertClose(r.projected, 83356, 1);
+  });
+
+  test('edad 50: una aportación de $3,750/año ahora sí resuelve (antes rechazada por debajo del piso de $8,042.25)', () => {
+    const r = project({ current_age: 50, annual_contribution: 3750 });
+    assert.equal(r.ok, true, r.reason);
+    assert.equal(r.is_exact_projection, false); // interpola entre FA25000 y FA40000
+    assert.equal(r.settlement, 70);
+  });
+});
+
 describe('Retiro — topes de edad', () => {
   test('edad 29 (fuera de 30–55) → rechazado', () => {
     const r = project({ current_age: 29, annual_contribution: 5000 });
