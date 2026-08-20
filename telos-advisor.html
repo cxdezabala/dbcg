@@ -446,14 +446,20 @@ function LoginScreen({ onSignedIn }) {
 
 function leadDisplay(l) {
   const edu = l.scenario_type === 'education';
+  // share_consent === false: la persona pidió reunión sin compartir su
+  // escenario ("Agendar sin compartirlo"). No hay ninguna cifra que mostrar
+  // -- ni edad, ni aportación, ni proyección -- solo consintió nombre y
+  // contacto para coordinar la reunión.
+  const noScenario = l.share_consent === false;
   return {
-    name: l.name || 'Sin nombre', scenarioId: l.scenario_id,
-    age: edu ? yearsLabel(l.parent_age) : yearsLabel(l.current_age),
+    name: l.name || 'Sin nombre', scenarioId: l.scenario_id, noScenario,
+    age: noScenario ? '—' : (edu ? yearsLabel(l.parent_age) : yearsLabel(l.current_age)),
     type: edu ? 'Educación' : 'Retiro',
     typeBg: edu ? '#fdf2f5' : 'var(--color-accent-100)', typeFg: edu ? '#8a2b45' : 'var(--color-accent-800)',
-    annual: money(l.annual_contribution), monthlyRef: money2(l.monthly_contribution) + ' / mes',
-    target: edu ? 'Hijo · ' + yearsLabel(l.child_age) : yearsLabel(l.target_retirement_age),
-    benchmark: money(l.benchmark_future_value),
+    annual: noScenario ? '—' : money(l.annual_contribution),
+    monthlyRef: noScenario ? '' : money2(l.monthly_contribution) + ' / mes',
+    target: noScenario ? '—' : (edu ? 'Hijo · ' + yearsLabel(l.child_age) : yearsLabel(l.target_retirement_age)),
+    benchmark: noScenario ? '—' : money(l.benchmark_future_value),
     meeting: l.meeting_date ? l.meeting_date + (l.meeting_time ? ' · ' + l.meeting_time : '') : 'Sin confirmar',
     state: l.state || 'Nueva reunión'
   };
@@ -1302,13 +1308,13 @@ function App() {
                         const [bg, fg] = stateColors(d.state);
                         return (
                           <tr key={l.scenario_id}>
-                            <td style={{ fontWeight: 600 }}>{d.name}</td>
+                            <td style={{ fontWeight: 600 }}>{d.name}{d.noScenario && <div style={{ fontSize: 11, color: 'var(--color-accent-2)', fontWeight: 600, marginTop: 2 }}>Sin escenario compartido</div>}</td>
                             <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.age}</td>
                             <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.annual}<div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', fontWeight: 400 }}>{d.monthlyRef}</div></td>
                             <td>{d.target}</td>
                             <td>{d.meeting}</td>
                             <td><span style={{ fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 99, background: bg, color: fg }}>{d.state}</span></td>
-                            <td style={{ textAlign: 'right' }}><button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>Abrir escenario</button></td>
+                            <td style={{ textAlign: 'right' }}><button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>{d.noScenario ? 'Ver contacto' : 'Abrir escenario'}</button></td>
                           </tr>
                         );
                       })}
@@ -1345,7 +1351,10 @@ function App() {
                       return (
                         <tr key={l.scenario_id}>
                           <td style={{ fontWeight: 600 }}>{d.name}<div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', fontWeight: 400 }}>{d.scenarioId}</div></td>
-                          <td><span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: d.typeBg, color: d.typeFg, borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap' }}>{d.type}</span></td>
+                          <td>
+                            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: d.typeBg, color: d.typeFg, borderRadius: 99, padding: '3px 9px', whiteSpace: 'nowrap' }}>{d.type}</span>
+                            {d.noScenario && <span style={{ display: 'block', marginTop: 4, fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-accent-2)', whiteSpace: 'nowrap' }}>Sin escenario</span>}
+                          </td>
                           <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.age}</td>
                           <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.annual}<div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', fontWeight: 400 }}>{d.monthlyRef}</div></td>
                           <td style={{ fontVariantNumeric: 'tabular-nums' }}>{d.target}</td>
@@ -1361,7 +1370,7 @@ function App() {
                             </div>
                           </td>
                           <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                            <button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>Abrir escenario</button>
+                            <button className="btn btn-secondary" style={{ fontSize: 12.5, padding: '7px 14px' }} onClick={() => { setLeadId(l.scenario_id); setSection('lead'); }}>{d.noScenario ? 'Ver contacto' : 'Abrir escenario'}</button>
                             <button className="btn btn-ghost" style={{ fontSize: 12.5, color: 'var(--color-accent-2)', marginLeft: 6 }} onClick={() => deleteLead(l.scenario_id, d.name)}>Eliminar</button>
                           </td>
                         </tr>
@@ -1378,11 +1387,16 @@ function App() {
 
         {section === 'lead' && lead && (() => {
           const edu = lead.scenario_type === 'education';
-          const pr = engine ? (edu
+          const d = leadDisplay(lead);
+          const noScenario = d.noScenario;
+          // Sin escenario no hay current_age/annual_contribution que proyectar --
+          // llamar al motor igual produciría un "Validation required" con un
+          // motivo engañoso (parece que la edad está fuera de rango, cuando en
+          // realidad nunca se compartió ninguna cifra).
+          const pr = (!noScenario && engine) ? (edu
             ? engine.projectEducation({ parent_age: lead.parent_age, child_age: lead.child_age, annual_contribution: lead.annual_contribution })
             : engine.project({ current_age: lead.current_age, annual_contribution: lead.annual_contribution })
           ) : null;
-          const d = leadDisplay(lead);
           const val = !pr ? { tag: 'Cargando…', text: '', meta: '', bg: 'var(--color-neutral-100)', edge: 'var(--color-divider)', fg: 'var(--color-neutral-600)' }
             : pr.ok
               ? (pr.is_exact_projection
@@ -1424,8 +1438,8 @@ function App() {
                   </div>
                 </div>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
-                  <button className="btn btn-secondary" onClick={() => setSection('data')}>Preparar escenario</button>
-                  <button className="btn btn-primary" onClick={() => setSection('room')}>Abrir {edu ? 'Education' : 'Decision'} Room</button>
+                  {!noScenario && <button className="btn btn-secondary" onClick={() => setSection('data')}>Preparar escenario</button>}
+                  {!noScenario && <button className="btn btn-primary" onClick={() => setSection('room')}>Abrir {edu ? 'Education' : 'Decision'} Room</button>}
                   <button className="btn btn-ghost" style={{ color: 'var(--color-accent-2)' }} onClick={() => deleteLead(lead.scenario_id, d.name)}>Eliminar</button>
                 </div>
               </div>
@@ -1442,27 +1456,46 @@ function App() {
                 <span style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', marginLeft: 'auto', maxWidth: '40ch', lineHeight: 1.5 }}>Lo define el asesor. No se comparte con el usuario ni cambia el escenario.</span>
               </div>
 
-              <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 30, boxShadow: 'var(--shadow-sm)', marginTop: 16 }}>
-                <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Escenario compartido</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 14, marginTop: 18 }}>
-                  {sharedCells.map((c, i) => (
-                    <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 16 }}>
-                      <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)', lineHeight: 1.4 }}>{c.k}</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 4, letterSpacing: '-0.02em' }}>{c.v}</div>
-                      <div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', marginTop: 2 }}>{c.ref}</div>
+              {noScenario ? (
+                <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 30, boxShadow: 'var(--shadow-sm)', marginTop: 16 }}>
+                  <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-2)', fontWeight: 600 }}>Sin escenario compartido</div>
+                  <p style={{ fontSize: 14.5, lineHeight: 1.6, color: 'var(--color-neutral-700)', marginTop: 10, maxWidth: '62ch' }}>Esta persona pidió una reunión sin compartir su escenario. No hay edad, aportación ni proyección disponibles -- solo consintió compartir su nombre y contacto para coordinar la conversación. Contáctala directamente con los datos de abajo; el {edu ? 'Education' : 'Decision'} Room no está disponible para este lead.</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 14, marginTop: 18, maxWidth: 520 }}>
+                    <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 16 }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)' }}>Contacto</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, marginTop: 4 }}>{lead.contact || '—'}</div>
                     </div>
-                  ))}
+                    <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 16 }}>
+                      <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)' }}>País</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, marginTop: 4 }}>{lead.country || '—'}</div>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', marginTop: 18, lineHeight: 1.6 }}>Aportación anual: es la unidad con la que el usuario construyó su escenario en Telos. Calculado con un supuesto hipotético de rentabilidad constante del 3% anual; no representa una rentabilidad garantizada ni una propuesta de producto.</div>
-              </div>
+              ) : (
+                <React.Fragment>
+                  <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 16, padding: 30, boxShadow: 'var(--shadow-sm)', marginTop: 16 }}>
+                    <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-accent-700)', fontWeight: 600 }}>Escenario compartido</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 14, marginTop: 18 }}>
+                      {sharedCells.map((c, i) => (
+                        <div key={i} style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: 16 }}>
+                          <div style={{ fontSize: 11.5, color: 'var(--color-neutral-600)', lineHeight: 1.4 }}>{c.k}</div>
+                          <div style={{ fontSize: 20, fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: 4, letterSpacing: '-0.02em' }}>{c.v}</div>
+                          <div style={{ fontSize: 11.5, color: 'var(--color-neutral-500)', marginTop: 2 }}>{c.ref}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 12.5, color: 'var(--color-neutral-500)', marginTop: 18, lineHeight: 1.6 }}>Aportación anual: es la unidad con la que el usuario construyó su escenario en Telos. Calculado con un supuesto hipotético de rentabilidad constante del 3% anual; no representa una rentabilidad garantizada ni una propuesta de producto.</div>
+                  </div>
 
-              <div style={{ background: val.bg, border: '1px solid ' + val.edge, borderRadius: 14, padding: '20px 22px', marginTop: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: val.fg, background: '#fff', border: '1px solid ' + val.edge, borderRadius: 99, padding: '5px 11px', flex: 'none' }}>{val.tag}</span>
-                <div>
-                  <div style={{ fontSize: 14.5, lineHeight: 1.6, color: val.fg }}>{val.text}</div>
-                  <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>{val.meta}</div>
-                </div>
-              </div>
+                  <div style={{ background: val.bg, border: '1px solid ' + val.edge, borderRadius: 14, padding: '20px 22px', marginTop: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: val.fg, background: '#fff', border: '1px solid ' + val.edge, borderRadius: 99, padding: '5px 11px', flex: 'none' }}>{val.tag}</span>
+                    <div>
+                      <div style={{ fontSize: 14.5, lineHeight: 1.6, color: val.fg }}>{val.text}</div>
+                      <div style={{ fontSize: 12.5, color: 'var(--color-neutral-600)', marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>{val.meta}</div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              )}
 
               <div style={{ background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 14, padding: 22, marginTop: 16 }}>
                 <div style={{ fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-neutral-600)', fontWeight: 600 }}>Notas de preparación · solo asesor</div>

@@ -36,8 +36,15 @@ function money(n) { return n == null ? '—' : '$' + Math.round(n).toLocaleStrin
 
 function buildNotification(lead) {
   const edu = lead.scenario_type === 'education';
+  // share_consent llega explícito en false cuando la persona pidió reunión
+  // sin compartir su escenario ("Agendar sin compartirlo") -- en ese caso no
+  // hay ninguna cifra que mostrar, y el correo debe decirlo así de claro en
+  // vez de aparentar datos con guiones.
+  const noScenario = lead.share_consent === false;
   const lines = [
-    'Nuevo escenario compartido y reunión agendada en Telos.',
+    noScenario
+      ? 'Nueva reunión agendada en Telos -- SIN escenario compartido.'
+      : 'Nuevo escenario compartido y reunión agendada en Telos.',
     '',
     'Lead: ' + (lead.name || '—'),
     'Contacto: ' + (lead.contact || '—'),
@@ -45,11 +52,13 @@ function buildNotification(lead) {
     'Tipo: ' + (edu ? 'Educación' : 'Retiro'),
     'Scenario ID: ' + lead.scenario_id,
     '',
-    edu
-      ? 'Edad del hijo: ' + (lead.child_age ?? '—') + ' · Tu edad (padre): ' + (lead.parent_age ?? '—')
-      : 'Edad actual: ' + (lead.current_age ?? '—') + ' · Edad objetivo: ' + (lead.target_retirement_age ?? '—'),
-    'Aportación anual: ' + money(lead.annual_contribution),
-    'Referencia al 3%: ' + money(lead.benchmark_future_value),
+    noScenario
+      ? 'Esta persona decidió no compartir su escenario -- no hay edad, aportación ni proyección disponibles. Solo consintió compartir su nombre y contacto para coordinar la reunión.'
+      : (edu
+        ? 'Edad del hijo: ' + (lead.child_age ?? '—') + ' · Tu edad (padre): ' + (lead.parent_age ?? '—')
+        : 'Edad actual: ' + (lead.current_age ?? '—') + ' · Edad objetivo: ' + (lead.target_retirement_age ?? '—')),
+    noScenario ? null : 'Aportación anual: ' + money(lead.annual_contribution),
+    noScenario ? null : 'Referencia al 3%: ' + money(lead.benchmark_future_value),
     '',
     'Reunión: ' + lead.meeting_date + ' a las ' + lead.meeting_time,
     lead.advisorUrl ? '' : null,
@@ -65,7 +74,7 @@ function buildNotification(lead) {
 
   return {
     from: FROM, to: [TO],
-    subject: 'Nueva reunión agendada — ' + (lead.name || lead.scenario_id) + ' · Telos',
+    subject: (noScenario ? 'Nueva reunión (sin escenario) — ' : 'Nueva reunión agendada — ') + (lead.name || lead.scenario_id) + ' · Telos',
     text: lines.join('\n'),
     attachments: [{ filename: 'reunion-telos.ics', content: Buffer.from(ics).toString('base64') }]
   };
