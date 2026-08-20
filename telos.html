@@ -317,7 +317,7 @@ function App() {
   const [messages, setMessages] = useState([{ who: 'g', text: 'Hola. Conozco las variables de tu escenario. ¿En qué puedo ayudarte a entenderlo mejor?' }]);
   const [draft, setDraft] = useState('');
   const [typing, setTyping] = useState(false);
-  const [scenarioId] = useState(() => 'TL-R-' + Math.floor(10000 + Math.random() * 89999));
+  const [scenarioId, setScenarioId] = useState(null);
   const [shareModal, setShareModal] = useState(false);
   const [shared, setShared] = useState(null);
   const [meetingStage, setMeetingStage] = useState('intro');
@@ -430,19 +430,29 @@ function App() {
 
   // Solo envía los datos de la reunión si el usuario decidió compartir su
   // escenario (shared === true). Si declinó compartirlo, la promesa en
-  // pantalla es "la conversación empezará desde cero" -- respetarla significa
-  // que la reserva de cita no viaja al backend en ese caso.
+  // pantalla es "la conversación empezará desde cero" -- eso ya no significa
+  // que el asesor se quede sin saber que alguien pidió reunión: siempre se
+  // envía nombre/contacto/horario. Lo que varía es si van las cifras del
+  // escenario. share_consent marca cuál de los dos casos es, para que el
+  // back y el Advisor lo muestren sin ambigüedad.
+  const bookingReady = book.name.trim() && book.contact.trim() && book.date && book.time;
   function confirmBooking() {
-    if (shared === true) {
-      fetch('/api/telos-leads', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    if (!bookingReady) return;
+    const payload = shared === true
+      ? {
           scenario_id: scenarioId, scenario_type: edu ? 'education' : 'retirement',
           name: book.name, contact: book.contact, country: book.country,
           meeting_date: book.date, meeting_time: book.time
-        })
-      }).catch(() => { /* sin red: la reunión queda confirmada solo en esta sesión */ });
-    }
+        }
+      : {
+          scenario_id: scenarioId, scenario_type: edu ? 'education' : 'retirement',
+          name: book.name, contact: book.contact, country: book.country,
+          meeting_date: book.date, meeting_time: book.time,
+          share_consent: false, contact_consent: true
+        };
+    fetch('/api/telos-leads', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    }).catch(() => { /* sin red: la reunión queda confirmada solo en esta sesión */ });
     setMeetingStage('done');
   }
 
@@ -499,7 +509,13 @@ function App() {
   const eduExtrapolated = edu && range.ok && range.tight;
 
   function resetHome() { setJourney(null); setStep(0); setMeetingStage('intro'); setShared(null); setShareModal(false); }
-  function pick(j) { setJourney(j); setStep(0); setMeetingStage('intro'); setShared(null); }
+  function pick(j) {
+    setJourney(j);
+    // El prefijo del ID refleja el tipo real de recorrido (antes siempre era
+    // TL-R- aunque fuera educación, generado una sola vez al montar).
+    setScenarioId((j === 'edu' ? 'TL-E-' : 'TL-R-') + Math.floor(10000 + Math.random() * 89999));
+    setStep(0); setMeetingStage('intro'); setShared(null);
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-bg)', color: 'var(--color-text)', fontFamily: 'var(--font-body)' }}>
@@ -1162,6 +1178,11 @@ function App() {
               <div className="step-card" style={{ maxWidth: 620, margin: '0 auto', background: '#fff', border: '1px solid var(--color-divider)', borderRadius: 18, padding: 44, boxShadow: 'var(--shadow-sm)' }}>
                 <h1 style={{ fontSize: 28, lineHeight: 1.15, letterSpacing: '-0.03em', margin: '0 0 8px', textAlign: 'center' }}>Agenda tu conversación</h1>
                 <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--color-neutral-700)', margin: '0 0 26px' }}>{shared === true ? 'Compartiste tu escenario ' + scenarioId + ' como punto de partida de la conversación.' : shared === false ? 'Tu escenario no se compartió. La conversación empezará desde cero.' : 'Solo necesitamos lo mínimo para coordinar el horario.'}</p>
+                {shared === false && (
+                  <div style={{ background: 'var(--color-neutral-100)', border: '1px solid var(--color-divider)', borderRadius: 12, padding: '14px 16px', fontSize: 13, lineHeight: 1.6, color: 'var(--color-neutral-700)', marginBottom: 20 }}>
+                    No se comparte ninguna cifra de tu escenario ni proyecciones -- el asesor llega a la conversación sin ningún dato tuyo. Al confirmar, aceptas que compartamos tu nombre y contacto únicamente para coordinar esta reunión.
+                  </div>
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div className="field"><label>Nombre</label><input className="input" type="text" placeholder="Tu nombre" value={book.name} onChange={e => setBook({ ...book, name: e.target.value })} /></div>
                   <div className="field"><label>Email o WhatsApp</label><input className="input" type="text" placeholder="nombre@correo.com" value={book.contact} onChange={e => setBook({ ...book, contact: e.target.value })} /></div>
@@ -1193,7 +1214,7 @@ function App() {
                   <div style={{ fontSize: 13, color: 'var(--color-neutral-600)', marginTop: 14 }}>{cal.summary}</div>
                 </div>
                 <div style={{ marginTop: 26, display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center' }}>
-                  <button className="btn btn-primary" onClick={confirmBooking}>Confirmar reunión</button>
+                  <button className="btn btn-primary" onClick={confirmBooking} disabled={!bookingReady}>Confirmar reunión</button>
                   <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setMeetingStage('intro')}>Volver</button>
                 </div>
               </div>
