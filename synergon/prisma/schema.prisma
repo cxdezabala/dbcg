@@ -76,6 +76,7 @@ model User {
   scope        String
   canLogin     Boolean       @default(false)
   lastActive   String?
+  order        Int           @default(0) // CRM ordering within the team
   state        Json          @default("{}") // per-user demo/UI state (lens, meeting prep, story flags…)
   performance  Performance?
   opportunities Opportunity[]

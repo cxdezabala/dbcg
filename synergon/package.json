@@ -12,7 +12,7 @@
     "test:e2e": "playwright test",
     "db:push": "prisma db push --skip-generate",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db push --skip-generate && tsx prisma/seed.ts",
+    "db:seed": "prisma db push && tsx prisma/seed.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

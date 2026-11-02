@@ -92,4 +92,4 @@
 .tableWrap { overflow-x: auto; }
 .empty { font-size: 13px; color: var(--color-neutral-700); padding: 8px 0; }
 .warn { padding: 10px 12px; background: var(--color-accent-100); color: var(--color-accent-800); font-size: 13px; }
-.note { font-size: 12px; padding: 10px 12px; background: var(--color-neutral-200); }
+.noteBox { font-size: 12px; padding: 10px 12px; background: var(--color-neutral-200); }

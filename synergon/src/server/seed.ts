@@ -56,11 +56,14 @@ export async function seedDemo(db: PrismaClient) {
   await db.user.create({ data: { id: 'u-sofia', orgId: ORG_ID, name: 'Sofia Chen', role: 'expert', title: 'Subject-Matter Expert', initials: 'SC', scope: 'Assigned solutions', lastActive: 'Yesterday', state: { team: 'AI Service Transformation' } } });
 
   const idByName = new Map<string, string>([['Javier Morales', DEMO_USERS.exec.id], ['Laura Bennett', DEMO_USERS.lead.id]]);
+  let order = 0;
   for (const t of pipeline) for (const e of t.execs) {
+    order++;
+    if (idByName.has(e.name)) await db.user.update({ where: { id: idByName.get(e.name)! }, data: { order } });
     if (!idByName.has(e.name)) {
       const id = slug(e.name);
       idByName.set(e.name, id);
-      await db.user.create({ data: { id, orgId: ORG_ID, teamId: t.id, name: e.name, role: e.name === t.lead && t.id !== 'eiu' ? 'lead' : 'exec', title: e.name === t.lead && t.id !== 'eiu' ? 'Commercial Team Leader' : 'Commercial Executive', initials: e.name.split(' ').map(w => w[0]).join('').slice(0, 2), scope: t.name } });
+      await db.user.create({ data: { id, orgId: ORG_ID, teamId: t.id, name: e.name, order, role: e.name === t.lead && t.id !== 'eiu' ? 'lead' : 'exec', title: e.name === t.lead && t.id !== 'eiu' ? 'Commercial Team Leader' : 'Commercial Executive', initials: e.name.split(' ').map(w => w[0]).join('').slice(0, 2), scope: t.name } });
     }
     const userId = idByName.get(e.name)!;
     await db.performance.create({ data: { userId, year: 2026, pipe: e.pipe, won: e.won, lost: e.lost, wonN: e.wonN, lostN: e.lostN, quota: e.quota, stages: e.stages, months: e.months } });
