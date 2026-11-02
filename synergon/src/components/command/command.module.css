@@ -1,0 +1,29 @@
+.pulse { padding: 14px 16px; border-right: 1px solid var(--color-divider); border-bottom: 1px solid var(--color-divider); }
+.hero { background: var(--color-accent); color: var(--color-on-accent); padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+.heroKicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.heroTitle { font-family: var(--font-heading); font-weight: 800; font-size: clamp(28px, 3.4vw, 46px); line-height: 1.05; max-width: 980px; text-wrap: balance; }
+.heroEvidence { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; border-top: 2px solid var(--color-on-accent-rule); padding-top: 18px; }
+.heroLabel { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+.heroRow { font-size: 14px; padding: 6px 0; border-bottom: 1px solid var(--color-on-accent-hair); }
+.onAccent { color: var(--color-on-accent); border: 1px solid var(--color-on-accent); }
+.onAccent:hover { background: var(--color-accent-600); color: var(--color-on-accent); }
+.onAccentSolid { background: var(--color-on-accent); color: var(--color-accent-700); }
+.prio { all: unset; box-sizing: border-box; width: 100%; display: block; cursor: pointer; padding: 12px 0; border-bottom: 1px solid var(--color-divider); }
+.prio:hover { background: var(--color-neutral-200); }
+.prio:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.prioHead { display: grid; grid-template-columns: 28px 1fr 52px; gap: 10px; align-items: center; }
+.prioBody { margin: 10px 0 0 38px; display: grid; grid-template-columns: 130px 1fr; row-gap: 5px; font-size: 13px; }
+.advisor { padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+.advisorQ { all: unset; cursor: pointer; padding: 10px 0; border-bottom: 1px solid var(--color-on-ink-hair); font-size: 14px; display: flex; justify-content: space-between; gap: 12px; }
+.advisorQ:hover { color: var(--color-accent-400); }
+.advisorQ:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.heatRow { display: grid; grid-template-columns: 200px repeat(8, minmax(0, 1fr)); gap: 2px; margin-bottom: 2px; }
+.heatCap { font-size: 11px; font-weight: 700; padding: 4px; line-height: 1.2; }
+.heatName { font-size: 13px; padding: 8px 4px; font-weight: 600; }
+.cell { all: unset; cursor: pointer; text-align: center; padding: 10px 0; font-size: 13px; font-weight: 700; outline-offset: -2px; }
+.cell:focus-visible { outline: 2px solid var(--color-accent); }
+.unmet { display: grid; grid-template-columns: 170px 1fr 70px; gap: 10px; align-items: center; padding: 6px 0; }
+.rec { background: var(--color-surface); padding: 18px; display: flex; flex-direction: column; gap: 10px; border-top: 3px solid var(--color-text); }
+.recLabel { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--color-neutral-700); }
+.iniAct { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: flex; gap: 10px; align-items: center; padding: 7px 0; }
+.iniAct:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

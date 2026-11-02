@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useT } from '@/i18n/client';
 import s from './shell.module.css';
 
@@ -50,6 +50,10 @@ export function UIProvider({ children, view }: { children: ReactNode; view: stri
   const ctxRef = useRef(aiCtx); ctxRef.current = aiCtx;
   const viewRef = useRef(view); viewRef.current = view;
   useEffect(() => { setAiCtx({}); }, [pathname]);
+  const sp = useSearchParams();
+  const denied = sp.get('denied'), as = sp.get('as');
+  useEffect(() => { if (denied) toast('Restricted — outside your authorised scope'); }, [denied, toast]);
+  useEffect(() => { if (as) { setMsgs([]); toast('Viewing as ' + ({ exec: 'Javier Morales — Commercial Executive', lead: 'Laura Bennett — Commercial Team Leader', director: 'Daniel Foster — Commercial Director', admin: 'Omar Haddad — Platform Administrator' } as Record<string, string>)[as]); } }, [as, toast]);
 
   const ask = useCallback(async (q0: string) => {
     const q = (q0 || '').trim(); if (!q) return;

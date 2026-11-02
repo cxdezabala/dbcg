@@ -4,7 +4,7 @@ import { cx } from '@/lib/cx';
 import { useT } from '@/i18n/client';
 import type { ReactNode } from 'react';
 
-export function Seg<T extends string | number | null>({ options, value, onChange, plain, label }: { options: [T, string][]; value: T; onChange: (v: T) => void; plain?: boolean; label?: string }) {
+export function Seg<T extends string | number | boolean | null>({ options, value, onChange, plain, label }: { options: [T, string][]; value: T; onChange: (v: T) => void; plain?: boolean; label?: string }) {
   const t = useT();
   return (
     <div className={u.seg} role="group" aria-label={label}>

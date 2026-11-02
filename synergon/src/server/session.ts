@@ -11,7 +11,7 @@ export interface UserState {
   ciViewed?: boolean; themeViewed?: boolean; alignedSeen?: boolean;
   doneActions?: Record<string, boolean>; saved?: string[]; watched?: string[]; rpScore?: number | null;
   lens?: 'consulting' | 'execed'; prep?: Record<string, Prep>; ldOv?: Record<string, { ld?: number; exec?: number }>;
-  gapSel?: string; team?: string;
+  gapSel?: string; team?: string; analysis?: Record<string, boolean>; pendingRoles?: Record<string, string>; priorityOpen?: string | null;
 }
 export interface Prep { stake: string[]; hooks: string[]; qs: string[]; bu: string | null; comp: boolean; type: 'first' | 'follow'; date: string }
 
