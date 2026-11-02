@@ -1,0 +1,29 @@
+.flow { background: var(--color-surface); border-top: 4px solid var(--color-accent); padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; }
+.ctxGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); border-left: 1px solid var(--color-divider); }
+.ctxRec { all: unset; box-sizing: border-box; cursor: pointer; padding: 6px 16px 10px; border-right: 1px solid var(--color-divider); display: flex; flex-direction: column; gap: 4px; }
+.ctxRec:hover { background: var(--color-neutral-200); }
+.ctxRec:focus-visible, .gap:focus-visible, .rec:focus-visible, .thumb:focus-visible, .rpOpt:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.gap { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 12px; border-bottom: 1px solid var(--color-divider); border-left: 3px solid transparent; }
+.gap:hover { background: var(--color-neutral-200); }
+.gap.on { border-left-color: var(--color-accent); background: var(--color-surface); }
+.video { background: var(--color-surface); display: flex; flex-direction: column; }
+.thumb { all: unset; box-sizing: border-box; cursor: pointer; position: relative; display: block; aspect-ratio: 16 / 9; background: var(--color-text); overflow: hidden; }
+.thumbImg { position: absolute; inset: 0; background-position: center; background-size: cover; background-repeat: no-repeat; }
+.play { position: absolute; left: 12px; bottom: 12px; width: 44px; height: 44px; background: var(--color-accent); color: var(--color-on-accent); display: flex; align-items: center; justify-content: center; }
+.watched { position: absolute; right: 8px; top: 8px; background: var(--color-text); color: var(--color-bg); font-size: 11px; font-weight: 700; padding: 3px 8px; }
+.ext { position: absolute; left: 16px; bottom: 16px; background: var(--color-accent); color: var(--color-on-accent); padding: 12px 16px; font-weight: 800; font-size: 15px; display: flex; gap: 10px; align-items: center; }
+.videoBody { padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.beh { display: grid; grid-template-columns: 32px 1fr; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--color-divider); font-size: 14px; }
+.policy { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 20px; font-size: 13px; }
+.voice { background: var(--color-surface); padding: 16px; border-top: 3px solid var(--color-text); display: flex; flex-direction: column; gap: 6px; }
+.cap { display: grid; grid-template-columns: 170px 1fr 54px; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--color-divider); }
+.path { display: grid; grid-template-columns: 32px 1fr; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--color-divider); }
+.rec { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-divider); align-items: center; }
+.rec:hover { background: var(--color-neutral-200); }
+.coach { padding: 22px; display: flex; flex-direction: column; gap: 12px; }
+.coachKicker { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--color-accent-400); }
+.onInk { color: var(--color-bg); border: 1px solid var(--color-bg); }
+.rpOpt { all: unset; box-sizing: border-box; cursor: pointer; padding: 10px 12px; font-size: 13px; border: 1px solid var(--color-divider); }
+.rpOpt:hover { background: var(--color-neutral-200); }
+.player { flex: none; position: relative; aspect-ratio: 16 / 9; background: var(--color-neutral-900); }
+.player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
