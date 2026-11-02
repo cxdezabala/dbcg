@@ -1,0 +1,422 @@
+// SYNERGON MVP — data model. All seeded data is fictional (Asterion Business Solutions).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  exec
+  lead
+  director
+  admin
+  expert
+}
+
+enum Provenance {
+  REPORTED
+  ESTIMATED
+  AI_HYPOTHESIS
+}
+
+enum OppStatus {
+  open
+  won
+  lost
+}
+
+enum KnowledgeStatus {
+  draft
+  in_review
+  validated
+  needs_evidence
+}
+
+model Organization {
+  id           String   @id
+  name         String
+  minGroup     Int      @default(5) // minimum aggregation group size for leadership insights
+  aiLogContent Boolean  @default(false) // AI governance: store prompts/answers in the audit log?
+  teams        Team[]
+  users        User[]
+  accounts     Account[]
+  createdAt    DateTime @default(now())
+}
+
+model Team {
+  id        String       @id // eiu, uki, imm, ge, urt, ksa
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name      String
+  bu        String // Europe | Middle East
+  region    String
+  leadName  String
+  // aggregated capability assessment (CAP_SHORT order) — leadership heatmap
+  capN      Int
+  capValues Float[]
+  mine      Boolean      @default(false)
+  users     User[]
+}
+
+model User {
+  id           String        @id
+  orgId        String
+  org          Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  teamId       String?
+  team         Team?         @relation(fields: [teamId], references: [id])
+  name         String
+  email        String?       @unique
+  passwordHash String?
+  role         Role
+  title        String
+  initials     String
+  scope        String
+  canLogin     Boolean       @default(false)
+  lastActive   String?
+  state        Json          @default("{}") // per-user demo/UI state (lens, meeting prep, story flags…)
+  performance  Performance?
+  opportunities Opportunity[]
+  capabilities Capability[]
+  learning     LearningAssignment[]
+  evidence     CapabilityEvidence[]
+  createdAt    DateTime      @default(now())
+}
+
+/// Year-to-date commercial results per executive (Salesforce aggregate, read-only).
+model Performance {
+  userId String  @id
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  year   Int
+  pipe   Float
+  won    Float
+  lost   Float
+  wonN   Int
+  lostN  Int
+  quota  Float
+  stages Float[]
+  months Float[]
+}
+
+model Account {
+  id          String        @id
+  orgId       String
+  org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  industry    String
+  geo         String
+  hq          String
+  size        String
+  rel         String
+  value       String
+  last        String
+  tier        String
+  ownerName   String
+  ownerRoles  Role[] // roles authorised to read the account (CRM sharing rules)
+  obs         String
+  costBase    Int
+  insights    String[]
+  actions     String[]
+  hyp         String
+  challenge   String
+  hypotheses  String[] // AI-drafted hypotheses created by users ("needs validation")
+  crmOpps     Json     @default("[]") // CRM opportunity intelligence shown on the account (name, stage, value, close, signal)
+  contacts    Contact[]
+  interactions Interaction[]
+  opportunities Opportunity[]
+  signalLinks SignalLink[]
+  solutions   Solution[]
+}
+
+model Contact {
+  id        String  @id @default(cuid())
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name      String
+  title     String
+  stance    String
+  strength  String
+  lvl       Int
+  order     Int
+}
+
+model Interaction {
+  id        String  @id @default(cuid())
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  date      String
+  type      String
+  text      String
+  order     Int
+}
+
+model Opportunity {
+  id          String    @id @default(cuid())
+  accountId   String?
+  account     Account?  @relation(fields: [accountId], references: [id])
+  accountName String
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  teamId      String
+  name        String
+  stage       Int // index in STAGES (0 Qualification … 4 Negotiation)
+  value       Float // €M
+  close       String?
+  next        String?
+  signal      String? // CRM opportunity signal (strategic accounts)
+  status      OppStatus
+  lossReason  String?
+  closedDate  String?
+  order       Int
+  source      String    @default("salesforce") // read-only CRM origin
+}
+
+model Company {
+  id         String   @id
+  crmId      String?
+  name       String
+  sector     String
+  custom     Boolean  @default(false)
+  createdBy  String?
+  // full Radar360 dossier (business units, people, peers, rivals, hooks, questions…)
+  dossier    Json
+  // field-level financials: { revenue: { value, provenance, source }, … }
+  financials Json
+  createdAt  DateTime @default(now())
+}
+
+model Signal {
+  id          String       @id
+  title       String
+  industry    String
+  geo         String
+  kind        String
+  verified    Boolean
+  provenance  Provenance
+  horizon     String
+  date        String
+  x           Int
+  y           Int
+  sources     String[]
+  summary     String
+  implication String
+  action      String
+  companies   String[]
+  links       SignalLink[]
+}
+
+model SignalLink {
+  signalId  String
+  signal    Signal   @relation(fields: [signalId], references: [id], onDelete: Cascade)
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  linkedBy  String
+  createdAt DateTime @default(now())
+
+  @@id([signalId, accountId])
+}
+
+model Solution {
+  id             String        @id
+  accountId      String
+  account        Account       @relation(fields: [accountId], references: [id])
+  ownerId        String?
+  title          String
+  pack           String
+  stage          Int
+  challenge      String
+  imported       Boolean       @default(false)
+  signalImported Boolean       @default(false)
+  framed         Boolean       @default(false)
+  alt            String?
+  ws             Json          @default("{}")
+  scenario       String        @default("base")
+  costBase       Int
+  submitted      Boolean       @default(false)
+  story          Boolean       @default(false) // the guided-demo solution
+  completed      Boolean       @default(false)
+  completedWhen  String?
+  completedTeam  String?
+  initiativeId   String?
+  updatedLabel   String?
+  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime      @default(now())
+  businessCase   BusinessCase?
+  requests       ExpertRequest[]
+}
+
+model BusinessCase {
+  solutionId String   @id
+  solution   Solution @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  scenario   String
+  invest     Float // €k incl. 15% implementation & PMO
+  benefit    Float // €k annual run-rate
+  savingsPct Float
+  roi        Float
+  payback    Int?
+  updatedAt  DateTime @updatedAt
+}
+
+model Expert {
+  id         String   @id
+  name       String
+  title      String
+  loc        String
+  domain     String
+  domains    String[]
+  industries String[]
+  delivered  Int
+  contribs   Int
+  avail      String
+  interests  String
+  bio        String
+  requests   ExpertRequest[]
+}
+
+/// Requests to experts. `message` is private 1:1 content (requester ↔ expert) and is never
+/// exposed to leadership views or aggregated insights.
+model ExpertRequest {
+  id          String   @id @default(cuid())
+  solutionId  String?
+  solution    Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  expertId    String?
+  expert      Expert?  @relation(fields: [expertId], references: [id])
+  label       String? // free-text requests not tied to a solution
+  assignee    String?
+  requesterId String?
+  mode        String   @default("request") // request | connect
+  status      String // requested | connected | contributed | unmet | answered
+  message     String?
+  createdAt   DateTime @default(now())
+}
+
+model KnowledgeItem {
+  id        String          @id
+  title     String
+  authorName String
+  domain    String
+  status    KnowledgeStatus
+  saves     Int             @default(0)
+  savedBy   String[]
+  date      String
+  body      String
+  comments  Json            @default("[]")
+  order     Int             @default(0)
+  createdAt DateTime        @default(now())
+}
+
+model Capability {
+  id     String  @id @default(cuid())
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  capId  String
+  name   String
+  cur    Float
+  tgt    Float
+  focus  Boolean @default(false)
+  order  Int
+}
+
+/// Demonstrated capability — validated work evidence, recorded separately from learning completion.
+model CapabilityEvidence {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  capId       String
+  description String
+  validatedBy String
+  date        String
+}
+
+/// Learning activity (assigned or contextual). Completion never changes capability levels by itself.
+model LearningAssignment {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  kind        String // lesson | framework | roleplay | path | video
+  source      String // contextual | initiative | catalogue
+  minutes     Int       @default(5)
+  status      String    @default("assigned") // assigned | completed
+  score       String?
+  completedAt DateTime?
+  initiativeId String?
+  createdAt   DateTime  @default(now())
+}
+
+model Initiative {
+  id        String   @id @default(cuid())
+  name      String
+  teams     String[]
+  acts      Json
+  progress  Int      @default(5)
+  ownerName String
+  themeId   String?
+  createdAt DateTime @default(now())
+}
+
+model StrategicPriority {
+  id       String @id
+  name     String
+  progress Int
+  acts     Int
+  teams    String
+  risk     String
+  action   String
+  order    Int
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  text      String
+  audience  Role[]
+  view      String
+  readBy    String[]
+  createdAt DateTime @default(now())
+  timeLabel String?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String
+  action    String
+  object    String
+  category  String
+  content   String? // only stored when AI governance allows content logging
+  timeLabel String?
+  createdAt DateTime @default(now())
+}
+
+model IntegrationConnection {
+  id          String    @id
+  name        String
+  status      String // Connected | Demo data | Planned
+  description String
+  meta        String
+  canSync     Boolean
+  lastSyncAt  DateTime?
+  records     Int?
+  order       Int
+}
+
+model AiConversation {
+  id        String      @id @default(cuid())
+  userId    String
+  view      String
+  createdAt DateTime    @default(now())
+  messages  AiMessage[]
+}
+
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  who            String // user | ai
+  text           String
+  lines          String[]
+  sources        String[]
+  engine         String? // anthropic | fallback
+  createdAt      DateTime       @default(now())
+}

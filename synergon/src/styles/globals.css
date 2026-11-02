@@ -1,0 +1,40 @@
+/* Token layer: the Modernist design system, copied verbatim from reference/_ds/modernist-…/styles.css */
+@import './modernist.css';
+
+/* Token extensions used by SYNERGON (kept in the token layer — components only use var(--*)) */
+:root {
+  --color-on-accent: #ffffff;
+  --color-on-accent-rule: rgba(255, 255, 255, .6);
+  --color-on-accent-hair: rgba(255, 255, 255, .4);
+  --color-on-ink-hair: rgba(255, 255, 255, .25);
+  --sidebar-w: 240px;
+}
+/* Dark mode — same overrides as the prototype (DARK map in SYNERGON.dc.html) */
+:root[data-theme='dark'] {
+  --color-bg: #161514;
+  --color-surface: #22201f;
+  --color-text: #f1efee;
+  --color-divider: rgba(241, 239, 238, .3);
+  --color-neutral-100: #2a2827;
+  --color-neutral-200: #302d2c;
+  --color-neutral-300: #433f3e;
+  --color-neutral-600: #9b9797;
+  --color-neutral-700: #b5b0af;
+  --color-neutral-800: #d6d1d0;
+  --color-accent-100: #3a1a14;
+  --color-accent-200: #55211a;
+  --color-accent-300: #7c2a1d;
+  --color-accent-700: #ff9783;
+  --color-accent-800: #ffc4b8;
+  --color-on-ink-hair: rgba(0, 0, 0, .25);
+  color-scheme: dark;
+}
+
+body { margin: 0; background: var(--color-bg); }
+a { color: var(--color-accent); }
+a:hover { color: var(--color-accent-600); }
+input[type='range'] { accent-color: var(--color-accent); width: 100%; }
+.btn { white-space: nowrap; justify-content: flex-start; text-align: left; }
+button { font: inherit; color: inherit; }
+*, *::before, *::after { border-radius: 0 !important; }
+.radio .dot { border-radius: 50% !important; }

@@ -1,0 +1,95 @@
+/* Shared Modernist patterns used across SYNERGON views (ported from the prototype markup). */
+
+.page { display: flex; flex-direction: column; gap: 40px; }
+.stack { display: flex; flex-direction: column; }
+.gap4 { gap: 4px; } .gap6 { gap: 6px; } .gap8 { gap: 8px; } .gap10 { gap: 10px; } .gap12 { gap: 12px; } .gap14 { gap: 14px; } .gap16 { gap: 16px; } .gap18 { gap: 18px; } .gap20 { gap: 20px; } .gap24 { gap: 24px; } .gap28 { gap: 28px; } .gap32 { gap: 32px; } .gap36 { gap: 36px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; }
+.rowTop { display: flex; flex-wrap: wrap; align-items: flex-start; }
+.rowBase { display: flex; flex-wrap: wrap; align-items: baseline; }
+.between { justify-content: space-between; }
+.flex1 { flex: 1; }
+.minw0 { min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 32px; }
+.grid2narrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 36px; }
+.grid320 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 28px; }
+.grid260 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.grid220 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+
+/* section heading: 2px ink rule above an h6 */
+.sectionHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; border-top: 2px solid var(--color-text); padding-top: 10px; margin-bottom: 6px; }
+.sectionHead h6 { margin: 0; }
+.mb0 { margin-bottom: 0; } .mb4 { margin-bottom: 4px; } .mb10 { margin-bottom: 10px; } .mb12 { margin-bottom: 12px; } .mb14 { margin-bottom: 14px; } .mb16 { margin-bottom: 16px; }
+.hint { font-size: 11px; color: var(--color-neutral-700); }
+/* uppercase chart heading with a 2px ink rule below */
+.capsHead { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid var(--color-text); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.capsHead .note { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--color-neutral-700); }
+.capsHead8 { composes: capsHead; margin-bottom: 8px; }
+
+.muted { color: var(--color-neutral-700); }
+.accentText { color: var(--color-accent-700); }
+.small { font-size: 12px; } .xs { font-size: 11px; } .s13 { font-size: 13px; } .s14 { font-size: 14px; } .s15 { font-size: 15px; }
+.b { font-weight: 700; } .b6 { font-weight: 600; } .b8 { font-weight: 800; }
+.kicker { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--color-accent-700); }
+.label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-neutral-700); }
+.display { font-family: var(--font-heading); font-weight: 800; line-height: 1.1; }
+
+/* segmented control (bordered group of flat buttons) */
+.seg { display: flex; flex-wrap: wrap; border: 1px solid var(--color-divider); width: max-content; max-width: 100%; }
+.segBtn { all: unset; cursor: pointer; white-space: nowrap; padding: 6px 11px; font-size: 12px; font-weight: 600; background: transparent; color: var(--color-text); }
+.segBtn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.segBtn.on { background: var(--color-text); color: var(--color-bg); }
+.segBtnPlain { composes: segBtn; font-weight: 400; padding: 6px 10px; }
+
+/* pill toggles (bordered buttons that sit in a wrap) */
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { all: unset; cursor: pointer; white-space: nowrap; padding: 5px 10px; font-size: 12px; border: 1px solid var(--color-divider); background: transparent; color: var(--color-text); }
+.pill:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.pill.on { background: var(--color-text); color: var(--color-bg); }
+.pillBlock { composes: pill; display: block; padding: 8px 10px; font-size: 13px; white-space: normal; }
+
+/* tabs with a 3px accent underline */
+.tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid var(--color-divider); margin-bottom: 24px; }
+.tab { all: unset; cursor: pointer; padding: 10px 16px; font-size: 14px; font-weight: 400; border-bottom: 3px solid transparent; margin-bottom: -2px; color: var(--color-text); }
+.tab:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.tab.on { font-weight: 700; border-bottom-color: var(--color-accent); color: var(--color-accent-700); }
+
+/* KPI strip: equal cells separated by 1px rules */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-left: 1px solid var(--color-divider); }
+.kpi { padding: 10px 16px 14px; border-right: 1px solid var(--color-divider); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.kpiLabel { font-size: 12px; color: var(--color-neutral-700); }
+.kpiValue { font-family: var(--font-heading); font-weight: 800; font-size: 30px; line-height: 1.1; }
+.kpiNote { font-size: 12px; color: var(--color-neutral-700); }
+.kpiCell { padding: 4px 16px; border-right: 1px solid var(--color-divider); }
+
+/* clickable list row */
+.click { cursor: pointer; }
+.click:hover { background: var(--color-neutral-200); }
+.rule { border-bottom: 1px solid var(--color-divider); }
+.ruleTop { border-top: 1px solid var(--color-divider); }
+
+/* bars */
+.track { position: relative; background: var(--color-neutral-200); }
+.trackLight { position: relative; background: var(--color-neutral-300); }
+.trackNone { position: relative; }
+.fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--color-text); }
+.marker { position: absolute; top: -4px; width: 2px; height: 14px; background: var(--color-accent); }
+
+/* ink banner: "How to act" */
+.howTo { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; padding: 12px 16px; background: var(--color-text); color: var(--color-bg); }
+.howToLabel { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--color-accent-400); flex: none; }
+.howToText { font-size: 15px; font-weight: 600; flex: 1 1 300px; }
+
+/* checkbox square */
+.box { width: 16px; height: 16px; flex: none; border: 2px solid var(--color-text); background: transparent; display: inline-block; }
+.box.on { background: var(--color-text); }
+
+.surface { background: var(--color-surface); }
+.ink { background: var(--color-text); color: var(--color-bg); }
+.avatar { display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex: none; }
+.dot { width: 10px; height: 10px; display: inline-block; flex: none; }
+.unbutton { all: unset; cursor: pointer; }
+.unbutton:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.tableWrap { overflow-x: auto; }
+.empty { font-size: 13px; color: var(--color-neutral-700); padding: 8px 0; }
+.warn { padding: 10px 12px; background: var(--color-accent-100); color: var(--color-accent-800); font-size: 13px; }
+.note { font-size: 12px; padding: 10px 12px; background: var(--color-neutral-200); }

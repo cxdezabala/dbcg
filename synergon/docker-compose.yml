@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: synergon
+      POSTGRES_PASSWORD: synergon
+      POSTGRES_DB: synergon
+    ports:
+      - "5432:5432"
+    volumes:
+      - synergon-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synergon"]
+      interval: 5s
+      retries: 10
+volumes:
+  synergon-pg:
