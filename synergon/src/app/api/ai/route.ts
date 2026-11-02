@@ -52,7 +52,7 @@ export async function POST(req: Request) {
   const locale = await getLocale();
 
   // Admins never reach the model with business questions — same refusal as the prototype.
-  const deterministic = v.role === 'admin' && view !== 'settings' ? ADMIN_REFUSAL : null;
+  const deterministic = v.role === 'admin' && (view !== 'settings' || String(body.view || 'settings') !== 'settings') ? ADMIN_REFUSAL : null;
   const key = process.env.ANTHROPIC_API_KEY;
 
   if (key && !deterministic) {

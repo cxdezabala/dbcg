@@ -1,6 +1,7 @@
 // Demo seed — ported 1:1 from /reference (same names, figures and IDs). Used by `pnpm db:seed`
 // and by "Reset demo data". All data is fictional (Asterion Business Solutions).
 import type { PrismaClient, Prisma } from '@prisma/client';
+type Tx = Prisma.TransactionClient;
 import bcrypt from 'bcryptjs';
 import { ROLE_INFO, ACCOUNTS, SIGNALS, EXPERTS, KNOWLEDGE, CAPS, TEAMS as CAP_TEAMS, PRIORITIES, SEED_SOLUTIONS, COMPLETED, COS } from '@/lib/demo';
 import { generatePipeline } from '@/lib/demo/pipeline';
@@ -18,7 +19,7 @@ export const DEMO_USERS = {
 const slug = (s: string) => 'u-' + s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const KSTATUS: Record<string, 'validated' | 'in_review' | 'needs_evidence' | 'draft'> = { Validated: 'validated', 'In review': 'in_review', 'Needs evidence': 'needs_evidence' };
 
-export async function resetDatabase(db: PrismaClient) {
+export async function resetDatabase(db: Tx) {
   // order matters for FKs
   await db.aiMessage.deleteMany(); await db.aiConversation.deleteMany();
   await db.businessCase.deleteMany(); await db.expertRequest.deleteMany(); await db.solution.deleteMany();
@@ -30,7 +31,12 @@ export async function resetDatabase(db: PrismaClient) {
   await db.user.deleteMany(); await db.team.deleteMany(); await db.organization.deleteMany();
 }
 
-export async function seedDemo(db: PrismaClient) {
+/** Atomic: other requests never observe a half-seeded database. */
+export async function seedDemo(client: PrismaClient) {
+  await client.$transaction(tx => seedInto(tx), { timeout: 120_000, maxWait: 20_000 });
+}
+
+async function seedInto(db: Tx) {
   await resetDatabase(db);
   const pwd = await bcrypt.hash(process.env.DEMO_PASSWORD || 'synergon-demo', 10);
   const pipeline = generatePipeline();

@@ -125,7 +125,7 @@ export function HomeView({ vm, role, scenario, lesson, showRail }: { vm: HomeVM;
           <div style={{ minWidth: 0, flex: '1 1 420px' }}>
             <div className={s.bannerKicker}>{t('Leadership-approved initiative')} · Daniel Foster</div>
             <div className={s.bannerTitle}>{vm.initiative.name}</div>
-            <div style={{ fontSize: 14, opacity: 0.85 }}>{vm.initiative.homeLine}</div>
+            <div style={{ fontSize: 14, opacity: 0.85 }}>{t(vm.initiative.homeLine)}</div>
           </div>
           <div className={u.row} style={{ gap: 8 }}><Link className="btn btn-primary" href={vm.initiative.solHref}>{t('Open linked solution')}</Link><Link className={cx('btn', s.btnOnInk)} href="/growth">{t('Assigned learning')}</Link></div>
         </div>
@@ -213,7 +213,7 @@ export function HomeView({ vm, role, scenario, lesson, showRail }: { vm: HomeVM;
           {vm.feed.map((f, i) => (
             <Link key={i} href={f.href} className={s.feed}>
               <span className={s.feedAvatar}>{f.ini}</span>
-              <span className={u.stack} style={{ gap: 3 }}><span style={{ fontSize: 14, lineHeight: 1.4 }}><b>{f.who}</b> {f.text}</span><span className={u.row} style={{ gap: 8 }}><Tag kind={f.tagCls === 'tag-accent' ? 'accent' : 'neutral'}>{t(f.tag)}</Tag><span className={cx(u.xs, u.muted)}>{t(f.time)}</span></span></span>
+              <span className={u.stack} style={{ gap: 3 }}><span style={{ fontSize: 14, lineHeight: 1.4 }}><b>{f.who}</b> {t(f.text)}</span><span className={u.row} style={{ gap: 8 }}><Tag kind={f.tagCls === 'tag-accent' ? 'accent' : 'neutral'}>{t(f.tag)}</Tag><span className={cx(u.xs, u.muted)}>{t(f.time)}</span></span></span>
             </Link>
           ))}
         </div>
