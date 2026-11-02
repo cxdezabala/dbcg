@@ -1,0 +1,35 @@
+.dtabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); border-bottom: 2px solid var(--color-divider); }
+.dtab { padding: 10px 12px; border-bottom: 3px solid transparent; margin-bottom: -2px; display: flex; flex-direction: column; gap: 2px; color: var(--color-neutral-700); text-decoration: none; }
+.dtab:hover { background: var(--color-neutral-200); color: var(--color-text); }
+.dtab.on { border-bottom-color: var(--color-accent); color: var(--color-text); }
+.dtabLabel { font-size: 14px; font-weight: 500; }
+.dtab.on .dtabLabel { font-weight: 800; }
+.howWrap { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.howWrap > :first-child { align-self: stretch; }
+.actCard { background: var(--color-surface); padding: 16px; border-top: 3px solid var(--color-text); display: flex; flex-direction: column; gap: 6px; color: inherit; text-decoration: none; }
+.actCard:hover { background: var(--color-neutral-200); color: inherit; }
+.fact { display: grid; grid-template-columns: 130px 1fr auto auto; gap: 10px; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--color-divider); align-items: center; }
+.arKpi { display: grid; grid-template-columns: 1fr auto; gap: 10px; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--color-divider); }
+.est { display: grid; grid-template-columns: 160px 150px 1fr auto; gap: 12px; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--color-divider); align-items: center; }
+.bench { display: grid; grid-template-columns: minmax(0, 190px) 1fr; gap: 12px; align-items: center; padding: 6px 0; }
+.bu { display: grid; grid-template-columns: minmax(0, 1.2fr) 120px 80px minmax(0, 2fr) 140px; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--color-divider); }
+.person { display: grid; grid-template-columns: 44px minmax(0, 1.3fr) minmax(0, 2fr) auto; gap: 14px; align-items: center; padding: 12px 0 12px 12px; border-bottom: 1px solid var(--color-divider); border-left: 3px solid var(--color-neutral-300); }
+.rival { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.4fr); gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--color-divider); font-size: 13px; }
+.check { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: center; padding: 10px 6px; border-bottom: 1px solid var(--color-divider); }
+.check:hover { background: var(--color-neutral-200); }
+.check:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.check.on { background: var(--color-surface); }
+.planSide { flex: 1 1 260px; min-width: 240px; background: var(--color-surface); padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.radar { position: relative; width: 100%; aspect-ratio: 1 / 1; border: 2px solid var(--color-text); }
+.ring1 { position: absolute; inset: 16%; border: 1px solid var(--color-divider); }
+.ring2 { position: absolute; inset: 32%; border: 2px solid var(--color-divider); background: var(--color-neutral-200); }
+.axV { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--color-divider); }
+.axH { position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--color-divider); }
+.q { position: absolute; font-size: 11px; font-weight: 700; }
+.h { position: absolute; left: calc(50% + 6px); font-size: 10px; color: var(--color-neutral-700); }
+.blip { all: unset; position: absolute; transform: translate(-50%, -50%); border: 2px solid; cursor: pointer; box-sizing: border-box; }
+.blip:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.sigRow { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 10px 8px; border-bottom: 1px solid var(--color-divider); }
+.sigRow:hover { background: var(--color-neutral-200); }
+.sigRow.on { background: var(--color-surface); }
+@media (max-width: 800px) { .bu, .person, .rival, .fact, .est { grid-template-columns: 1fr; } }
