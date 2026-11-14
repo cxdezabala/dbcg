@@ -56,7 +56,7 @@ nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:c
 .brand i::after{content:"";position:absolute;width:3px;height:7px;background:var(--ink);right:-5px;bottom:-7px;transform:rotate(-45deg)}
 .nav-links{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
 .nav-links::-webkit-scrollbar{display:none}
-.nav-links a{font-size:13.5px;text-decoration:none;color:var(--muted);padding:6px 10px;border-radius:4px;white-space:nowrap}
+.nav-links a{font-size:13px;text-decoration:none;color:var(--muted);padding:6px 10px;border-radius:4px;white-space:nowrap}
 .nav-links a:hover,.nav-links a.on{color:var(--ink);background:var(--surface)}
 .progress{position:absolute;left:0;bottom:-1px;height:2px;background:var(--thread);width:0}
 @media (max-width:860px){.nav-links{display:none}}
@@ -316,7 +316,60 @@ tbody th{font-weight:600;width:170px}
 
 footer{border-top:1px solid var(--line);padding-block:32px 40px;font-size:14px;color:var(--muted)}
 .foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
-.theme-t{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:6px 10px;cursor:pointer}
+.theme-t{white-space:nowrap;flex:none;font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:6px 10px;cursor:pointer}
+/* Investigue su caso */
+.inv-banner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:color-mix(in srgb,var(--evidence) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--evidence) 60%,var(--line));border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:14.5px}
+.inv{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start}
+@media (max-width:900px){.inv{grid-template-columns:1fr}}
+.inv-steps{display:grid;gap:6px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px)}
+@media (max-width:900px){.inv-steps{position:static;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+.inv-step{font:inherit;text-align:left;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:10px 12px;cursor:pointer;color:var(--ink)}
+.inv-step .marker{grid-row:1 / 3;opacity:.5}
+.inv-step b{font-weight:600;font-size:14px;line-height:1.25}
+.inv-step .bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.inv-step .bar i{display:block;height:100%;background:var(--ok);width:0}
+.inv-step[aria-selected="true"]{border-color:var(--ink);box-shadow:inset 4px 0 0 var(--evidence)}
+.inv-step[aria-selected="true"] .marker,.inv-step.done .marker{opacity:1}
+.inv-main{background:var(--surface);border:1px solid var(--line);border-radius:6px;min-width:0}
+.inv-head{padding:24px 28px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.inv-head h3{font-size:clamp(24px,3vw,32px);font-weight:800;margin-top:4px}
+.inv-body{display:grid;grid-template-columns:1fr 300px;gap:0}
+@media (max-width:1060px){.inv-body{grid-template-columns:1fr}}
+.inv-form{padding:24px 28px;display:grid;gap:18px;min-width:0}
+@media (max-width:640px){.inv-head,.inv-form{padding:18px}}
+.fld{display:grid;gap:6px;min-width:0}
+.fld>label,.fld>.lb{font-weight:600;font-size:14.5px}
+.fld .help{font-size:13px;color:var(--muted);margin-top:-2px}
+.fld textarea,.fld input[type=text]{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2);color:var(--ink);resize:vertical}
+.fld textarea{min-height:84px}
+.fld textarea:focus,.fld input[type=text]:focus{border-color:var(--ink);outline:none}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:inline-flex;gap:8px;align-items:center;font-size:14px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;background:var(--surface-2)}
+.checks input{accent-color:var(--thread)}
+.checks label:has(input:checked){border-color:var(--thread);background:var(--thread-soft)}
+.hyp-list{display:grid;gap:8px}
+.hyp{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+.hyp input{width:100%;font:inherit;font-size:14.5px;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2);color:var(--ink)}
+.hyp select{font:inherit;font-size:13px;padding:7px 8px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2);color:var(--ink)}
+.hyp .x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px}
+.hyp.s-apoyada input{border-color:var(--ok)} .hyp.s-descartada input{text-decoration:line-through;color:var(--muted)}
+@media (max-width:560px){.hyp{grid-template-columns:1fr auto}.hyp select{grid-column:1}}
+.inv-side{border-left:1px solid var(--line);padding:22px;display:grid;gap:16px;align-content:start;background:var(--surface-2);border-radius:0 6px 6px 0;min-width:0}
+@media (max-width:1060px){.inv-side{border-left:0;border-top:1px solid var(--line);border-radius:0 0 6px 6px}}
+.inv-side ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px;color:var(--muted)}
+.ai{background:var(--ink);color:var(--bg);border-radius:6px;padding:16px;display:grid;gap:10px}
+.ai h4{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--evidence);font-weight:600}
+.ai p.small{font-size:13.5px;color:color-mix(in srgb,var(--bg) 72%,transparent)}
+.ai .btn{border-color:var(--evidence);color:var(--bg)}
+.ai .btn:hover{background:color-mix(in srgb,var(--evidence) 18%,transparent)}
+.ai-out{font-size:14px;line-height:1.55;display:grid;gap:6px;max-height:460px;overflow:auto;padding-right:4px}
+.ai-out ul{margin:0;padding-left:18px;display:grid;gap:4px;color:inherit}
+.ai-out b{color:var(--evidence);font-weight:600}
+.inv-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:16px 28px;border-top:1px solid var(--line)}
+@media (max-width:640px){.inv-foot{padding:14px 18px}}
+.report{white-space:pre-wrap;font-family:var(--mono);font-size:13px;line-height:1.6;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:16px;max-height:420px;overflow:auto;margin:0}
+.saved{font-family:var(--mono);font-size:12px;color:var(--muted)}
+[hidden]{display:none!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -326,11 +379,12 @@ footer{border-top:1px solid var(--line);padding-block:32px 40px;font-size:14px;c
   <div class="wrap nav-in">
     <a class="brand" href="#inicio"><i aria-hidden="true"></i>Innotective</a>
     <div class="nav-links" id="navLinks">
-      <a href="#problema">El problema</a>
+      <a href="#problema">Problema</a>
       <a href="#principios">Principios</a>
       <a href="#fases">Fases</a>
       <a href="#laboratorio">Laboratorio</a>
-      <a href="#caso">Resuelve el caso</a>
+      <a href="#caso">Caso práctico</a>
+      <a href="#investigar">Su caso</a>
       <a href="#comparativa">Comparativa</a>
       <a href="#expedientes">Expedientes</a>
       <a href="#diagnostico">Diagnóstico</a>
@@ -348,6 +402,7 @@ footer{border-top:1px solid var(--line);padding-block:32px 40px;font-size:14px;c
       <p class="sub">Innotective aplica el método del detective a los retos de negocio. <b>No se puede crear una solución innovadora sin obsesionarse primero con la causa raíz del problema.</b> Primero se reúne la evidencia, se analiza el comportamiento y se ponen a prueba las hipótesis. Las ideas vienen después.</p>
       <div class="hero-cta">
         <a class="btn primary" href="#fases">Recorrer el método</a>
+        <a class="btn" href="#investigar">Investigar mi caso</a>
         <a class="btn" href="#caso">Resolver un caso</a>
       </div>
       <div class="byline"><span class="tag">E-book</span><span class="muted" style="font-size:14px">Innotective: Solving Business Challenges with a Detective's Mindset · Constantino De Zabala Zamora</span></div>
@@ -537,6 +592,39 @@ footer{border-top:1px solid var(--line);padding-block:32px 40px;font-size:14px;c
   </div>
 </section>
 
+<section class="band" id="investigar">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Aplicación práctica · Su empresa</span>
+      <h2>Investigue su caso.</h2>
+      <p class="sec-intro">Lleve un problema real de su organización por las fases de Innotective. Cada paso trae las preguntas del detective. El detective con IA le propone hipótesis, entrevistas y experimentos a partir de lo que escriba. Al final obtendrá un informe del caso para compartir con su equipo.</p>
+    </div></div>
+    <div class="inv-banner" id="invBanner"></div>
+    <div class="inv">
+      <div class="inv-steps" role="tablist" aria-label="Pasos de la investigación" id="invSteps"></div>
+      <div class="inv-main">
+        <div class="inv-head"><div><span class="label" id="invMeta"></span><h3 id="invTitle"></h3></div><span class="saved" id="invSaved"></span></div>
+        <div class="inv-body">
+          <div class="inv-form" id="invForm"></div>
+          <aside class="inv-side">
+            <div><span class="label">Preguntas del detective</span><ul id="invHints" style="margin-top:8px"></ul></div>
+            <div class="ai" id="aiBox">
+              <h4>Detective IA</h4>
+              <p class="small" id="aiDesc"></p>
+              <div class="lab-actions" style="margin-top:0"><button class="btn sm" type="button" id="aiAsk">Pedir ayuda al detective</button><button class="btn sm" type="button" id="aiStop" hidden>Detener</button></div>
+              <div class="ai-out" id="aiOut" aria-live="polite"></div>
+            </div>
+          </aside>
+        </div>
+        <div class="inv-foot">
+          <button class="btn sm" type="button" id="invPrev">← Paso anterior</button>
+          <button class="btn sm primary" type="button" id="invNext">Siguiente paso →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="band" id="comparativa">
   <div class="wrap">
     <div class="sec-head"><div>
@@ -613,7 +701,7 @@ footer{border-top:1px solid var(--line);padding-block:32px 40px;font-size:14px;c
       <blockquote>"La búsqueda de la verdad es el <em>núcleo</em> de la innovación eficaz."</blockquote>
       <div>
         <p class="muted">El futuro es de quienes investigan a fondo, piensan con criterio y cuestionan el statu quo. Empiece por un problema real y aplique la primera fase: asegure la escena.</p>
-        <div class="hero-cta"><a class="btn primary" href="#fases">Volver al método</a><a class="btn" href="https://www.linkedin.com/in/cdezabala/" target="_blank" rel="noopener">Contactar con el autor</a></div>
+        <div class="hero-cta"><a class="btn primary" href="#investigar">Investigar mi caso</a><a class="btn" href="https://www.linkedin.com/in/cdezabala/" target="_blank" rel="noopener">Contactar con el autor</a></div>
       </div>
     </div>
   </div>
@@ -871,6 +959,115 @@ function drawDiag(){const s=ans.reduce((a,v)=>a+(v||0),0),n=ans.filter(v=>v!==nu
  $('#weak').innerHTML=n===0?'Las preguntas sin responder cuentan como 0.':weak.length?'Empiece por: '+weak.map(w=>`<b>${esc(w[0][0])}</b>`).join(' y ')+'.':(n<QS.length?'Siga respondiendo.':'Mantenga el rigor y revise el método en cada proyecto.')}
 $('#diagReset').onclick=()=>{ans=Array(QS.length).fill(null);$$('#qList button').forEach(x=>x.setAttribute('aria-pressed','false'));drawDiag()};
 drawDiag();
+
+/* Investigue su caso */
+const INV=[
+ {t:'Ficha del caso',m:'Abrir el expediente',ai:'Separa con claridad el síntoma de sus posibles causas. Reformula el síntoma de forma neutral, sin dar por hecha una causa. Propón 5 preguntas para acotar el problema antes de buscar soluciones.',
+  hints:['¿Qué se observa exactamente, y desde cuándo?','¿Es un síntoma o ya es una causa supuesta?','¿Cómo se mide el impacto hoy?','¿Qué se ha probado ya y por qué no funcionó?'],
+  f:[{id:'empresa',l:'Empresa o unidad investigada',type:'text'},{id:'sector',l:'Sector y tamaño',type:'text'},{id:'sintoma',l:'Síntoma observado',type:'area',help:'Descríbalo tal como se percibe, sin explicar todavía su causa.'},{id:'impacto',l:'Impacto medible',type:'text',help:'Una cifra y un periodo.'},{id:'intentado',l:'Qué se ha intentado ya',type:'area'}]},
+ {t:'Asegurar la escena',m:'Fase 1 · Investigación integral',ai:'Evalúa si el problema central está bien definido: ¿es un síntoma o una causa? ¿Es demasiado amplio? Propón una redacción mejor. Señala factores de contexto interno y externo que falten y propón límites de alcance: qué dejar dentro y qué fuera.',
+  hints:['¿Todos los implicados están de acuerdo en cuál es el problema?','¿Qué fuerzas internas (cultura, estructura, procesos) influyen?','¿Qué fuerzas externas (mercado, competencia, clientes) influyen?','¿Qué queda fuera de la investigación, para que el alcance no se desborde?'],
+  f:[{id:'problema',l:'Problema central, en una frase',type:'area',help:'Formúlelo como una pregunta de investigación.'},{id:'ctxInt',l:'Contexto interno',type:'area'},{id:'ctxExt',l:'Contexto externo',type:'area'},{id:'dentro',l:'Dentro del alcance',type:'area'},{id:'fuera',l:'Fuera del alcance',type:'area'},{id:'stake',l:'Grupos de interés implicados',type:'text',help:'Distintos niveles, áreas y, si aplica, países.'}]},
+ {t:'Recoger evidencia',m:'Fase 1 · Investigación integral',ai:'Diseña un plan de evidencia concreto para este caso: qué datos internos pedir, qué analizar del mercado, qué preguntar a los clientes. Incluye 3 preguntas de entrevista para cada perfil (primera línea, mandos intermedios, dirección, clientes) y qué proceso dibujar en un mapa de puntos de dolor.',
+  hints:['¿Qué dicen las métricas internas, y desde cuándo cambian?','¿Qué hace la competencia distinto?','¿Qué dolores latentes expresan los clientes?','¿Qué ve la primera línea que la dirección no ve?','¿Dónde se atasca el proceso cuando se dibuja?'],
+  f:[{id:'evInt',l:'Informes y métricas internas',type:'area'},{id:'evMkt',l:'Análisis de mercado',type:'area'},{id:'evCli',l:'Feedback de clientes',type:'area'},{id:'evStk',l:'Entrevistas a grupos de interés',type:'area'},{id:'evVis',l:'Fotografía y bocetos',type:'area',help:'Proceso dibujado, puntos de dolor y modelo de negocio.'}]},
+ {t:'Análisis forense',m:'Fases 2 y 4 · Forense y herramientas',ai:'Propón entre 5 y 7 hipótesis de causa raíz, agrupadas como en una espina de pescado (personas, procesos, materiales, equipos). Para cada una indica qué evidencia la confirmaría y cuál la descartaría. Después, señala qué hipótesis priorizar según Pareto y propón una cadena de 5 porqués que haya que comprobar.',
+  hints:['¿Qué hipótesis explican toda la evidencia y no solo una parte?','¿Qué pocas causas explican la mayor parte del efecto?','¿Qué dicen los datos cuando se cruzan fuentes distintas?','¿Quién conecta, quién bloquea y dónde hay silos?'],
+  f:[{id:'hyps',l:'Hipótesis (pistas que hay que comprobar)',type:'hyps'},{id:'whys',l:'5 Porqués',type:'whys'},{id:'cruce',l:'Cruce de fuentes: qué coincide y qué se contradice',type:'area'},{id:'vinculos',l:'Análisis de vínculos',type:'area',help:'Quién decide, quién hace de puente y qué áreas no se hablan.'}]},
+ {t:'Análisis conductual',m:'Fase 3 · Comportamiento',ai:'Busca contradicciones probables entre lo que dicen y lo que hacen clientes y empleados en este caso. Identifica cuellos de botella conductuales y si la cultura favorece o frena el cambio. Propón 6 preguntas de interrogatorio abiertas, del tipo "¿En qué momento decidió...?".',
+  hints:['¿Qué dicen los clientes y qué hacen realmente?','¿Quién se resiste al cambio, y por qué?','¿Qué incentivos empujan en dirección contraria?','¿Se puede discrepar sin miedo?'],
+  f:[{id:'dicen',l:'Lo que dicen (clientes y empleados)',type:'area'},{id:'hacen',l:'Lo que hacen realmente',type:'area'},{id:'cuellos',l:'Cuellos de botella detectados',type:'checks',opts:['Resistencia al cambio','Apego a procesos obsoletos','Conflictos entre departamentos','Incentivos desalineados','Falta de seguridad psicológica','Silos de información']},{id:'cultura',l:'Cultura: ¿favorece o frena la solución?',type:'area'}]},
+ {t:'Pruebas iterativas',m:'Fase 5 · Pruebas forenses iterativas',ai:'Diseña 2 o 3 experimentos pequeños y controlados que confirmen o descarten las hipótesis principales antes de escalar. Para cada uno indica dónde, durante cuánto tiempo, la métrica, el grupo de control y el criterio de éxito. Añade una prueba de estrés y un plan de contingencia.',
+  hints:['¿Qué variable se aísla en la prueba?','¿Con qué se compara (grupo de control)?','¿Qué resultado le haría cambiar de hipótesis?','¿Qué pasa en el peor escenario?'],
+  f:[{id:'expHip',l:'Hipótesis que se va a probar',type:'text'},{id:'expPrueba',l:'Experimento controlado',type:'area',help:'Dónde, durante cuánto tiempo, con quién y frente a qué grupo de control.'},{id:'expMetrica',l:'Métrica o KPI',type:'text'},{id:'expCriterio',l:'Criterio para darla por confirmada',type:'text'},{id:'expEscenario',l:'Escenarios de riesgo y contingencia',type:'area'},{id:'expResultado',l:'Resultados de cada iteración',type:'area'}]},
+ {t:'Veredicto e informe',m:'Cierre del caso',ai:'Revisa el expediente como un detective escéptico. ¿La causa raíz está demostrada con evidencia o es una suposición? Señala los huecos de evidencia, los sesgos posibles y las fuentes que no se han consultado. Indica los próximos pasos. Termina con una línea "Veredicto:" y una de estas palabras: Demostrado, Plausible o Sin pruebas.',
+  hints:['¿La causa raíz explica todos los síntomas?','¿Qué evidencia la sostiene, y de cuántas fuentes?','¿La solución ataca la causa o el síntoma?','¿Cómo sabrá pronto si deja de funcionar?'],
+  f:[{id:'causa',l:'Causa raíz demostrada',type:'area'},{id:'pruebasCausa',l:'Evidencias que la sostienen',type:'area'},{id:'solucion',l:'Solución propuesta',type:'area'},{id:'vigilancia',l:'KPIs de vigilancia y alerta temprana',type:'text'}],report:true}
+];
+const INV_EX={
+ empresa:'Ejemplo: empresa de mantenimiento industrial',sector:'Servicios B2B, 60 empleados, 3 provincias',
+ sintoma:'Los clientes no renuevan los contratos anuales de mantenimiento, aunque las encuestas de calidad técnica son buenas.',
+ impacto:'La tasa de renovación ha bajado del 82 % al 64 % en 18 meses',
+ intentado:'Descuento del 10 % por renovación anticipada y una web nueva. La renovación no mejoró.',
+ problema:'¿Por qué dejan de renovar los clientes satisfechos con la calidad técnica?',
+ ctxInt:'Los técnicos cobran por intervención. El equipo comercial solo contacta al cliente al vencer el contrato.',
+ ctxExt:'Han llegado competidores con monitorización remota y precios mensuales.',
+ dentro:'Ciclo de vida del contrato: alta, servicio, comunicación y renovación.',fuera:'Política salarial general y cambio de ERP.',
+ stake:'Técnicos de campo, jefes de zona, comerciales, dirección y 10 clientes (5 renuevan y 5 no)',
+ evInt:'Las bajas se concentran en clientes con menos de 3 avisos al año.',evCli:'"No sabemos qué nos dais si no se rompe nada."',
+ hyps:[{t:'El precio es alto frente a la competencia',s:'abierta'},{t:'El cliente no percibe el valor del mantenimiento preventivo',s:'apoyada'},{t:'Los técnicos no registran las visitas preventivas',s:'abierta'}],
+ whys:['','','','',''],cuellos:['Incentivos desalineados','Silos de información']
+};
+function invBlank(){return {hyps:[],whys:['','','','',''],cuellos:[]}}
+let inv,invStep=0,invIsEx=false;
+try{const s=JSON.parse(localStorage.getItem('inno-case')||'null');if(s&&s.data){inv=s.data;invStep=s.step||0}}catch(e){}
+if(!inv){inv=JSON.parse(JSON.stringify(INV_EX));invIsEx=true}
+function invSave(){if(invIsEx)return;try{localStorage.setItem('inno-case',JSON.stringify({data:inv,step:invStep}));$('#invSaved').textContent='Guardado en este navegador'}catch(e){$('#invSaved').textContent=''}}
+function filled(f){const v=inv[f.id];if(f.type==='hyps')return (v||[]).some(h=>h.t.trim());if(f.type==='whys')return (v||[]).some(x=>x.trim());if(f.type==='checks')return (v||[]).length>0;return !!(v&&String(v).trim())}
+function stepPct(i){const fs=INV[i].f;return fs.filter(filled).length/fs.length}
+function invBannerDraw(){$('#invBanner').innerHTML=invIsEx?`<span><b>Está viendo un caso de ejemplo.</b> Empiece uno nuevo con un problema real de su empresa.</span><span class="lab-actions" style="margin:0"><button class="btn sm primary" type="button" id="invNew">Empezar mi caso</button></span>`:`<span><b>${esc(inv.empresa||'Caso sin nombre')}</b>: su expediente se guarda solo en este navegador.</span><span class="lab-actions" style="margin:0"><button class="btn sm" type="button" id="invEx">Ver el ejemplo</button><button class="btn sm" type="button" id="invNew">Empezar de cero</button></span>`;
+ const n=$('#invNew');let armed=false;n.onclick=()=>{if(!invIsEx&&!armed){armed=true;n.textContent='Confirmar: se borra el caso';return}inv=invBlank();invIsEx=false;invStep=0;invSave();invAll()};
+ const e=$('#invEx');if(e)e.onclick=()=>{try{localStorage.setItem('inno-case',JSON.stringify({data:inv,step:invStep}))}catch(_){}inv=JSON.parse(JSON.stringify(INV_EX));invIsEx=true;invStep=0;invAll();$('#invBanner').querySelector('span').innerHTML+=' <span class="muted">Su caso sigue guardado: pulse "Empezar mi caso" para recuperarlo.</span>'}}
+function invStepsDraw(){$('#invSteps').innerHTML=INV.map((s,i)=>{const p=stepPct(i);return `<button type="button" role="tab" class="inv-step${p===1?' done':''}" aria-selected="${i===invStep}" data-i="${i}"><span class="marker sm">${i+1}</span><b>${esc(s.t)}</b><span class="bar"><i style="width:${Math.round(p*100)}%"></i></span></button>`}).join('');
+ $$('#invSteps .inv-step').forEach(b=>b.onclick=()=>{invStep=+b.dataset.i;invSave();invDraw();$('#investigar').scrollIntoView({block:'start'})})}
+function onEdit(){if(invIsEx){invIsEx=false;invBannerDraw()}invSave();invStepsDraw()}
+function invDraw(){const s=INV[invStep];$('#invMeta').textContent=`Paso ${invStep+1} de ${INV.length} · ${s.m}`;$('#invTitle').textContent=s.t;
+ $('#invHints').innerHTML=s.hints.map(h=>`<li>${esc(h)}</li>`).join('');
+ $('#aiDesc').textContent=s.report?'Revisa el expediente completo como un detective escéptico y le dice si la causa raíz está demostrada.':'Lee todo su expediente y le propone ideas para este paso. No inventa datos de su empresa.';
+ $('#aiOut').innerHTML='';
+ const form=$('#invForm');form.innerHTML=s.f.map(f=>{const id='inv-'+f.id,v=inv[f.id];const help=f.help?`<span class="help">${esc(f.help)}</span>`:'';
+  if(f.type==='text')return `<div class="fld"><label for="${id}">${esc(f.l)}</label>${help}<input type="text" id="${id}" data-f="${f.id}" value="${esc(v||'')}"></div>`;
+  if(f.type==='area')return `<div class="fld"><label for="${id}">${esc(f.l)}</label>${help}<textarea id="${id}" data-f="${f.id}">${esc(v||'')}</textarea></div>`;
+  if(f.type==='checks')return `<div class="fld"><span class="lb">${esc(f.l)}</span><div class="checks">${f.opts.map((o,k)=>`<label><input type="checkbox" id="${id}-${k}" data-c="${f.id}" value="${esc(o)}" ${(v||[]).includes(o)?'checked':''}>${esc(o)}</label>`).join('')}</div></div>`;
+  if(f.type==='whys'){const w=v||['','','','',''];return `<div class="fld"><span class="lb">${esc(f.l)}</span><span class="help">Parta del problema central y pregunte por qué cinco veces.</span><div class="why-list">${w.map((x,k)=>`<div class="why${k===4?' root':''}"><label for="${id}-${k}">${k===4?'Causa raíz':'¿Por qué? '+(k+1)}</label><input id="${id}-${k}" data-w="${k}" value="${esc(x)}"></div>`).join('')}</div></div>`}
+  if(f.type==='hyps')return `<div class="fld"><span class="lb">${esc(f.l)}</span><span class="help">Cada causa posible es una pista: márquela como apoyada o descartada según la evidencia.</span><div class="hyp-list" id="hypList"></div><div><button class="btn sm" type="button" id="hypAdd">Añadir hipótesis</button></div></div>`;
+ }).join('');
+ if(s.report)form.insertAdjacentHTML('beforeend',`<div class="fld"><span class="lb">Informe del caso</span><span class="help">Se genera a partir de todo lo que ha escrito.</span><pre class="report" id="invReport"></pre><div class="lab-actions" style="margin-top:4px"><button class="btn sm primary" type="button" id="repCopy">Copiar informe</button><button class="btn sm" type="button" id="repSave" hidden>Descargar .md</button></div></div>`);
+ $$('[data-f]',form).forEach(el=>el.addEventListener('input',()=>{inv[el.dataset.f]=el.value;onEdit();repDraw()}));
+ $$('[data-c]',form).forEach(el=>el.addEventListener('change',()=>{const k=el.dataset.c;inv[k]=$$(`[data-c="${k}"]:checked`,form).map(x=>x.value);onEdit();repDraw()}));
+ $$('[data-w]',form).forEach(el=>el.addEventListener('input',()=>{inv.whys=inv.whys||['','','','',''];inv.whys[+el.dataset.w]=el.value;onEdit()}));
+ if($('#hypList'))hypDraw();
+ if($('#hypAdd'))$('#hypAdd').onclick=()=>{inv.hyps=inv.hyps||[];inv.hyps.push({t:'',s:'abierta'});onEdit();hypDraw();const l=$$('#hypList input');l[l.length-1].focus()};
+ if(s.report){repDraw();$('#repCopy').onclick=async()=>{const t=invReport(),b=$('#repCopy');try{await navigator.clipboard.writeText(t);b.textContent='Copiado'}catch(e){const r=document.createRange();r.selectNodeContents($('#invReport'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);b.textContent='Texto seleccionado: pulse Ctrl+C'}setTimeout(()=>b.textContent='Copiar informe',2500)};
+  if(dl){const b=$('#repSave');b.hidden=false;b.onclick=async()=>{try{await dl.save({filename:'innotective-'+(inv.empresa||'caso').toLowerCase().replace(/[^a-z0-9áéíóúñ]+/gi,'-').slice(0,40)+'.md',data:invReport()})}catch(e){if(e&&e.code==='unavailable')b.hidden=true}}}}
+ $('#invPrev').disabled=invStep===0;$('#invNext').disabled=invStep===INV.length-1;
+ invStepsDraw();$('#invSaved').textContent=invIsEx?'Ejemplo (no se guarda)':'';}
+function hypDraw(){const l=$('#hypList');const h=inv.hyps||[];
+ l.innerHTML=h.length?h.map((x,k)=>`<div class="hyp s-${x.s}"><input aria-label="Hipótesis ${k+1}" data-h="${k}" value="${esc(x.t)}" placeholder="Posible causa"><select data-hs="${k}" aria-label="Estado de la hipótesis ${k+1}">${['abierta','apoyada','descartada'].map(o=>`<option ${x.s===o?'selected':''} value="${o}">${o[0].toUpperCase()+o.slice(1)}</option>`).join('')}</select><button class="x" type="button" data-hx="${k}" aria-label="Quitar hipótesis ${k+1}">×</button></div>`).join(''):'<p class="muted" style="font-size:14px">Aún no hay hipótesis. Añada la primera o pida ideas al detective.</p>';
+ $$('[data-h]',l).forEach(el=>el.oninput=()=>{inv.hyps[+el.dataset.h].t=el.value;onEdit()});
+ $$('[data-hs]',l).forEach(el=>el.onchange=()=>{inv.hyps[+el.dataset.hs].s=el.value;onEdit();hypDraw()});
+ $$('[data-hx]',l).forEach(el=>el.onclick=()=>{inv.hyps.splice(+el.dataset.hx,1);onEdit();hypDraw()})}
+function invReport(){let out=`# Expediente Innotective: ${inv.empresa||'Caso sin nombre'}\n`;
+ INV.forEach((s,i)=>{const parts=[];s.f.forEach(f=>{const v=inv[f.id];if(!filled(f))return;
+  if(f.type==='hyps')parts.push(`**${f.l}**\n`+v.filter(h=>h.t.trim()).map(h=>`- [${h.s}] ${h.t}`).join('\n'));
+  else if(f.type==='whys')parts.push(`**${f.l}**\n`+v.map((x,k)=>x.trim()?`${k+1}. ${x}`:'').filter(Boolean).join('\n'));
+  else if(f.type==='checks')parts.push(`**${f.l}:** ${v.join(', ')}`);
+  else parts.push(`**${f.l}:** ${String(v).trim()}`)});
+  if(parts.length)out+=`\n## ${i+1}. ${s.t}\n\n${parts.join('\n\n')}\n`});
+ return out}
+function repDraw(){const r=$('#invReport');if(r)r.textContent=invReport()}
+$('#invPrev').onclick=()=>{if(invStep>0){invStep--;invSave();invDraw()}};
+$('#invNext').onclick=()=>{if(invStep<INV.length-1){invStep++;invSave();invDraw();$('#investigar').scrollIntoView({block:'start'})}};
+function invAll(){invBannerDraw();invDraw()}
+function fmt(t){const lines=esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split('\n');let h='',ul=false;
+ for(const ln of lines){const m=ln.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/);if(m){if(!ul){h+='<ul>';ul=true}h+=`<li>${m[1]}</li>`}else{if(ul){h+='</ul>';ul=false}const x=ln.replace(/^#+\s*/,'').trim();if(x)h+=`<p>${x}</p>`}}
+ return h+(ul?'</ul>':'')}
+let sample=null,dl=null,aiCtl=null;
+const aiAsk=$('#aiAsk'),aiStop=$('#aiStop'),aiOut=$('#aiOut');
+function aiOff(){$('#aiBox').hidden=true}
+aiOff();
+invAll();
+if(window.claude&&claude.use){
+ claude.use('downloads').then(d=>{dl=d;if(dl&&INV[invStep].report)invDraw()}).catch(()=>{});
+ claude.use('sample').then(s=>{sample=s;if(sample)$('#aiBox').hidden=false}).catch(()=>{});
+}
+aiAsk.onclick=async()=>{if(!sample)return;const s=INV[invStep];
+ const prompt=`Actúas como detective de innovación y aplicas la metodología Innotective. Sus principios: obsesión por la causa raíz antes de idear soluciones; decisiones basadas en evidencia; investigación integral con todos los niveles, áreas y culturas; pruebas iterativas de hipótesis; comprensión del comportamiento (lo que se dice frente a lo que se hace).\n\nResponde en español de España, en tono profesional y directo, aplicado a este caso concreto. No inventes datos de la empresa: si falta información, formúlala como pregunta. Máximo 250 palabras. Usa listas con guiones y **negrita** solo para etiquetas cortas. No uses encabezados.\n\nEXPEDIENTE ACTUAL:\n${invReport()}\n\nPASO ACTUAL: ${invStep+1}. ${s.t}\nTAREA: ${s.ai}`;
+ aiCtl=new AbortController();aiAsk.disabled=true;aiStop.hidden=false;aiOut.innerHTML='<p>El detective está pensando…</p>';
+ try{const {text}=await sample(prompt,{signal:aiCtl.signal,onText:({text})=>{aiOut.innerHTML=fmt(text)}});aiOut.innerHTML=fmt(text)}
+ catch(e){const c=e&&e.code;if(c==='not_granted'){aiOff()}else if(c==='cancelled'){aiOut.innerHTML=(e.text?fmt(e.text):'')+'<p class="small">Detenido.</p>'}else if(c==='rate_limited'){aiOut.innerHTML='<p>Demasiadas consultas seguidas. Espere un minuto y vuelva a intentarlo.</p>'}else{aiOut.innerHTML=(e&&e.text?fmt(e.text):'')+'<p>El detective no ha podido responder ahora. Inténtelo de nuevo en un momento.</p>'}}
+ finally{aiAsk.disabled=false;aiStop.hidden=true}};
+aiStop.onclick=()=>aiCtl&&aiCtl.abort();
 })();
 </script>
 </body>
