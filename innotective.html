@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="favicon.ico" sizes="any">
+<title>Innotective</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Innotective: metodología de innovación corporativa que resuelve retos de negocio con mentalidad de detective.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: expediente de investigación — columna de lectura con "marcadores de evidencia" numerados por fase; bandas a todo el ancho por capítulo */
+:root{
+  --bg:#ECEEF1; --surface:#FFFFFF; --surface-2:#F5F6F8; --ink:#141820; --muted:#59616E; --line:#CDD2D9;
+  --evidence:#E9B500; --evidence-ink:#1C1600; --thread:#B92E26; --thread-soft:#F6E1DF; --ok:#1F7A4D; --ok-soft:#DDF0E5;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --gut-l:max(16px, env(safe-area-inset-left, 0px)); --gut-r:max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1218; --surface:#161B23; --surface-2:#1C222C; --ink:#E6E9EE; --muted:#9AA3B1; --line:#2B323D;
+  --evidence:#F2C230; --evidence-ink:#1C1600; --thread:#EC5F55; --thread-soft:#3A1E1D; --ok:#5CC98E; --ok-soft:#18321F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1218; --surface:#161B23; --surface-2:#1C222C; --ink:#E6E9EE; --muted:#9AA3B1; --line:#2B323D;
+  --evidence:#F2C230; --evidence-ink:#1C1600; --thread:#EC5F55; --thread-soft:#3A1E1D; --ok:#5CC98E; --ok-soft:#18321F; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--evidence);outline-offset:2px}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.08;letter-spacing:-.02em;margin:0;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-left:var(--gut-l);padding-right:var(--gut-r)}
+.read{max-width:68ch}
+.label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--surface)}
+.tag.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent);background:var(--ok-soft)}
+.tag.bad{color:var(--thread);border-color:color-mix(in srgb,var(--thread) 45%,transparent);background:var(--thread-soft)}
+
+/* Marcador de evidencia (tienda amarilla de criminalística) */
+.marker{flex:none;display:inline-grid;place-items:center;width:44px;height:38px;background:var(--evidence);color:var(--evidence-ink);font-family:var(--mono);font-weight:600;font-size:15px;clip-path:polygon(12% 0,88% 0,100% 100%,0 100%);padding-top:6px}
+.marker.sm{width:32px;height:28px;font-size:12px;padding-top:4px}
+
+/* Nav */
+nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;gap:20px;height:58px}
+.brand{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.03em;text-decoration:none;display:flex;align-items:center;gap:10px}
+.brand i{width:12px;height:12px;border-radius:50%;border:3px solid var(--ink);position:relative;display:inline-block}
+.brand i::after{content:"";position:absolute;width:3px;height:7px;background:var(--ink);right:-5px;bottom:-7px;transform:rotate(-45deg)}
+.nav-links{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{font-size:13.5px;text-decoration:none;color:var(--muted);padding:6px 10px;border-radius:4px;white-space:nowrap}
+.nav-links a:hover,.nav-links a.on{color:var(--ink);background:var(--surface)}
+.progress{position:absolute;left:0;bottom:-1px;height:2px;background:var(--thread);width:0}
+@media (max-width:860px){.nav-links{display:none}}
+
+/* Botones */
+.btn{font-family:var(--body);font-weight:600;font-size:14.5px;border:1px solid var(--ink);background:transparent;color:var(--ink);padding:10px 16px;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.btn:hover{background:var(--surface)}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn.primary:hover{background:color-mix(in srgb,var(--ink) 85%,var(--thread))}
+.btn.sm{padding:6px 11px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* Hero */
+header.hero{padding-block:64px 56px;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(40px,7vw,86px);font-weight:800;letter-spacing:-.045em;line-height:.95}
+.hero h1 .strike{position:relative;color:var(--muted);font-weight:700}
+.hero h1 .strike::after{content:"";position:absolute;left:-2%;right:-2%;top:54%;height:.09em;background:var(--thread);transform:rotate(-3deg)}
+.hero .sub{font-size:clamp(17px,1.6vw,20px);margin-top:24px;max-width:56ch;color:var(--muted)}
+.hero .sub b{color:var(--ink);font-weight:600}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.byline{margin-top:28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* Lupa interactiva */
+.lens-card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;position:relative}
+.lens-stage{position:relative;height:280px;border-radius:4px;overflow:hidden;background:var(--surface-2);cursor:crosshair;touch-action:none;user-select:none}
+.layer{position:absolute;inset:0;padding:18px;display:flex;flex-direction:column;gap:9px;font-family:var(--mono);font-size:13px}
+.layer .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+.layer.surface-l .row span:last-child{color:var(--muted)}
+.layer.truth{background:var(--ink);color:var(--bg);clip-path:circle(64px at var(--x,70%) var(--y,45%))}
+.layer.truth .row{border-color:color-mix(in srgb,var(--bg) 25%,transparent)}
+.layer.truth .row span:last-child{color:var(--evidence)}
+.lens-ring{position:absolute;width:128px;height:128px;border:3px solid var(--evidence);border-radius:50%;left:var(--x,70%);top:var(--y,45%);transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 6px color-mix(in srgb,var(--evidence) 22%,transparent)}
+.lens-ring::after{content:"";position:absolute;width:12px;height:56px;background:var(--evidence);right:-26px;bottom:-46px;transform:rotate(-45deg);border-radius:3px}
+.lens-cap{display:flex;justify-content:space-between;margin-top:12px;gap:10px;flex-wrap:wrap}
+
+/* Secciones */
+section.band{padding-block:84px;border-top:1px solid var(--line)}
+section.band.alt{background:var(--surface-2)}
+.sec-head{display:flex;gap:16px;align-items:flex-start;margin-bottom:36px}
+.sec-head h2{font-size:clamp(30px,4.2vw,50px);font-weight:800}
+.sec-head .kick{display:block;margin-bottom:10px}
+.sec-intro{font-size:18px;color:var(--muted);max-width:64ch;margin-top:14px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:6px;background:var(--surface);margin-top:40px}
+.stat{padding:22px 20px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat b{display:block;font-family:var(--display);font-size:clamp(30px,3.6vw,44px);font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.stat span{display:block;font-size:14px;color:var(--muted);margin-top:8px}
+.stat small{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.04em}
+@media (max-width:820px){.stats{grid-template-columns:1fr 1fr}.stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}}
+
+/* Síntoma vs causa */
+.sym-wrap{display:grid;grid-template-columns:280px 1fr;gap:24px}
+@media (max-width:820px){.sym-wrap{grid-template-columns:1fr}}
+.sym-list{display:flex;flex-direction:column;gap:8px}
+.sym-btn{text-align:left;font:inherit;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:12px 14px;cursor:pointer;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sym-btn:hover{border-color:var(--muted)}
+.sym-btn[aria-selected="true"]{border-color:var(--ink);box-shadow:inset 4px 0 0 var(--thread)}
+.sym-panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:26px;min-width:0}
+.sym-cols{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:18px}
+@media (max-width:640px){.sym-cols{grid-template-columns:1fr}}
+.sym-col{border-radius:5px;padding:16px 18px}
+.sym-col.fast{background:var(--thread-soft)}
+.sym-col.deep{background:var(--ok-soft)}
+.sym-col h4{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:10px}
+.sym-col.fast h4{color:var(--thread)} .sym-col.deep h4{color:var(--ok)}
+.sym-col ul{margin:0;padding-left:18px;display:grid;gap:6px;font-size:15px}
+.sym-trail{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px}
+.sym-trail .arrow{color:var(--muted)}
+
+/* Principios */
+.pr-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.pr-tab{font:inherit;font-size:14px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.pr-tab .n{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pr-tab[aria-selected="true"] .n{color:var(--evidence)}
+.pr-card{display:grid;grid-template-columns:1fr 1fr;gap:36px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:32px}
+@media (max-width:820px){.pr-card{grid-template-columns:1fr;padding:22px}}
+.pr-card h3{font-size:clamp(24px,3vw,34px);font-weight:800}
+.pr-card .quote{font-family:var(--display);font-size:20px;font-weight:500;border-left:3px solid var(--evidence);padding-left:14px;margin-top:18px}
+.pr-card p.body{margin-top:16px;color:var(--muted)}
+.case-mini{display:grid;gap:10px}
+.case-mini div{border:1px solid var(--line);border-radius:5px;padding:12px 14px;display:grid;gap:4px;background:var(--surface-2)}
+.case-mini strong{font-family:var(--display);font-size:17px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.case-mini p{font-size:14.5px;color:var(--muted)}
+
+/* Fases */
+.phase-rail{display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative;margin-bottom:28px}
+.phase-rail::before{content:"";position:absolute;left:5%;right:5%;top:19px;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 14px)}
+.ph-btn{position:relative;background:none;border:0;font:inherit;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 6px;text-align:center}
+.ph-btn .marker{opacity:.45;transition:opacity .2s,transform .2s}
+.ph-btn span.t{font-size:14px;font-weight:500;line-height:1.3}
+.ph-btn[aria-selected="true"]{color:var(--ink)}
+.ph-btn[aria-selected="true"] .marker{opacity:1;transform:translateY(-3px)}
+.ph-btn:hover .marker{opacity:1}
+@media (max-width:700px){.ph-btn span.t{font-size:12px}.phase-rail::before{top:17px}}
+.ph-panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.ph-top{padding:30px 32px 24px;display:grid;grid-template-columns:1.2fr .8fr;gap:32px;border-bottom:1px solid var(--line)}
+@media (max-width:820px){.ph-top{grid-template-columns:1fr;padding:22px}}
+.ph-top h3{font-size:clamp(26px,3.4vw,40px);font-weight:800}
+.ph-top .metaphor{margin-top:6px;font-family:var(--mono);font-size:13px;color:var(--thread)}
+.ph-top p{margin-top:14px;color:var(--muted)}
+.ph-diff{background:var(--surface-2);border-radius:5px;padding:16px 18px;font-size:14.5px}
+.ph-diff b{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.ph-tech{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+@media (max-width:820px){.ph-tech{grid-template-columns:1fr}}
+.tech{padding:22px 24px;border-left:1px solid var(--line);min-width:0}
+.tech:first-child{border-left:0}
+@media (max-width:820px){.tech{border-left:0;border-top:1px solid var(--line)}.tech:first-child{border-top:0}}
+.tech h4{font-size:18px;font-weight:700;margin-bottom:8px}
+.tech ul{margin:0;padding-left:18px;font-size:14.5px;color:var(--muted);display:grid;gap:5px}
+.ph-case{padding:22px 32px;border-top:1px solid var(--line);display:flex;gap:16px;align-items:flex-start;background:color-mix(in srgb,var(--evidence) 9%,var(--surface))}
+@media (max-width:820px){.ph-case{padding:20px 22px}}
+.ph-case p{font-size:15px}
+.ph-nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+
+/* Laboratorio */
+.lab-tabs{display:flex;gap:0;border:1px solid var(--line);border-radius:6px 6px 0 0;background:var(--surface);overflow-x:auto}
+.lab-tab{font:inherit;font-size:14.5px;font-weight:500;padding:14px 18px;border:0;border-right:1px solid var(--line);background:none;color:var(--muted);cursor:pointer;white-space:nowrap}
+.lab-tab[aria-selected="true"]{color:var(--ink);background:var(--surface-2);box-shadow:inset 0 -3px 0 var(--evidence)}
+.lab-body{border:1px solid var(--line);border-top:0;border-radius:0 0 6px 6px;background:var(--surface);padding:28px;min-width:0}
+@media (max-width:640px){.lab-body{padding:18px}}
+.lab-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:32px}
+@media (max-width:860px){.lab-grid{grid-template-columns:1fr}}
+.lab-grid h3{font-size:24px;font-weight:800}
+.lab-grid .desc{color:var(--muted);margin-top:10px;font-size:15px}
+.why-list{display:grid;gap:10px}
+.why{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
+.why label{font-family:var(--mono);font-size:12px;color:var(--muted);width:82px}
+.why input,.fb-add input,.field{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface-2);color:var(--ink)}
+.why input:focus,.fb-add input:focus{border-color:var(--ink);outline:none}
+.why.root input{border-color:var(--thread);background:var(--thread-soft)}
+.why-depth{display:flex;gap:6px;margin-top:6px}
+.why-depth i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.why-depth i.on{background:var(--evidence)}
+.lab-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+.chart-box{overflow-x:auto}
+.chart-box svg{display:block;width:100%;min-width:520px;height:auto}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+.fish{position:relative;display:grid;grid-template-columns:1fr 1fr auto;grid-template-rows:auto 40px auto;gap:0 14px;min-width:0}
+.bone{border:1px solid var(--line);border-radius:5px;padding:12px;background:var(--surface-2);min-width:0}
+.bone h5{margin:0 0 8px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.bone ul{margin:0;padding:0;list-style:none;display:grid;gap:5px;font-size:14px}
+.bone li{display:flex;justify-content:space-between;gap:6px;align-items:flex-start}
+.bone li button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
+.spine{grid-column:1 / 3;align-self:center;height:4px;background:var(--ink);position:relative}
+.spine::after{content:"";position:absolute;right:-2px;top:-8px;border-left:14px solid var(--ink);border-top:10px solid transparent;border-bottom:10px solid transparent}
+.fish-head{grid-column:3;grid-row:1 / 4;align-self:center;background:var(--ink);color:var(--bg);border-radius:6px;padding:14px;max-width:180px;font-family:var(--display);font-weight:700;font-size:16px;line-height:1.2}
+.fish-head small{display:block;font-family:var(--mono);font-size:11px;font-weight:400;color:var(--evidence);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+@media (max-width:640px){.fish{grid-template-columns:1fr;grid-template-rows:none;gap:10px}.spine{display:none}.fish-head{grid-column:1;grid-row:auto;max-width:none}}
+.fb-add{display:grid;grid-template-columns:170px 1fr auto;gap:8px;margin-top:16px}
+@media (max-width:640px){.fb-add{grid-template-columns:1fr}}
+select.field{appearance:auto}
+
+.net svg{display:block;width:100%;height:auto;max-width:100%}
+.net-info{margin-top:10px;font-size:14.5px;min-height:3em}
+
+/* Caso interactivo */
+.case-board{display:grid;grid-template-columns:1fr 340px;gap:24px}
+@media (max-width:940px){.case-board{grid-template-columns:1fr}}
+.dossier{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:26px;min-width:0}
+.dossier-h{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;border-bottom:1px dashed var(--line);padding-bottom:14px;margin-bottom:16px}
+.dossier-h h3{font-size:26px;font-weight:800}
+.budget{display:flex;gap:6px;align-items:center}
+.budget i{width:22px;height:10px;border-radius:2px;background:var(--evidence)}
+.budget i.used{background:var(--line)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+@media (max-width:560px){.actions{grid-template-columns:1fr}}
+.act{font:inherit;text-align:left;background:var(--surface-2);border:1px solid var(--line);border-radius:5px;padding:13px 14px;cursor:pointer;color:var(--ink);display:grid;gap:3px}
+.act:hover:not(:disabled){border-color:var(--ink)}
+.act:disabled{cursor:default;opacity:.55}
+.act b{font-weight:600;font-size:15px}
+.act span{font-size:13px;color:var(--muted)}
+.act .k{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.log{margin-top:18px;display:grid;gap:10px;max-height:340px;overflow:auto;padding-right:4px}
+.log-e{display:grid;gap:2px;border-left:3px solid var(--line);padding:4px 0 4px 12px;font-size:14.5px}
+.log-e.clue{border-color:var(--evidence)} .log-e.dead{border-color:var(--muted)} .log-e.win{border-color:var(--ok)} .log-e.bad{border-color:var(--thread)}
+.log-e .label{display:block;margin-bottom:2px}
+.board{background:var(--ink);color:var(--bg);border-radius:6px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.board h4{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--evidence);font-weight:600}
+.clues{display:grid;gap:8px;min-height:60px}
+.clue{display:flex;gap:10px;align-items:flex-start;font-size:14px;background:color-mix(in srgb,var(--bg) 8%,transparent);border-radius:4px;padding:8px 10px;animation:pin .35s ease-out}
+@keyframes pin{from{transform:translateY(-6px) rotate(-1deg)}to{transform:none}}
+.board .empty{font-size:14px;color:color-mix(in srgb,var(--bg) 60%,transparent)}
+.accuse{display:grid;gap:8px}
+.accuse button{font:inherit;font-size:14px;text-align:left;border:1px solid color-mix(in srgb,var(--bg) 30%,transparent);background:transparent;color:var(--bg);border-radius:4px;padding:9px 11px;cursor:pointer}
+.accuse button:hover{border-color:var(--evidence)}
+.verdict{border-radius:5px;padding:16px;font-size:15px;margin-top:16px}
+.verdict.win{background:var(--ok-soft);color:var(--ink);border:1px solid var(--ok)}
+.verdict.lose{background:var(--thread-soft);color:var(--ink);border:1px solid var(--thread)}
+
+/* Comparativa */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14.5px}
+th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--surface-2)}
+thead th.us{color:var(--evidence-ink);background:var(--evidence)}
+td.us{background:color-mix(in srgb,var(--evidence) 10%,var(--surface));font-weight:500}
+tbody tr:last-child td{border-bottom:0}
+tbody th{font-weight:600;width:170px}
+
+/* Casos */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center}
+.chip{font:inherit;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:900px){.cases{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.cases{grid-template-columns:1fr}}
+.case{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.case-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.case h4{font-size:20px;font-weight:700}
+.case p{font-size:14.5px;color:var(--muted)}
+.case .lesson{font-size:14px;color:var(--ink);border-top:1px dashed var(--line);padding-top:10px;margin-top:auto}
+.case .lesson b{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:2px;font-weight:500}
+.count{font-family:var(--mono);font-size:13px;color:var(--muted);margin-left:auto}
+
+/* Diagnóstico */
+.diag{display:grid;grid-template-columns:1.25fr .75fr;gap:28px}
+@media (max-width:900px){.diag{grid-template-columns:1fr}}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:14px 16px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.q p{font-size:15px}
+.q p small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+@media (max-width:600px){.q{grid-template-columns:1fr}}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;border:0;border-left:1px solid var(--line);background:var(--surface-2);color:var(--muted);padding:7px 11px;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.q-list{display:grid;gap:8px}
+.result{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);align-self:start;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:24px}
+.gauge{height:12px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;margin-top:14px}
+.gauge i{display:block;height:100%;background:var(--evidence);width:0;transition:width .4s}
+.score{font-family:var(--display);font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums;margin-top:8px}
+.score small{font-size:20px;color:var(--muted);font-weight:600}
+.rank{font-family:var(--display);font-size:22px;font-weight:700;margin-top:12px}
+.weak{margin-top:14px;font-size:14.5px;color:var(--muted)}
+.weak b{color:var(--ink)}
+.ticks{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:6px}
+
+/* Futuro */
+.future{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:2px solid var(--ink)}
+@media (max-width:820px){.future{grid-template-columns:1fr}}
+.fut{padding:22px 22px 22px 0;border-bottom:1px solid var(--line)}
+.fut h4{font-size:20px;font-weight:700;margin-bottom:8px}
+.fut p{font-size:15px;color:var(--muted)}
+.fut .label{display:block;margin-bottom:10px}
+.closing{margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end}
+@media (max-width:820px){.closing{grid-template-columns:1fr}}
+.closing blockquote{margin:0;font-family:var(--display);font-size:clamp(26px,3.4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.1}
+.closing blockquote em{font-style:normal;background:linear-gradient(transparent 60%,color-mix(in srgb,var(--evidence) 55%,transparent) 60%)}
+
+footer{border-top:1px solid var(--line);padding-block:32px 40px;font-size:14px;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+.theme-t{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;padding:6px 10px;cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+
+<nav class="top" aria-label="Secciones">
+  <div class="wrap nav-in">
+    <a class="brand" href="#inicio"><i aria-hidden="true"></i>Innotective</a>
+    <div class="nav-links" id="navLinks">
+      <a href="#problema">El problema</a>
+      <a href="#principios">Principios</a>
+      <a href="#fases">Fases</a>
+      <a href="#laboratorio">Laboratorio</a>
+      <a href="#caso">Resuelve el caso</a>
+      <a href="#comparativa">Comparativa</a>
+      <a href="#expedientes">Expedientes</a>
+      <a href="#diagnostico">Diagnóstico</a>
+    </div>
+    <button class="theme-t" id="themeBtn" type="button" aria-label="Cambiar tema">Tema</button>
+  </div>
+  <div class="progress" id="progress"></div>
+</nav>
+
+<header class="hero" id="inicio">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="label">Metodología de innovación corporativa</span>
+      <h1 style="margin-top:16px">Investigar antes de <span class="strike">idear</span> innovar.</h1>
+      <p class="sub">Innotective aplica el método del detective a los retos de negocio. <b>No se puede crear una solución innovadora sin obsesionarse primero con la causa raíz del problema.</b> Primero se reúne la evidencia, se analiza el comportamiento y se ponen a prueba las hipótesis. Las ideas vienen después.</p>
+      <div class="hero-cta">
+        <a class="btn primary" href="#fases">Recorrer el método</a>
+        <a class="btn" href="#caso">Resolver un caso</a>
+      </div>
+      <div class="byline"><span class="tag">E-book</span><span class="muted" style="font-size:14px">Innotective: Solving Business Challenges with a Detective's Mindset · Constantino De Zabala Zamora</span></div>
+    </div>
+    <div class="lens-card">
+      <div class="label" style="margin-bottom:10px">Pase la lupa por el informe</div>
+      <div class="lens-stage" id="lens" role="img" aria-label="Informe de ventas: en la superficie se ven síntomas; bajo la lupa aparecen las causas raíz">
+        <div class="layer surface-l" aria-hidden="true">
+          <div class="row"><span>Ventas T3</span><span>−12 %</span></div>
+          <div class="row"><span>Diagnóstico</span><span>falta marketing</span></div>
+          <div class="row"><span>Acción propuesta</span><span>campaña + descuento</span></div>
+          <div class="row"><span>Quejas de clientes</span><span>"normales"</span></div>
+          <div class="row"><span>Equipo comercial</span><span>sin comentarios</span></div>
+          <div class="row"><span>Competencia</span><span>sin cambios</span></div>
+        </div>
+        <div class="layer truth" aria-hidden="true">
+          <div class="row"><span>Ventas T3</span><span>−12 % solo en clientes nuevos</span></div>
+          <div class="row"><span>Causa raíz</span><span>onboarding complejo</span></div>
+          <div class="row"><span>Acción correcta</span><span>simplificar integración</span></div>
+          <div class="row"><span>Quejas de clientes</span><span>68 % citan la instalación</span></div>
+          <div class="row"><span>Equipo comercial</span><span>incentivos desalineados</span></div>
+          <div class="row"><span>Competencia</span><span>alta guiada en 1 día</span></div>
+        </div>
+        <div class="lens-ring" aria-hidden="true"></div>
+      </div>
+      <div class="lens-cap"><span class="muted" style="font-size:13px">Superficie: síntomas. Bajo la lupa: causas.</span><span class="tag">Ejemplo ilustrativo</span></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="stats" aria-label="Cifras citadas en el libro">
+      <div class="stat"><b data-count="70">70 %</b><span>de los proyectos de innovación no cumple sus objetivos</span><small>Cap. 1 · estudios citados</small></div>
+      <div class="stat"><b data-count="90" data-prefix="70–">70–90 %</b><span>tasa de fracaso de las transformaciones digitales</span><small>Cap. 1</small></div>
+      <div class="stat"><b data-count="80" data-prefix="+">+80 %</b><span>más éxito al implicar a varios grupos de interés</span><small>Cap. 1 · HBR</small></div>
+      <div class="stat"><b data-count="60" data-prefix="&gt;">&gt;60 %</b><span>éxito potencial con Innotective, frente al 30–40 % habitual</span><small>Cap. 1</small></div>
+    </div>
+  </div>
+</header>
+
+<section class="band alt" id="problema">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Prefacio · El origen</span>
+      <h2>Las empresas tratan síntomas, no causas.</h2>
+      <p class="sec-intro">Un reto de negocio se parece a la escena de un crimen: es complejo, caótico y está lleno de pistas. La mayoría de marcos de innovación se centran en generar ideas. Innotective se centra en investigar el problema. Elija un síntoma para ver la diferencia.</p>
+    </div></div>
+    <div class="sym-wrap">
+      <div class="sym-list" role="tablist" aria-label="Síntomas" id="symList"></div>
+      <div class="sym-panel" id="symPanel" role="tabpanel" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="principios">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Capítulo 1 · Fundamentos</span>
+      <h2>Cinco principios del detective.</h2>
+      <p class="sec-intro">Son la base de todo el método. Cada uno se apoya en casos reales de éxito y de fracaso que el libro analiza.</p>
+    </div></div>
+    <div class="pr-tabs" role="tablist" aria-label="Principios" id="prTabs"></div>
+    <div id="prCard" role="tabpanel" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="band alt" id="fases">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Capítulos 2 a 6 · El proceso</span>
+      <h2>Cinco fases, en orden.</h2>
+      <p class="sec-intro">Innotective va despacio al principio, y lo hace a propósito. El problema se entiende por completo antes de diseñar soluciones. Cada fase tiene su metáfora detectivesca, sus técnicas y un caso de aplicación.</p>
+    </div></div>
+    <div class="phase-rail" role="tablist" aria-label="Fases" id="phRail"></div>
+    <div class="ph-panel" id="phPanel" role="tabpanel" aria-live="polite"></div>
+    <div class="ph-nav">
+      <button class="btn sm" type="button" id="phPrev">← Fase anterior</button>
+      <button class="btn sm primary" type="button" id="phNext">Siguiente fase →</button>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="laboratorio">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Herramientas · Caps. 3 y 5</span>
+      <h2>El laboratorio forense.</h2>
+      <p class="sec-intro">Cuatro técnicas del método que puede probar aquí mismo. Vienen cargadas con un ejemplo y puede editarlas con su propio caso.</p>
+    </div></div>
+    <div class="lab-tabs" role="tablist" aria-label="Herramientas" id="labTabs">
+      <button class="lab-tab" role="tab" aria-selected="true" data-lab="whys" id="tab-whys">5 Porqués</button>
+      <button class="lab-tab" role="tab" aria-selected="false" data-lab="fish" id="tab-fish">Espina de pescado</button>
+      <button class="lab-tab" role="tab" aria-selected="false" data-lab="pareto" id="tab-pareto">Análisis de Pareto</button>
+      <button class="lab-tab" role="tab" aria-selected="false" data-lab="link" id="tab-link">Análisis de vínculos</button>
+    </div>
+    <div class="lab-body">
+      <div data-pane="whys" class="lab-grid">
+        <div>
+          <h3>5 Porqués</h3>
+          <p class="desc">Pregunte "¿por qué?" cinco veces seguidas. Cada respuesta quita una capa del problema hasta llegar a la causa raíz. El ejemplo es TechNow, el caso del capítulo 2: un producto que no ganaba tracción.</p>
+          <div class="why-depth" id="whyDepth" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <p class="label" style="margin-top:8px" id="whyMsg">Profundidad: 5 de 5</p>
+          <div class="lab-actions">
+            <button class="btn sm" type="button" id="whyClear">Empezar en blanco</button>
+            <button class="btn sm" type="button" id="whyReset">Cargar ejemplo</button>
+          </div>
+        </div>
+        <div class="why-list" id="whyList">
+          <div class="why"><label for="w0">Problema</label><input id="w0" value="La tasa de adopción del producto es menor de lo esperado"></div>
+          <div class="why"><label for="w1">¿Por qué? 1</label><input id="w1" value="Muchos clientes abandonan poco después de comprar"></div>
+          <div class="why"><label for="w2">¿Por qué? 2</label><input id="w2" value="No llegan a integrar el software en sus sistemas"></div>
+          <div class="why"><label for="w3">¿Por qué? 3</label><input id="w3" value="La integración les resulta demasiado compleja y frustrante"></div>
+          <div class="why"><label for="w4">¿Por qué? 4</label><input id="w4" value="El onboarding da por hecho que el cliente tiene un equipo técnico"></div>
+          <div class="why root"><label for="w5">Causa raíz</label><input id="w5" value="El proceso de alta se diseñó sin observar al cliente real"></div>
+        </div>
+      </div>
+
+      <div data-pane="fish" class="lab-grid" hidden>
+        <div>
+          <h3>Espina de pescado (Ishikawa)</h3>
+          <p class="desc">Agrupe las causas posibles en Personas, Procesos, Materiales y Equipos. Así el equipo explora cada dimensión y no se conforma con la causa más obvia. El ejemplo es el caso del capítulo 6: la satisfacción del cliente cae en las tiendas.</p>
+          <div class="fb-add">
+            <select class="field" id="fbCat" aria-label="Categoría"><option value="0">Personas</option><option value="1">Procesos</option><option value="2">Materiales</option><option value="3">Equipos</option></select>
+            <input id="fbText" placeholder="Escriba una causa posible" aria-label="Causa posible">
+            <button class="btn sm primary" type="button" id="fbAdd">Añadir</button>
+          </div>
+          <div class="lab-actions"><button class="btn sm" type="button" id="fbReset">Cargar ejemplo</button></div>
+        </div>
+        <div class="fish" id="fish"></div>
+      </div>
+
+      <div data-pane="pareto" hidden>
+        <div class="lab-grid" style="grid-template-columns:.7fr 1.3fr">
+          <div>
+            <h3>Análisis de Pareto</h3>
+            <p class="desc">Aproximadamente el 80 % de los efectos procede del 20 % de las causas. Ordene las causas por peso y atienda primero las que más pesan. El ejemplo es una plataforma de e-commerce con más carritos abandonados (cap. 3).</p>
+            <p class="desc" id="paretoMsg" style="color:var(--ink)"></p>
+            <div class="lab-actions"><button class="btn sm" type="button" id="paretoShuffle">Ver otra muestra</button></div>
+            <p class="label" style="margin-top:14px">Datos ilustrativos</p>
+          </div>
+          <div style="min-width:0">
+            <div class="chart-box" id="paretoChart"></div>
+            <div class="legend"><span><i style="background:var(--evidence)"></i>Causas vitales (hasta 80 % acumulado)</span><span><i style="background:var(--line)"></i>Resto</span><span><i style="background:var(--thread);height:3px;vertical-align:3px"></i>% acumulado</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div data-pane="link" hidden>
+        <div class="lab-grid">
+          <div>
+            <h3>Análisis de vínculos</h3>
+            <p class="desc">Dibuje las relaciones entre departamentos para ver cómo circula la información, quién hace de puente y dónde están los silos. Toque un nodo para ver sus conexiones (cap. 5).</p>
+            <div class="net-info" id="netInfo"><span class="muted">Toque un departamento del mapa.</span></div>
+            <div class="lab-actions"><button class="btn sm" type="button" id="netSilo">Mostrar silos</button></div>
+          </div>
+          <div class="net" id="net"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="caso">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Capítulo 6 · Pruebas forenses iterativas</span>
+      <h2>Resuelva el caso.</h2>
+      <p class="sec-intro">La satisfacción del cliente cae en una cadena de tiendas, y la dirección culpa a la distribución de la tienda. Tiene cuatro semanas de pruebas. Pruebe hipótesis, reúna pistas y señale la causa raíz cuando tenga evidencia.</p>
+    </div></div>
+    <div class="case-board">
+      <div class="dossier">
+        <div class="dossier-h">
+          <div><span class="label">Expediente nº 06-RT</span><h3>La tienda que perdió clientes</h3></div>
+          <div><span class="label">Semanas de prueba</span><div class="budget" id="budget"></div></div>
+        </div>
+        <p class="muted" style="font-size:15px">Datos iniciales: la satisfacción ha bajado del 78 % al 61 % en un año. Las ventas por visita se mantienen. La dirección quiere rediseñar todas las tiendas.</p>
+        <div class="actions" id="actions"></div>
+        <div class="log" id="log" aria-live="polite"></div>
+        <div id="verdict"></div>
+        <div class="lab-actions"><button class="btn sm" type="button" id="caseReset">Reabrir el caso</button></div>
+      </div>
+      <aside class="board" aria-label="Tablero de pistas">
+        <h4>Tablero de pistas</h4>
+        <div class="clues" id="clues"><p class="empty">Aún no hay pistas. Ejecute una prueba.</p></div>
+        <h4 style="margin-top:6px">Señalar la causa raíz</h4>
+        <div class="accuse" id="accuse"></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="comparativa">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Diferenciación</span>
+      <h2>Cómo se distingue de otros marcos.</h2>
+      <p class="sec-intro">Design Thinking, Lean Startup y Agile son útiles para problemas simples o mejoras incrementales. Innotective está pensado para retos complejos, en los que la causa raíz no es evidente.</p>
+    </div></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th scope="col">Dimensión</th><th scope="col" class="us">Innotective</th><th scope="col">Design Thinking</th><th scope="col">Lean Startup</th><th scope="col">Agile</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Punto de partida</th><td class="us">Investigar el problema como una escena del crimen</td><td>Empatizar con el usuario</td><td>Hipótesis de negocio</td><td>Backlog de requisitos</td></tr>
+          <tr><th scope="row">Ritmo inicial</th><td class="us">Lento y deliberado: asegurar el alcance antes de idear</td><td>Rápido hacia la ideación</td><td>Rápido hacia el MVP</td><td>Sprints cortos</td></tr>
+          <tr><th scope="row">Evidencia</th><td class="us">Datos internos, mercado, clientes y entrevistas, triangulados</td><td>Sobre todo cualitativa del usuario</td><td>Métricas de validación del cliente</td><td>Feedback del sprint</td></tr>
+          <tr><th scope="row">Comportamiento</th><td class="us">Lo que se dice frente a lo que se hace, dentro y fuera de la empresa</td><td>Necesidades del usuario</td><td>Comportamiento del cliente</td><td>Dinámica del equipo</td></tr>
+          <tr><th scope="row">Herramientas visuales</th><td class="us">Diagnósticas y tempranas: mapas de dolor, flujos, modelos</td><td>Creativas: prototipos</td><td>Canvas</td><td>Tableros</td></tr>
+          <tr><th scope="row">Iteración</th><td class="us">Repetir pruebas, simular escenarios, experimentos controlados</td><td>Prototipar y testear</td><td>Construir, medir, aprender</td><td>Incrementos continuos</td></tr>
+          <tr><th scope="row">Mejor para</th><td class="us">Transformaciones complejas con causa raíz oculta</td><td>Productos centrados en el usuario</td><td>Nuevos negocios con incertidumbre</td><td>Desarrollo de software</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="expedientes">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Casos del libro</span>
+      <h2>Archivo de expedientes.</h2>
+      <p class="sec-intro">Los casos reales de éxito y de fracaso que el libro usa para ilustrar cada principio y cada técnica. Filtre por resultado o por fase.</p>
+    </div></div>
+    <div class="filters" id="filters"></div>
+    <div class="cases" id="cases"></div>
+  </div>
+</section>
+
+<section class="band" id="diagnostico">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Autodiagnóstico</span>
+      <h2>¿Su organización investiga o adivina?</h2>
+      <p class="sec-intro">Diez preguntas basadas en los principios y las fases del método. Responda con sinceridad. El resultado le indica por dónde empezar.</p>
+    </div></div>
+    <div class="diag">
+      <div class="q-list" id="qList"></div>
+      <aside class="result" aria-live="polite">
+        <span class="label">Nivel de investigación</span>
+        <div class="score" id="score">0<small> / 20</small></div>
+        <div class="gauge"><i id="gauge"></i></div>
+        <div class="ticks"><span>Adivino</span><span>Aprendiz</span><span>Detective</span></div>
+        <div class="rank" id="rank">Responda las preguntas</div>
+        <p class="weak" id="weak">Las preguntas sin responder cuentan como 0.</p>
+        <div class="lab-actions"><button class="btn sm" type="button" id="diagReset">Borrar respuestas</button></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="futuro">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <span class="label kick">Capítulo 8 · El futuro de Innotective</span>
+      <h2>La innovación es un recorrido, no un destino.</h2>
+    </div></div>
+    <div class="future">
+      <div class="fut"><span class="label">Tecnología</span><h4>IA y analítica de datos</h4><p>El aprendizaje automático analiza grandes volúmenes de evidencia y detecta patrones que una persona no vería. Refuerza la Investigación integral.</p></div>
+      <div class="fut"><span class="label">Tecnología</span><h4>Herramientas de colaboración</h4><p>La comunicación y el feedback en tiempo real llevan los hallazgos al desarrollo más rápido durante las Pruebas forenses iterativas.</p></div>
+      <div class="fut"><span class="label">Tecnología</span><h4>Realidad virtual y aumentada</h4><p>Las experiencias inmersivas ayudan a visualizar problemas complejos y a implicar a los grupos de interés en el Análisis conductual.</p></div>
+      <div class="fut"><span class="label">Entorno</span><h4>Abrazar la disrupción</h4><p>Una mentalidad que da la bienvenida al cambio permite innovar ante nuevos retos y oportunidades.</p></div>
+      <div class="fut"><span class="label">Entorno</span><h4>Sostenibilidad y ética</h4><p>Soluciones eficaces y también responsables, alineadas con los valores de los grupos de interés.</p></div>
+      <div class="fut"><span class="label">Cultura</span><h4>Liderazgo, experimentación y formación</h4><p>Los líderes dan ejemplo de curiosidad, se celebran los aprendizajes de los fracasos y se forma a los equipos para pensar como investigadores.</p></div>
+    </div>
+    <div class="closing">
+      <blockquote>"La búsqueda de la verdad es el <em>núcleo</em> de la innovación eficaz."</blockquote>
+      <div>
+        <p class="muted">El futuro es de quienes investigan a fondo, piensan con criterio y cuestionan el statu quo. Empiece por un problema real y aplique la primera fase: asegure la escena.</p>
+        <div class="hero-cta"><a class="btn primary" href="#fases">Volver al método</a><a class="btn" href="https://www.linkedin.com/in/cdezabala/" target="_blank" rel="noopener">Contactar con el autor</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span>Prototipo basado en el e-book <i>Innotective: Solving Business Challenges with a Detective's Mindset</i>, de Constantino De Zabala Zamora.</span>
+    <span class="label">Las cifras marcadas como ilustrativas son ejemplos</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* Tema */
+const themeBtn=$('#themeBtn');
+function curTheme(){const t=document.documentElement.dataset.theme;if(t)return t;return matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
+function setThemeLabel(){themeBtn.textContent=curTheme()==='dark'?'Modo claro':'Modo oscuro'}
+try{const t=localStorage.getItem('inno-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}
+setThemeLabel();
+themeBtn.addEventListener('click',()=>{const n=curTheme()==='dark'?'light':'dark';document.documentElement.dataset.theme=n;try{localStorage.setItem('inno-theme',n)}catch(e){}setThemeLabel()});
+
+/* Progreso + nav activa */
+const prog=$('#progress'), links=$$('#navLinks a');
+function onScroll(){const h=document.documentElement;const p=h.scrollTop/(h.scrollHeight-h.clientHeight||1);prog.style.width=(p*100).toFixed(1)+'%';
+  let cur='';$$('section[id]').forEach(s=>{if(s.getBoundingClientRect().top<140)cur=s.id});links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+cur))}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+/* Lupa */
+const lens=$('#lens');
+function moveLens(e){const r=lens.getBoundingClientRect();const x=((e.clientX-r.left)/r.width*100),y=((e.clientY-r.top)/r.height*100);lens.style.setProperty('--x',Math.max(0,Math.min(100,x))+'%');lens.style.setProperty('--y',Math.max(0,Math.min(100,y))+'%')}
+lens.addEventListener('pointermove',moveLens);lens.addEventListener('pointerdown',moveLens);
+let auto=true,t0=performance.now();
+lens.addEventListener('pointerenter',()=>auto=false);
+(function drift(now){if(auto&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const t=(now-t0)/1000;lens.style.setProperty('--x',(50+30*Math.sin(t*.6))+'%');lens.style.setProperty('--y',(48+28*Math.sin(t*.9+1))+'%')}if(auto)requestAnimationFrame(drift)})(t0);
+
+/* Contadores */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduce&&'IntersectionObserver' in window){const io=new IntersectionObserver(es=>{es.forEach(en=>{if(!en.isIntersecting)return;io.unobserve(en.target);const el=en.target,n=+el.dataset.count,pre=el.dataset.prefix||'';const fin=el.innerHTML;const st=performance.now();
+  (function f(now){const k=Math.min(1,(now-st)/900);const v=Math.round(n*(1-Math.pow(1-k,3)));el.textContent=(pre.replace('&gt;','>'))+v+' %';if(k<1)requestAnimationFrame(f);else el.innerHTML=fin})(st)})},{threshold:.6});$$('[data-count]').forEach(el=>io.observe(el))}
+
+/* Síntomas */
+const SYM=[
+ {s:'Las ventas están estancadas',ctx:'Una marca de yogur en España',fast:['Lanzar sabores nuevos','Entrar en mercados nuevos','Campaña de marketing'],deep:['Datos internos: ventas, costes y feedback','Mercado: competidores y tendencias de salud','Entrevistas con varios departamentos','Hallazgo: el mensaje de marca no conecta con la demanda de opciones más saludables'],trail:['Asegurar el alcance','Contexto','Límites: marketing y producto']},
+ {s:'El producto no gana tracción',ctx:'TechNow (caso ficticio del cap. 2)',fast:['Añadir funcionalidades','Bajar el precio'],deep:['Métricas de uso, engagement y ventas','Entrevistas a comerciales y clientes','Cómo posiciona la competencia productos similares','Hallazgo: el onboarding es demasiado complejo y los clientes abandonan'],trail:['Definir','Reunir evidencia','Sintetizar']},
+ {s:'Los clientes son menos leales',ctx:'Una empresa de retail',fast:['Nueva campaña','Programa de fidelización'],deep:['Historial de compra y feedback del servicio de atención','La competencia apuesta por recorridos digitales, personalizados y sostenibles','Los clientes describen una experiencia fragmentada','Hallazgo: canales físico y online desconectados, tecnología obsoleta y silos de datos'],trail:['Métricas internas','Mercado','Clientes','Grupos de interés']},
+ {s:'Más carritos abandonados',ctx:'Una plataforma global de e-commerce',fast:['Simplificar el checkout','Encuesta a usuarios'],deep:['Simular recorridos en distintos dispositivos','Comparar velocidad de servidores por región','Abandono por categoría de producto','Hallazgo: carga lenta en ciertas regiones y un umbral de envío gratis que confunde a clientes internacionales'],trail:['Diseccionar','Hipótesis','Cruzar fuentes']},
+ {s:'Alta rotación en atención al cliente',ctx:'Departamento de atención al cliente',fast:['Mejorar beneficios','Mejorar el entorno de trabajo'],deep:['Vigilancia: rendimiento, encuestas y entrevistas de salida a lo largo del tiempo','Forense: onboarding, gestión y tendencias del sector','Interrogatorio: "¿En qué momento decidió irse?"','Hallazgo: se descubre por qué ocurrió, no solo qué ocurrió'],trail:['Vigilancia','Forense','Interrogatorio']}
+];
+const symList=$('#symList'),symPanel=$('#symPanel');
+SYM.forEach((x,i)=>{const b=document.createElement('button');b.className='sym-btn';b.type='button';b.setAttribute('role','tab');b.id='sym-'+i;b.innerHTML=`<span>${esc(x.s)}</span><span class="label">${String(i+1).padStart(2,'0')}</span>`;b.onclick=()=>showSym(i);symList.appendChild(b)});
+function showSym(i){const x=SYM[i];$$('.sym-btn').forEach((b,j)=>b.setAttribute('aria-selected',j===i));
+ symPanel.innerHTML=`<span class="label">${esc(x.ctx)}</span><h3 style="font-size:26px;font-weight:800;margin-top:6px">"${esc(x.s)}"</h3>
+ <div class="sym-cols"><div class="sym-col fast"><h4>Respuesta rápida habitual</h4><ul>${x.fast.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></div>
+ <div class="sym-col deep"><h4>Lo que revela la investigación</h4><ul>${x.deep.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></div></div>
+ <div class="sym-trail"><span class="label">Rastro</span>${x.trail.map(t=>`<span class="tag">${esc(t)}</span>`).join('<span class="arrow">→</span>')}</div>`}
+showSym(0);
+
+/* Principios */
+const PR=[
+ {t:'Obsesión por la causa raíz',q:'El problema nunca se toma al pie de la letra.',b:'Cada causa posible se trata como una pista que hay que comprobar. Hay que mirar ineficiencias operativas, cuellos de botella culturales, incentivos desalineados y dinámicas que nadie menciona.',c:[['Boeing 737 MAX','bad','Recortes de costes, mala comunicación entre equipos y presión de plazos ocultaron los problemas del sistema MCAS.'],['Volkswagen','bad','Objetivos internos poco realistas y una cultura de velocidad y coste por encima de la ética.'],['Wells Fargo','bad','Incentivos de venta agresivos llevaron a millones de cuentas fraudulentas.']]},
+ {t:'Decisiones basadas en evidencia',q:'"La evidencia no miente."',b:'Hechos y datos en lugar de suposiciones o intuición. Se estudian las tendencias del mercado, los factores culturales y los procesos internos, además del feedback del cliente.',c:[['Google Glass','bad','Buen feedback inicial, pero no se analizó el rechazo social a la cámara. Pérdida estimada de 900 M$.'],['Segway','bad','No se analizaron la infraestructura ni los hábitos de desplazamiento ya arraigados.'],['Tropicana','bad','Se ignoró el vínculo emocional con el envase y las ventas cayeron un 20 %.']]},
+ {t:'Investigación integral',q:'No dejar piedra sin levantar.',b:'Participan todos los niveles de la organización, desde primera línea hasta la dirección, y varias funciones y culturas. Es como un detective que trabaja con forenses, psicólogos y policía.',c:[['GE Predix','bad','Implicación insuficiente de ingenieros y personal de primera línea. Amortización en 2018.'],['Walmart y Jet.com','bad','Se subestimó a los equipos locales y el comportamiento regional del consumidor.'],['Starbucks C.A.F.E.','ok','Agricultores, proveedores y clientes participaron en la certificación.']]},
+ {t:'Pruebas iterativas de hipótesis',q:'Un caso rara vez se resuelve al primer intento.',b:'Se prototipa rápido y se prueba en entornos pequeños y controlados antes de escalar. Además de tiempo y dinero, se definen KPIs de escalabilidad e impacto operativo.',c:[['Amazon Echo','ok','Más de 20 iteraciones probadas en casas de empleados.'],['Tesla Model 3','ok','La creación rápida de prototipos reveló fallos en la línea de montaje. Se resolvieron, aunque con más coste.'],['Google Glass','bad','Piloto sin iteraciones suficientes en privacidad, usabilidad y coste.']]},
+ {t:'Comprensión conductual',q:'Hay que entender a las personas, no solo la tecnología.',b:'Por dentro, la motivación, la seguridad psicológica y los valores de los empleados. Por fuera, los motivos psicológicos del consumidor. Hay que integrar los dos lados.',c:[['Nokia','bad','Jerarquía rígida que ignoró a sus ingenieros y al nuevo consumidor de smartphones.'],['Microsoft con Nadella','ok','Una cultura de aprendizaje y colaboración que hizo posible Azure.'],['Netflix','ok','Leyó el cambio hacia la conveniencia y el acceso inmediato.']]}
+];
+const prTabs=$('#prTabs'),prCard=$('#prCard');
+PR.forEach((p,i)=>{const b=document.createElement('button');b.className='pr-tab';b.type='button';b.setAttribute('role','tab');b.innerHTML=`<span class="n">P${i+1}</span>${esc(p.t)}`;b.onclick=()=>showPr(i);prTabs.appendChild(b)});
+function showPr(i){const p=PR[i];$$('.pr-tab').forEach((b,j)=>b.setAttribute('aria-selected',j===i));
+ prCard.innerHTML=`<div class="pr-card"><div><span class="label">Principio ${i+1} de 5</span><h3 style="margin-top:8px">${esc(p.t)}</h3><p class="quote">${esc(p.q)}</p><p class="body">${esc(p.b)}</p></div>
+ <div class="case-mini">${p.c.map(c=>`<div><strong>${esc(c[0])} <span class="tag ${c[1]}">${c[1]==='ok'?'Éxito':'Fracaso'}</span></strong><p>${esc(c[2])}</p></div>`).join('')}</div></div>`}
+showPr(0);
+
+/* Fases */
+const PH=[
+ {t:'Investigación integral',m:'Diseccionar el problema como una escena del crimen',d:'Construir una comprensión completa y matizada del problema: definirlo, reunir evidencia y sintetizar los hallazgos en un relato coherente que revele patrones y causas raíz.',diff:'Design Thinking pasa rápido a idear y Lean Startup itera rápido. Innotective va más despacio al principio para no generar soluciones a medias.',
+  tech:[['Asegurar la escena',['Identificar el problema central','Establecer el contexto interno y externo','Fijar límites para evitar que el alcance se desborde']],['Recoger evidencia',['Informes y métricas internas','Análisis de mercado','Feedback de clientes','Entrevistas a grupos de interés']],['Fotografía y bocetos',['Diagramas de flujo y swimlanes','Mapa de puntos de dolor','Modelo de negocio dibujado']]],
+  cas:'TechNow no ganaba tracción. En vez de tocar precio o funcionalidades, cruzó métricas de uso, entrevistas y datos de la competencia. Así descubrió que el problema era el onboarding.'},
+ {t:'Análisis forense',m:'Descubrir las fuerzas ocultas detrás de las ineficiencias',d:'Examinar con rigor la evidencia reunida para llegar a las causas raíz. Los datos no se dan por buenos sin más: se interrogan y se contrastan entre sí hasta tener una imagen completa.',diff:'Otros marcos suponen que los patrones de los datos llevan directamente a la solución. Aquí cada dato es una pista que hay que comprobar.',
+  tech:[['Análisis de causa raíz',['Espina de pescado (Ishikawa)','Análisis de Pareto (80/20)','5 Porqués']],['Análisis comparativo',['Aprender de los fracasos','Estudiar los éxitos','Identificar patrones entre proyectos']],['Rigor forense',['Colaboración multifuncional','Triangulación de datos','Iteración continua']]],
+  cas:'Suben los carritos abandonados. El equipo cruza velocidad por región, recorridos por dispositivo y el feedback recibido. Las causas son servidores lentos y un umbral de envío gratis confuso, no el checkout.'},
+ {t:'Análisis conductual',m:'Entender el factor humano detrás de la dinámica del negocio',d:'Estudiar lo que las personas dicen, lo que hacen y la contradicción entre ambas cosas. Se analizan clientes, empleados e influyentes del mercado para encontrar motivaciones ocultas y resistencias al cambio.',diff:'Otros marcos se quedan en encuestas y tendencias generales. Innotective observa la conducta en contexto, por cultura, región y situación.',
+  tech:[['Entrevistas a empleados y líderes',['Herramientas de análisis psicológico','Preguntas abiertas','Escucha activa']],['Cuellos de botella conductuales',['Resistencia al cambio','Apego a procesos obsoletos','Conflictos entre departamentos']],['Mapa de la cultura',['Evaluaciones culturales','Arquetipos culturales','Alinear la cultura con los objetivos de innovación']]],
+  cas:'Productos ecológicos para el hogar: los clientes dicen que quieren sostenibilidad, pero en tienda compran lo barato. La solución es una línea ecológica asequible o un modelo de suscripción.'},
+ {t:'Herramientas del detective',m:'Técnicas de investigación aplicadas a la empresa',d:'Herramientas para destapar la verdad, no para estimular la creatividad. Observar con disciplina y conectar detalles que parecen no tener relación.',diff:'Los marcos habituales usan brainstorming y sprints. Innotective usa herramientas para hallar evidencia y analizarla con rigor.',
+  tech:[['Análisis de vínculos',['Mapear relaciones','Influyentes y guardianes','Descubrir silos']],['Perfil geográfico',['Dinámica del mercado por región','Mapa de la competencia','Asignación de recursos']],['Vigilancia',['Monitorización continua de KPIs','Ciclos de feedback','Sistemas de alerta temprana']]],
+  cas:'Hay mucha rotación en atención al cliente. Vigilancia de patrones en el tiempo, análisis forense del onboarding y de la gestión, e interrogatorio: "¿En qué momento decidió irse?"'},
+ {t:'Pruebas forenses iterativas',m:'Refinar soluciones con pruebas rigurosas',d:'Volver a probar hipótesis, simular escenarios y hacer experimentos controlados, igual que un forense vuelve a analizar la evidencia antes de confirmar una conclusión.',diff:'No se itera de forma superficial: se revisan los datos, se cuestionan los supuestos y se valida cada hipótesis.',
+  tech:[['Prototipos en prueba continua',['Prototipado','Enfoque forense: el prototipo bajo el microscopio','Ajustes basados en datos']],['Ciclos de feedback',['Implicación de grupos de interés','Análisis en tiempo real','Metodologías ágiles']],['Mitigar riesgos con escenarios',['Planificación de escenarios','Pruebas de estrés','Planes de contingencia']]],
+  cas:'Cae la satisfacción en tiendas y la dirección culpa a la distribución. Tras varias iteraciones, la causa real resulta ser la espera en caja. Puede jugar este caso más abajo.'}
+];
+let ph=0;const rail=$('#phRail'),phPanel=$('#phPanel');
+PH.forEach((p,i)=>{const b=document.createElement('button');b.className='ph-btn';b.type='button';b.setAttribute('role','tab');b.innerHTML=`<span class="marker">${i+1}</span><span class="t">${esc(p.t)}</span>`;b.onclick=()=>showPh(i);rail.appendChild(b)});
+function showPh(i){ph=i;const p=PH[i];$$('.ph-btn').forEach((b,j)=>b.setAttribute('aria-selected',j===i));
+ phPanel.innerHTML=`<div class="ph-top"><div><span class="label">Fase ${i+1} · Capítulo ${i+2}</span><h3 style="margin-top:6px">${esc(p.t)}</h3><p class="metaphor">${esc(p.m)}</p><p>${esc(p.d)}</p></div>
+ <div class="ph-diff"><b>Por qué es distinto</b>${esc(p.diff)}</div></div>
+ <div class="ph-tech">${p.tech.map((t,k)=>`<div class="tech"><span class="label">Técnica ${i+1}.${k+1}</span><h4 style="margin-top:4px">${esc(t[0])}</h4><ul>${t[1].map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</div>
+ <div class="ph-case"><span class="marker sm">${i+1}</span><div><span class="label">Caso de aplicación</span><p style="margin-top:4px">${esc(p.cas)}</p></div></div>`;
+ $('#phPrev').disabled=i===0;$('#phNext').disabled=i===PH.length-1}
+$('#phPrev').onclick=()=>ph>0&&showPh(ph-1);$('#phNext').onclick=()=>ph<PH.length-1&&showPh(ph+1);
+showPh(0);
+
+/* Laboratorio: tabs */
+$$('.lab-tab').forEach(t=>t.onclick=()=>{$$('.lab-tab').forEach(x=>x.setAttribute('aria-selected',x===t));$$('[data-pane]').forEach(p=>p.hidden=p.dataset.pane!==t.dataset.lab)});
+
+/* 5 porqués */
+const WHY_EX=$$('#whyList input').map(i=>i.value);
+function whyDepth(){const v=$$('#whyList input').slice(1).filter(i=>i.value.trim()).length;$$('#whyDepth i').forEach((d,k)=>d.classList.toggle('on',k<v));
+ $('#whyMsg').textContent=v>=5?'Profundidad: 5 de 5. Ha llegado a la causa raíz':v===0?'Escriba el problema y pregunte por qué':'Profundidad: '+v+' de 5. Siga preguntando por qué'}
+$$('#whyList input').forEach(i=>i.addEventListener('input',whyDepth));
+$('#whyClear').onclick=()=>{$$('#whyList input').forEach((i,k)=>{i.value='';i.placeholder=k===0?'Describa el síntoma observado':k===5?'¿Qué lo provoca en el fondo?':'¿Por qué ocurre lo anterior?'});$('#w0').focus();whyDepth()};
+$('#whyReset').onclick=()=>{$$('#whyList input').forEach((i,k)=>i.value=WHY_EX[k]);whyDepth()};
+whyDepth();
+
+/* Espina de pescado */
+const FB_CATS=['Personas','Procesos','Materiales','Equipos'];
+const FB_EX=[['Personal insuficiente en horas punta','Formación desigual en caja'],['Cobro lento y sin cajas exprés','Reposición en horario de máxima afluencia'],['Surtido poco claro','Señalización confusa'],['TPV antiguos que se bloquean','Pocas cajas de autocobro']];
+let fb=FB_EX.map(a=>a.slice());
+function drawFish(){const f=$('#fish');const bone=k=>`<div class="bone"><h5>${FB_CATS[k]}</h5><ul>${fb[k].length?fb[k].map((x,j)=>`<li><span>${esc(x)}</span><button type="button" aria-label="Quitar ${esc(x)}" data-k="${k}" data-j="${j}">×</button></li>`).join(''):'<li class="muted">Sin causas todavía</li>'}</ul></div>`;
+ f.innerHTML=bone(0)+bone(1)+`<div class="fish-head"><small>Efecto</small>Cae la satisfacción del cliente en tienda</div><div class="spine"></div>`+bone(2)+bone(3);
+ $$('button[data-k]',f).forEach(b=>b.onclick=()=>{fb[+b.dataset.k].splice(+b.dataset.j,1);drawFish()})}
+function fbAdd(){const v=$('#fbText').value.trim();if(!v)return;fb[+$('#fbCat').value].push(v);$('#fbText').value='';drawFish()}
+$('#fbAdd').onclick=fbAdd;$('#fbText').addEventListener('keydown',e=>{if(e.key==='Enter')fbAdd()});
+$('#fbReset').onclick=()=>{fb=FB_EX.map(a=>a.slice());drawFish()};
+drawFish();
+
+/* Pareto */
+const P_LABELS=['Carga lenta por región','Umbral de envío gratis confuso','Coste de envío','Formulario largo','Métodos de pago','Descuentos de la competencia','Otros'];
+const P_SETS=[[38,27,12,9,7,4,3],[34,30,11,10,8,4,3],[41,22,14,8,7,5,3]];let pset=0;
+function drawPareto(){const vals=P_SETS[pset].map((v,i)=>({l:P_LABELS[i],v})).sort((a,b)=>b.v-a.v);const tot=vals.reduce((s,x)=>s+x.v,0);
+ const W=640,H=320,ml=44,mr=44,mt=16,mb=86,pw=W-ml-mr,ph2=H-mt-mb;const max=Math.ceil(vals[0].v/10)*10;const bw=pw/vals.length;
+ let cum=0;const pts=[];let vital=0,cumAtVital=0;
+ let bars=vals.map((x,i)=>{const prev=cum;cum+=x.v;const pc=cum/tot*100;if(prev/tot*100<80){vital=i+1;cumAtVital=pc}
+  const h=x.v/max*ph2,X=ml+i*bw+bw*.15,Y=mt+ph2-h;pts.push([ml+i*bw+bw/2,mt+ph2-pc/100*ph2]);return {x,X,Y,h,i}});
+ const ticksL=[0,max/2,max].map(v=>`<text x="${ml-8}" y="${mt+ph2-v/max*ph2+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${v}%</text><line x1="${ml}" x2="${W-mr}" y1="${mt+ph2-v/max*ph2}" y2="${mt+ph2-v/max*ph2}" stroke="var(--line)" stroke-width="1"/>`).join('');
+ const ticksR=[0,50,80,100].map(v=>`<text x="${W-mr+8}" y="${mt+ph2-v/100*ph2+4}" font-size="11" fill="var(--thread)" font-family="IBM Plex Mono, monospace">${v}%</text>`).join('');
+ const y80=mt+ph2-.8*ph2;
+ const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagrama de Pareto de causas de abandono de carrito">${ticksL}${ticksR}
+  <line x1="${ml}" x2="${W-mr}" y1="${y80}" y2="${y80}" stroke="var(--thread)" stroke-dasharray="4 4" stroke-width="1" opacity=".6"/>
+  ${bars.map(b=>`<rect x="${b.X}" y="${b.Y}" width="${bw*.7}" height="${b.h}" rx="2" fill="${b.i<vital?'var(--evidence)':'var(--line)'}"><title>${esc(b.x.l)}: ${b.x.v}%</title></rect>
+   <text x="${b.X+bw*.35}" y="${b.Y-5}" text-anchor="middle" font-size="11" fill="var(--ink)" font-family="IBM Plex Mono, monospace">${b.x.v}</text>
+   <text transform="translate(${b.X+bw*.35},${mt+ph2+12}) rotate(-28)" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Sans, sans-serif">${esc(b.x.l)}</text>`).join('')}
+  <polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--thread)" stroke-width="2.2"/>
+  ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--surface)" stroke="var(--thread)" stroke-width="2"/>`).join('')}
+ </svg>`;
+ $('#paretoChart').innerHTML=svg;
+ $('#paretoMsg').innerHTML=`<b>${vital} de ${vals.length} causas</b> explican el ${Math.round(cumAtVital)} % de los abandonos. Empiece por ahí.`}
+$('#paretoShuffle').onclick=()=>{pset=(pset+1)%P_SETS.length;drawPareto()};
+drawPareto();
+
+/* Análisis de vínculos */
+const NODES=[{id:'Dirección',x:300,y:50},{id:'Marketing',x:120,y:140},{id:'Ventas',x:480,y:140},{id:'Producto',x:300,y:175},{id:'Operaciones',x:110,y:285},{id:'Finanzas',x:490,y:285},{id:'Atención al cliente',x:300,y:320}];
+const EDGES=[['Dirección','Marketing'],['Dirección','Ventas'],['Dirección','Finanzas'],['Dirección','Producto'],['Marketing','Producto'],['Ventas','Producto'],['Ventas','Finanzas'],['Producto','Atención al cliente'],['Operaciones','Finanzas']];
+const ROLE={'Producto':'Puente: concentra la información entre áreas. Si se satura, todo se frena.','Dirección':'Guardián: casi todas las decisiones pasan por aquí.','Operaciones':'Silo: solo habla con Finanzas. Nadie de cliente ni de producto escucha su versión.','Atención al cliente':'Silo: depende de un único vínculo. La voz del cliente apenas llega arriba.','Marketing':'Conectado con Dirección y Producto, pero no con Ventas: los mensajes y la venta no están alineados.','Ventas':'Muy conectado con Finanzas y Producto. Sin vínculo directo con Atención al cliente.','Finanzas':'Conecta Operaciones con el resto. Es un puente secundario.'};
+let netSel=null,silo=false;
+function deg(id){return EDGES.filter(e=>e.includes(id)).length}
+function drawNet(){const nodeById=Object.fromEntries(NODES.map(n=>[n.id,n]));
+ const svg=`<svg viewBox="0 0 600 370" role="img" aria-label="Mapa de relaciones entre departamentos">
+ ${EDGES.map(e=>{const a=nodeById[e[0]],b=nodeById[e[1]];const on=netSel&&e.includes(netSel);return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${on?'var(--thread)':'var(--line)'}" stroke-width="${on?3:2}"/>`}).join('')}
+ ${NODES.map(n=>{const d=deg(n.id),r=14+d*3,isSilo=d<=1,sel=n.id===netSel;const fill=sel?'var(--ink)':(silo&&isSilo?'var(--thread)':(silo&&d>=4?'var(--evidence)':'var(--surface)'));const tc=sel?'var(--bg)':(silo&&isSilo?'#fff':'var(--ink)');
+  return `<g class="nd" data-id="${esc(n.id)}" tabindex="0" role="button" aria-label="${esc(n.id)}, ${d} conexiones" style="cursor:pointer"><circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${fill}" stroke="var(--ink)" stroke-width="1.5"/><text x="${n.x}" y="${n.y+4}" text-anchor="middle" font-size="12" font-family="IBM Plex Mono, monospace" fill="${tc}">${d}</text><text x="${n.x}" y="${n.y+r+15}" text-anchor="middle" font-size="13" font-family="IBM Plex Sans, sans-serif" font-weight="600" fill="var(--ink)">${esc(n.id)}</text></g>`}).join('')}</svg>`;
+ $('#net').innerHTML=svg;
+ $$('#net .nd').forEach(g=>{const f=()=>{netSel=g.dataset.id;drawNet();$('#netInfo').innerHTML=`<b>${esc(netSel)}</b>: ${deg(netSel)} conexiones. ${esc(ROLE[netSel])}`};g.addEventListener('click',f);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();f()}})})}
+$('#netSilo').onclick=()=>{silo=!silo;$('#netSilo').textContent=silo?'Ocultar silos':'Mostrar silos';drawNet();if(silo&&!netSel)$('#netInfo').innerHTML='<span style="color:var(--thread);font-weight:600">En rojo, los silos (una conexión o menos).</span> En amarillo, los puentes y guardianes.'};
+drawNet();
+
+/* Caso interactivo */
+const ACTS=[
+ {id:'layout',k:'Hipótesis de la dirección',b:'Rediseñar la distribución en una tienda piloto',s:'1 semana',res:'La satisfacción sube 2 puntos y las ventas no cambian. Mejora, pero no explica la caída.',type:'dead',clue:'Distribución: efecto marginal (+2 pts)'},
+ {id:'mix',k:'Hipótesis',b:'Cambiar el surtido de producto',s:'1 semana',res:'Sin cambios en satisfacción ni en ventas. Hipótesis descartada.',type:'dead',clue:'Surtido: descartado'},
+ {id:'staff',k:'Hipótesis',b:'Más personal en zonas de mucho tráfico',s:'1 semana',res:'Mejora en la entrada, pero las quejas en la zona de cajas no bajan. Pista: el problema está al final del recorrido.',type:'clue',clue:'Las quejas se concentran en la zona de cajas'},
+ {id:'survey',k:'Evidencia',b:'Cruzar encuestas con la hora de la visita',s:'1 semana',res:'Las peores valoraciones coinciden con las horas punta. El 64 % de las quejas abiertas menciona "la cola".',type:'clue',clue:'El 64 % de las quejas menciona la cola'},
+ {id:'tickets',k:'Forense',b:'Analizar los tiempos de los tickets en caja',s:'1 semana',res:'Espera media de 11 minutos en hora punta, frente a 3 hace un año. Coincide con la retirada de dos cajas.',type:'clue',clue:'Espera en caja: de 3 a 11 min en hora punta'},
+ {id:'interview',k:'Conductual',b:'Entrevistar a cajeros y encargados',s:'1 semana',res:'"Desde que quitaron dos cajas, la gente deja la cesta y se va." Los encargados lo comunicaron, pero no llegó a la dirección.',type:'clue',clue:'Testimonio: se quitaron dos cajas y se avisó'}
+];
+const SUSP=[{id:'layout',t:'La distribución de la tienda'},{id:'mix',t:'El surtido de producto'},{id:'staff',t:'Falta de personal en tienda'},{id:'checkout',t:'El proceso de cobro: esperas en caja'}];
+const BUDGET=4;let used=[],clues=[];
+function renderCase(){const left=BUDGET-used.length;
+ $('#budget').innerHTML=Array.from({length:BUDGET},(_,i)=>`<i class="${i<used.length?'used':''}"></i>`).join('')+`<span class="label" style="margin-left:6px">${left}</span>`;
+ $('#actions').innerHTML=ACTS.map(a=>`<button type="button" class="act" data-a="${a.id}" ${used.includes(a.id)||left===0||$('#verdict').dataset.done?'disabled':''}><span class="k">${esc(a.k)} · ${esc(a.s)}</span><b>${esc(a.b)}</b>${used.includes(a.id)?'<span>Prueba realizada</span>':''}</button>`).join('');
+ $$('#actions .act').forEach(b=>b.onclick=()=>runAct(b.dataset.a));
+ $('#clues').innerHTML=clues.length?clues.map((c,i)=>`<div class="clue"><span class="marker sm">${i+1}</span><span>${esc(c)}</span></div>`).join(''):'<p class="empty">Aún no hay pistas. Ejecute una prueba.</p>';
+ $('#accuse').innerHTML=SUSP.map(s=>`<button type="button" data-s="${s.id}" ${$('#verdict').dataset.done?'disabled':''}>${esc(s.t)}</button>`).join('');
+ $$('#accuse button').forEach(b=>b.onclick=()=>accuse(b.dataset.s))}
+function log(type,label,text){const d=document.createElement('div');d.className='log-e '+type;d.innerHTML=`<span class="label">${esc(label)}</span>${esc(text)}`;$('#log').prepend(d)}
+function runAct(id){if(used.length>=BUDGET)return;const a=ACTS.find(x=>x.id===id);used.push(id);clues.push(a.clue);log(a.type,'Semana '+used.length+' · '+a.b,a.res);
+ if(used.length===BUDGET)log('dead','Presupuesto agotado','Ya no quedan semanas de prueba. Señale la causa raíz con la evidencia que tiene.');renderCase()}
+function accuse(s){const v=$('#verdict');const strong=['survey','tickets','interview'].filter(x=>used.includes(x)).length;
+ if(s==='checkout'&&strong>=2){v.dataset.done='1';v.innerHTML=`<div class="verdict win"><b>Caso resuelto.</b> La causa raíz era el proceso de cobro. Lo demostró con ${strong} pruebas sólidas antes de señalarla. La solución recupera la satisfacción y además sube las ventas, sin rediseñar ninguna tienda. Eso es Pruebas forenses iterativas.</div>`}
+ else if(s==='checkout'){v.innerHTML=`<div class="verdict lose"><b>Intuición correcta, pero sin pruebas.</b> Con ${strong===0?'ninguna prueba':'una sola prueba'} que la respalde, la dirección no cambiará de opinión. Reúna más evidencia (encuestas, tickets, entrevistas).</div>`}
+ else{const t=SUSP.find(x=>x.id===s).t;v.dataset.done='1';v.innerHTML=`<div class="verdict lose"><b>Caso cerrado en falso.</b> Se invierte en "${esc(t.toLowerCase())}" y el problema sigue ahí. Se ha tratado un síntoma, no la causa. Reabra el caso y siga la evidencia.</div>`}
+ renderCase()}
+$('#caseReset').onclick=()=>{used=[];clues=[];$('#log').innerHTML='';const v=$('#verdict');v.innerHTML='';delete v.dataset.done;renderCase()};
+renderCase();
+
+/* Expedientes */
+const CASES=[
+ ['Netflix','ok','f1','Observó el paso de lo físico a lo digital y pasó del DVD al streaming.','Observación detallada del contexto.'],
+ ['Blockbuster','bad','f1','Rechazó asociarse con Netflix y no vio el cambio hacia lo bajo demanda.','No establecer el contexto cuesta caro.'],
+ ['Kodak','bad','f1','Inventó la cámara digital en 1975, pero definió su reto como "proteger el negocio de la película fotográfica".','Un alcance mal acotado ciega a la empresa.'],
+ ['Apple iPhone','ok','f1','Se centró en la experiencia de uso móvil sin dispersarse en otras categorías.','Asegurar la escena da foco.'],
+ ['IBM','ok','f1','Vio que el problema no era el hardware obsoleto, sino el cambio hacia la nube.','Identificar el problema central.'],
+ ['Google Project Oxygen','ok','f1','Acotó la investigación a las conductas que distinguen a un buen mánager.','Fijar límites evita la dispersión.'],
+ ['Toyota','ok','f1','Analizó métricas de producción y creó el Toyota Production System.','Las métricas internas revelan el desperdicio.'],
+ ['BlackBerry','bad','f1','Sus datos mostraban la preferencia por las pantallas táctiles y siguió con el teclado QWERTY.','Ignorar la evidencia propia.'],
+ ['LEGO','ok','f1','El feedback de niños y padres reveló que sus productos eran demasiado complejos.','Escuchar el feedback del cliente.'],
+ ['New Coke','bad','f1','Las catas eran positivas, pero nadie preguntó si los clientes querían un cambio.','Hacer la pregunta correcta.'],
+ ['Spotify','ok','f1','Diseñó un modelo freemium y lo ajustó con datos.','Un modelo de negocio documentado y visible.'],
+ ['WeWork','bad','f1','Arrendamientos a largo plazo con clientes a corto: un punto de dolor sin mapear.','Mapear los puntos de dolor del modelo.'],
+ ['Boeing 737 MAX','bad','f2','Recortes de costes, presión de plazos y cambios sin mapear en el flujo de producción.','Sin causa raíz ni mapa de procesos.'],
+ ['Amazon','ok','f4','Mapas de puntos de dolor y vigilancia continua en sus almacenes.','Monitorización como herramienta del detective.'],
+ ['Uber en China','bad','f3','La lealtad a Didi y otros hábitos de transporte restaron atractivo a su modelo.','Factores culturales y de contexto.'],
+ ['Ford Edsel','bad','f3','Ingeniería, marketing y dirección trabajaban en silos.','Analizar la conducta interna.'],
+ ['Microsoft','ok','f3','Nadella cambió la cultura hacia el aprendizaje y la colaboración, y llegó Azure.','La cultura habilita la innovación.'],
+ ['Nokia','bad','f3','Jerarquía rígida que ignoró a ingenieros y consumidores.','Cuellos de botella conductuales.'],
+ ['Google Project Aristotle','ok','f3','La seguridad psicológica resultó ser la clave de los mejores equipos.','Entender a las personas.'],
+ ['Amazon Echo','ok','f5','Más de 20 iteraciones en casas de empleados.','Prototipos en prueba continua.'],
+ ['Tesla Model 3','ok','f5','Iteraciones y KPIs permitieron pasar a procesos manuales y salvar la producción.','Ajustes basados en datos.'],
+ ['Google Glass','bad','f5','Faltaron iteraciones sobre privacidad, usabilidad y coste.','Probar a fondo antes de escalar.']
+];
+const PH_NAMES={f1:'Investigación',f2:'Forense',f3:'Conductual',f4:'Herramientas',f5:'Iterativa'};
+let fRes='all',fPh='all';
+const filters=$('#filters');
+filters.innerHTML=[['all','Todos'],['ok','Éxitos'],['bad','Fracasos']].map(x=>`<button type="button" class="chip" data-r="${x[0]}" aria-pressed="${x[0]==='all'}">${x[1]}</button>`).join('')+'<span class="sep" aria-hidden="true"></span>'+[['all','Todas las fases'],...Object.entries(PH_NAMES)].map(x=>`<button type="button" class="chip" data-p="${x[0]}" aria-pressed="${x[0]==='all'}">${x[1]}</button>`).join('')+'<span class="count" id="count"></span>';
+$$('[data-r]',filters).forEach(b=>b.onclick=()=>{fRes=b.dataset.r;$$('[data-r]',filters).forEach(x=>x.setAttribute('aria-pressed',x===b));drawCases()});
+$$('[data-p]',filters).forEach(b=>b.onclick=()=>{fPh=b.dataset.p;$$('[data-p]',filters).forEach(x=>x.setAttribute('aria-pressed',x===b));drawCases()});
+function drawCases(){const list=CASES.filter(c=>(fRes==='all'||c[1]===fRes)&&(fPh==='all'||c[2]===fPh));
+ $('#count').textContent=list.length+' expedientes';
+ $('#cases').innerHTML=list.length?list.map(c=>`<article class="case"><div class="case-top"><span class="tag ${c[1]}">${c[1]==='ok'?'Éxito':'Fracaso'}</span><span class="label">Fase ${c[2].slice(1)} · ${PH_NAMES[c[2]]}</span></div><h4>${esc(c[0])}</h4><p>${esc(c[3])}</p><p class="lesson"><b>Lección</b>${esc(c[4])}</p></article>`).join(''):'<p class="muted">No hay expedientes con estos filtros. Pruebe con otra fase.</p>'}
+drawCases();
+
+/* Diagnóstico */
+const QS=[
+ ['P1 · Causa raíz','Antes de proponer soluciones, investigamos qué provoca el problema.'],
+ ['P2 · Evidencia','Decidimos con datos internos, de mercado y de clientes, no por intuición.'],
+ ['P3 · Integral','Escuchamos a primera línea, mandos y dirección, de distintas áreas y países.'],
+ ['P4 · Iteración','Probamos las soluciones a pequeña escala antes de desplegarlas.'],
+ ['P5 · Conducta','Contrastamos lo que clientes y empleados dicen con lo que hacen.'],
+ ['F1 · Escena','Definimos por escrito el alcance y los límites de cada problema.'],
+ ['F1 · Bocetos','Dibujamos procesos y puntos de dolor antes de diagnosticar.'],
+ ['F2 · Forense','Usamos técnicas como 5 Porqués, Ishikawa o Pareto.'],
+ ['F4 · Vigilancia','Tenemos KPIs con alertas tempranas que se revisan con regularidad.'],
+ ['F5 · Escenarios','Hacemos pruebas de estrés y tenemos planes de contingencia.']
+];
+let ans=Array(QS.length).fill(null);
+$('#qList').innerHTML=QS.map((q,i)=>`<div class="q"><p><small>${esc(q[0])}</small>${esc(q[1])}</p><div class="seg" role="group" aria-label="${esc(q[1])}">${['No','A veces','Sí'].map((l,v)=>`<button type="button" data-q="${i}" data-v="${v}" aria-pressed="false">${l}</button>`).join('')}</div></div>`).join('');
+$$('#qList button').forEach(b=>b.onclick=()=>{const i=+b.dataset.q,v=+b.dataset.v;ans[i]=v;$$(`#qList button[data-q="${i}"]`).forEach(x=>x.setAttribute('aria-pressed',x===b));drawDiag()});
+function drawDiag(){const s=ans.reduce((a,v)=>a+(v||0),0),n=ans.filter(v=>v!==null).length;
+ $('#score').innerHTML=s+'<small> / 20</small>';$('#gauge').style.width=(s/20*100)+'%';
+ $('#rank').textContent=n===0?'Responda las preguntas':s>=15?'Detective: su organización investiga':s>=8?'Investigador en formación':'Adivino: soluciones antes que causas';
+ const weak=QS.map((q,i)=>[q,ans[i]]).filter(x=>x[1]!==null&&x[1]<2).slice(0,2);
+ $('#weak').innerHTML=n===0?'Las preguntas sin responder cuentan como 0.':weak.length?'Empiece por: '+weak.map(w=>`<b>${esc(w[0][0])}</b>`).join(' y ')+'.':(n<QS.length?'Siga respondiendo.':'Mantenga el rigor y revise el método en cada proyecto.')}
+$('#diagReset').onclick=()=>{ans=Array(QS.length).fill(null);$$('#qList button').forEach(x=>x.setAttribute('aria-pressed','false'));drawDiag()};
+drawDiag();
+})();
+</script>
+</body>
+</html>
